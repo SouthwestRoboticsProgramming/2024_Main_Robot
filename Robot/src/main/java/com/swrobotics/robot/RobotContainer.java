@@ -43,8 +43,9 @@ public class RobotContainer {
 
         // Create a chooser to select the autonomous
         autoSelector = new SendableChooser<>();
-        autoSelector.addOption("No Auto", () -> blankAuto);
+        autoSelector.setDefaultOption("No Auto", () -> blankAuto);
         SmartDashboard.putData("Auto", autoSelector);
+        
     }
 
     public Command getAutonomousCommand() {
