@@ -2,5 +2,6 @@ rootProject.name = "2024_Main_Robot"
 
 include 'MathLib'
 include 'Messenger:MessengerClient'
+include 'ShuffleLog'
 include 'TaskManager:TaskManager-Core'
 include 'TaskManager:TaskManager-FileSystem'
