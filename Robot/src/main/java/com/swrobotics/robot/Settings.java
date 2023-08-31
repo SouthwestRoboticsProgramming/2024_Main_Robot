@@ -6,6 +6,7 @@ import java.util.Map;
 
 public class Settings {
 
+    /* Determines simulation behavior, set mode to COMPETITION to enter replay mode */
     public static final RobotType robot = RobotType.SIMULATION;
 
     public static Mode getMode() {
@@ -23,13 +24,15 @@ public class Settings {
     }
 
     public static final Map<RobotType, String> logFolders =
-            Map.of(RobotType.COMPETITION, "/media/sda1/");
+            Map.of(RobotType.COMPETITION, "/media/sda1/"); // USB drive
 
+    // Is there actually a robot?
     public enum RobotType {
         COMPETITION,
         SIMULATION
     }
 
+    // Should replay mode be used?
     public enum Mode {
         REAL,
         REPLAY,
