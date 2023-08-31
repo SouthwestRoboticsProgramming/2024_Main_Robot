@@ -30,8 +30,8 @@ public class RobotContainer {
     public final MessengerClient messenger;
 
     public RobotContainer() {
-        // Turn off joystick warnings
-        DriverStation.silenceJoystickConnectionWarning(Settings.getMode() == Settings.Mode.REAL);
+        // Turn off joystick warnings in sim
+        DriverStation.silenceJoystickConnectionWarning(RobotBase.isSimulation());
 
         // Initialize Messenger
         String host = RobotBase.isSimulation() ? MESSENGER_HOST_SIM : MESSENGER_HOST_ROBOT;
