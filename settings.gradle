@@ -1,3 +1,5 @@
 rootProject.name = "2024_Main_Robot"
 
 include 'Messenger:MessengerClient'
+include 'TaskManager:TaskManager-Core'
+include 'TaskManager:TaskManager-FileSystem'
