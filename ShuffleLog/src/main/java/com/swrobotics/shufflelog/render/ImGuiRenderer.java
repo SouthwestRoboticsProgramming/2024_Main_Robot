@@ -94,6 +94,19 @@ public final class ImGuiRenderer implements Renderer2d {
         shapeOrigin = origin;
     }
 
+    private Vector2f transform(double x, double y) {
+        return transformStack.transformPosition(new Vector2f((float) x, (float) y));
+    }
+
+    @Override
+    public void line(double x1, double y1, double x2, double y2) {
+        if (!stroke) return;
+
+        Vector2f start = transform(x1, y1);
+        Vector2f end = transform(x2, y2);
+        draw.addLine(start.x, start.y, end.x, end.y, strokeColor, strokeWidth);
+    }
+
     @Override
     public void rect(double x, double y, double w, double h) {
         throw new UnsupportedOperationException("TODO: Implement this");
@@ -115,7 +128,7 @@ public final class ImGuiRenderer implements Renderer2d {
     public void vertex(double x, double y) {
         if (shapeType == null)
             throw new IllegalStateException("Shape not started");
-        Vector2f pos = transformStack.transformPosition(new Vector2f((float) x, (float) y));
+        Vector2f pos = transform(x, y);
         shapeVertices.add(new ImVec2(pos.x, pos.y));
     }
 

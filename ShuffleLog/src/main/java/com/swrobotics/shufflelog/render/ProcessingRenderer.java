@@ -78,6 +78,11 @@ public final class ProcessingRenderer implements Renderer2d {
     }
 
     @Override
+    public void line(double x1, double y1, double x2, double y2) {
+        graphics.line((float) x1, (float) y1, (float) x2, (float) y2);
+    }
+
+    @Override
     public void rect(double x, double y, double w, double h) {
         graphics.rect((float) x, (float) y, (float) w, (float) h);
     }
