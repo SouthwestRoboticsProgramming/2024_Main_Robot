@@ -1,6 +1,6 @@
 package com.swrobotics.shufflelog.math;
 
-// TODO: Use lookup table for trig
+@Deprecated
 public final class MathUtils {
     public static final float fPI = (float) Math.PI;
 

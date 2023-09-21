@@ -92,6 +92,7 @@ dependencies {
     implementation group: "com.fasterxml.jackson.core", name: "jackson-databind", version: wpi.versions.jacksonVersion.get()
 
     implementation group: "org.ejml", name: "ejml-simple", version: wpi.versions.ejmlVersion.get()
+    implementation group: "org.joml", name: "joml", version: "1.10.5"
 }
 
 jar {

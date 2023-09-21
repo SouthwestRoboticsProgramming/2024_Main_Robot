@@ -2,6 +2,7 @@ package com.swrobotics.shufflelog.math;
 
 import java.util.Objects;
 
+@Deprecated
 public final class Vector2i {
     public int x;
     public int y;

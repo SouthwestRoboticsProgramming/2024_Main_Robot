@@ -2,6 +2,7 @@ package com.swrobotics.shufflelog.math;
 
 import java.nio.ByteBuffer;
 
+@Deprecated
 public final class Vector4f {
     public float x;
     public float y;

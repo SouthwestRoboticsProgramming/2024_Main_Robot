@@ -1,5 +1,6 @@
 package com.swrobotics.shufflelog.math;
 
+@Deprecated
 public final class Ray3f {
     public Vector3f origin;
     public Vector3f direction;

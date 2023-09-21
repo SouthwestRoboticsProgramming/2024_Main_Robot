@@ -1,5 +1,6 @@
 package com.swrobotics.shufflelog.math;
 
+@Deprecated
 public final class Matrix4f {
     public float m00, m01, m02, m03;
     public float m10, m11, m12, m13;
