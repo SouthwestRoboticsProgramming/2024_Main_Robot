@@ -4,6 +4,7 @@ import imgui.ImDrawList;
 import imgui.ImGui;
 import imgui.ImVec2;
 import imgui.flag.ImDrawFlags;
+
 import org.joml.Matrix3x2fStack;
 import org.joml.Vector2f;
 
@@ -64,7 +65,8 @@ public final class ImGuiRenderer implements Renderer2d {
     }
 
     private int color(double r, double g, double b, double a) {
-        return ImGui.getColorU32((float) r / 255, (float) g / 255, (float) b / 255, (float) a / 255);
+        return ImGui.getColorU32(
+                (float) r / 255, (float) g / 255, (float) b / 255, (float) a / 255);
     }
 
     @Override
@@ -119,23 +121,20 @@ public final class ImGuiRenderer implements Renderer2d {
 
     @Override
     public void beginShape(ShapeType type) {
-        if (shapeType != null)
-            throw new IllegalStateException("Shape already began");
+        if (shapeType != null) throw new IllegalStateException("Shape already began");
         shapeType = type;
     }
 
     @Override
     public void vertex(double x, double y) {
-        if (shapeType == null)
-            throw new IllegalStateException("Shape not started");
+        if (shapeType == null) throw new IllegalStateException("Shape not started");
         Vector2f pos = transform(x, y);
         shapeVertices.add(new ImVec2(pos.x, pos.y));
     }
 
     @Override
     public void endShape() {
-        if (shapeType == null)
-            throw new IllegalStateException("Shape not started");
+        if (shapeType == null) throw new IllegalStateException("Shape not started");
 
         ImVec2[] pos = shapeVertices.toArray(new ImVec2[0]);
         shapeVertices.clear();
@@ -143,6 +142,11 @@ public final class ImGuiRenderer implements Renderer2d {
         if (shapeType == ShapeType.POLYGON && fill)
             draw.addConvexPolyFilled(pos, pos.length, fillColor);
         if (stroke)
-            draw.addPolyline(pos, pos.length, strokeColor, shapeType == ShapeType.POLYGON ? ImDrawFlags.Closed : 0, strokeWidth);
+            draw.addPolyline(
+                    pos,
+                    pos.length,
+                    strokeColor,
+                    shapeType == ShapeType.POLYGON ? ImDrawFlags.Closed : 0,
+                    strokeWidth);
     }
 }
