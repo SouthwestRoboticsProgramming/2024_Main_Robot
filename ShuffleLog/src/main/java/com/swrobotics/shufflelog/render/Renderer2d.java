@@ -13,13 +13,14 @@ public interface Renderer2d {
     default void setStroke(double rgb) { setStroke(rgb, rgb, rgb, 255); }
     default void setStroke(double r, double g, double b) { setStroke(r, g, b, 255); }
     void setStroke(double r, double g, double b, double a);
-    void setStrokeWidth(float widthPx);
+    void setStrokeWidth(double widthPx);
 
     void noFill();
     default void setFill(double rgb) { setFill(rgb, rgb, rgb, 255); }
     default void setFill(double r, double g, double b) { setFill(r, g, b, 255); }
     void setFill(double r, double g, double b, double a);
 
+    // Default origin is ShapeOrigin.TOP_LEFT
     void setShapeOrigin(ShapeOrigin origin);
     void rect(double x, double y, double w, double h);
     void ellipse(double x, double y, double w, double h);
