@@ -1,6 +1,10 @@
 package com.swrobotics.shufflelog;
 
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.swrobotics.messenger.client.MessengerClient;
+import com.swrobotics.shufflelog.json.JsonObj;
 import com.swrobotics.shufflelog.profiler.Profiler;
 import com.swrobotics.shufflelog.tool.MenuBarTool;
 import com.swrobotics.shufflelog.tool.PreMatchChecklistTool;
@@ -33,7 +37,6 @@ import processing.core.PFont;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -41,7 +44,7 @@ public final class ShuffleLog extends PApplet {
     public static boolean SIM_MODE;
 
     private static final String LAYOUT_FILE = "layout.ini";
-    private static final String PERSISTENCE_FILE = "persistence.properties";
+    private static final String PERSISTENCE_FILE = "persistence.json";
     private static final int THREAD_POOL_SIZE = 4;
 
     private final ImGuiImplGlfw imGuiGlfw = new ImGuiImplGlfw();
@@ -53,7 +56,8 @@ public final class ShuffleLog extends PApplet {
     private final List<Tool> removedTools = new ArrayList<>();
 
     // Things shared between tools
-    private Properties persistence;
+    private JsonObj persistence;
+//    private Properties persistence;
     private final ExecutorService threadPool = Executors.newFixedThreadPool(THREAD_POOL_SIZE);
     private MessengerClient messenger;
 
@@ -71,16 +75,16 @@ public final class ShuffleLog extends PApplet {
             throw new RuntimeException("Failed to load WPILib libraries", e);
         }
 
-        persistence = new Properties();
-        try {
-            persistence.load(new FileReader(PERSISTENCE_FILE));
+        try (FileReader reader = new FileReader(PERSISTENCE_FILE)) {
+            persistence = new JsonObj(JsonParser.parseReader(reader).getAsJsonObject());
         } catch (IOException e) {
             System.err.println("Failed to load persistence file, using defaults");
-            e.printStackTrace();
+            persistence = new JsonObj(null);
         }
 
-        int width = Integer.parseInt(persistence.getProperty("window.width", "1280"));
-        int height = Integer.parseInt(persistence.getProperty("window.height", "720"));
+        JsonObj window = persistence.getObject("window");
+        int width = window.getInt("width", 1280);
+        int height = window.getInt("height", 720);
         size(width, height, P2D);
     }
 
@@ -143,7 +147,6 @@ public final class ShuffleLog extends PApplet {
         tools.add(msg);
         tools.add(new ShuffleLogProfilerTool(this));
 
-        // Temporarily disabled because TODO: Rework to make not bad
         DataLogTool dataLog = new DataLogTool(this);
         tools.add(dataLog);
         tools.add(new NetworkTablesTool(threadPool, smartDashboard));
@@ -153,6 +156,10 @@ public final class ShuffleLog extends PApplet {
         tools.add(new RoboRIOFilesTool(this));
         tools.add(new FieldViewTool(this));
         if (!SIM_MODE) tools.add(new PreMatchChecklistTool(msg));
+
+        for (Tool tool : tools) {
+            tool.load(persistence);
+        }
 
         startTime = System.currentTimeMillis();
     }
@@ -215,8 +222,13 @@ public final class ShuffleLog extends PApplet {
         ImPlot.destroyContext(imPlotCtx);
         ImGui.destroyContext();
 
-        try {
-            persistence.store(new FileWriter(PERSISTENCE_FILE), "ShuffleLog persistent data");
+        JsonObject persistence = new JsonObject();
+        for (Tool tool : tools) {
+            tool.store(persistence);
+        }
+
+        try (FileWriter writer = new FileWriter(PERSISTENCE_FILE)) {
+            new GsonBuilder().setPrettyPrinting().create().toJson(persistence, writer);
         } catch (IOException e) {
             System.err.println("Failed to save persistent data");
             e.printStackTrace();

@@ -93,6 +93,7 @@ dependencies {
 
     implementation group: "org.ejml", name: "ejml-simple", version: wpi.versions.ejmlVersion.get()
     implementation group: "org.joml", name: "joml", version: "1.10.5"
+    implementation "com.google.code.gson:gson:2.10.1"
 }
 
 jar {
