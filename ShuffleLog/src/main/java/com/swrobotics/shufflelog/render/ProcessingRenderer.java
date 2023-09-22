@@ -105,9 +105,7 @@ public final class ProcessingRenderer implements Renderer2d {
 
     @Override
     public void endShape() {
-        if (shapeIsPolygon)
-            graphics.endShape(PConstants.CLOSE);
-        else
-            graphics.endShape();
+        if (shapeIsPolygon) graphics.endShape(PConstants.CLOSE);
+        else graphics.endShape();
     }
 }
