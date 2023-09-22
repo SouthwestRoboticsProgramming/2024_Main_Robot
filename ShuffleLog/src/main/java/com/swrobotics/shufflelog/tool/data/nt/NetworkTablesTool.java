@@ -1,5 +1,6 @@
 package com.swrobotics.shufflelog.tool.data.nt;
 
+import com.swrobotics.shufflelog.ShuffleLog;
 import com.swrobotics.shufflelog.tool.Tool;
 import com.swrobotics.shufflelog.tool.data.DataLogTool;
 import com.swrobotics.shufflelog.tool.data.PlotDef;
@@ -64,8 +65,13 @@ public final class NetworkTablesTool implements Tool {
     private final ImString tempString = new ImString(1024);
 
     public NetworkTablesTool(ExecutorService threadPool, SmartDashboard smartDashboard) {
-        version = new ImInt(DEFAULT_VERSION);
-        connectionMode = new ImInt(DEFAULT_CONN_MODE);
+        if (ShuffleLog.SIM_MODE) {
+            version = new ImInt(VERSION_NT3);
+            connectionMode = new ImInt(CONN_MODE_ADDRESS);
+        } else {
+            version = new ImInt(DEFAULT_VERSION);
+            connectionMode = new ImInt(DEFAULT_CONN_MODE);
+        }
         host = new ImString(64);
         host.set(DEFAULT_HOST);
         portOrTeamNumber = new ImInt(getDefaultPortOrTeamNumber());
