@@ -12,19 +12,19 @@ import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import imgui.ImGui;
 import imgui.ImVec2;
+import imgui.type.ImBoolean;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public final class SmartDashboard implements Tool {
     private NetworkTable table;
     private Set<String> openItems;
+    private final ImBoolean closeButton;
 
     public SmartDashboard() {
         table = null;
         openItems = new HashSet<>();
+        closeButton = new ImBoolean();
     }
 
     public void init(NetworkTableInstance instance) {
@@ -56,8 +56,14 @@ public final class SmartDashboard implements Tool {
 
     @Override
     public void process() {
-        for (String open : openItems) {
-            if (ImGui.begin("SD: " + open)) {
+        for (Iterator<String> iter = openItems.iterator(); iter.hasNext(); ) {
+            String open = iter.next();
+
+            closeButton.set(true);
+            if (ImGui.begin("SD: " + open, closeButton)) {
+                if (!closeButton.get())
+                    iter.remove();
+
                 if (table == null) {
                     ImGui.textDisabled("No NT instance");
                     ImGui.end();
