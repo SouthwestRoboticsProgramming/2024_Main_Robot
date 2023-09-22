@@ -28,7 +28,7 @@ public final class ImGuiRenderer implements Renderer2d {
         stroke = false;
         fill = false;
         strokeWidth = 1;
-        transformStack = new Matrix3x2fStack();
+        transformStack = new Matrix3x2fStack(32);
         shapeType = null;
         shapeVertices = new ArrayList<>();
     }
@@ -104,12 +104,13 @@ public final class ImGuiRenderer implements Renderer2d {
 
         Vector2f start = transform(x1, y1);
         Vector2f end = transform(x2, y2);
+        System.out.println("Line from " + start + " to " + end);
         draw.addLine(start.x, start.y, end.x, end.y, strokeColor, strokeWidth);
     }
 
     @Override
     public void rect(double x, double y, double w, double h) {
-        throw new UnsupportedOperationException("TODO: Implement this");
+//        throw new UnsupportedOperationException("TODO: Implement this");
     }
 
     @Override
