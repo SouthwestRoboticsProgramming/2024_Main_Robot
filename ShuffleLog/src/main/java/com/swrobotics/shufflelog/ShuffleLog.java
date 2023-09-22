@@ -56,7 +56,7 @@ public final class ShuffleLog extends PApplet {
 
     // Things shared between tools
     private JsonObj persistence;
-//    private Properties persistence;
+    //    private Properties persistence;
     private final ExecutorService threadPool = Executors.newFixedThreadPool(THREAD_POOL_SIZE);
     private MessengerClient messenger;
 

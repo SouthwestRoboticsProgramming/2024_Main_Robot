@@ -7,5 +7,6 @@ public interface Tool {
     void process();
 
     default void load(JsonObj obj) {}
+
     default void store(JsonObject obj) {}
 }
