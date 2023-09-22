@@ -13,6 +13,10 @@ public final class JsonObj {
         return new JsonObj(obj == null ? null : obj.getAsJsonObject(key));
     }
 
+    public JsonArr getArray(String key) {
+        return new JsonArr(obj == null ? null : obj.getAsJsonArray(key));
+    }
+
     public int getInt(String key, int def) {
         if (obj == null || !obj.has(key)) return def;
         return obj.get(key).getAsInt();

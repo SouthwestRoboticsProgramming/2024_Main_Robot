@@ -1,5 +1,10 @@
 package com.swrobotics.shufflelog.tool.smartdashboard;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.swrobotics.shufflelog.json.JsonArr;
+import com.swrobotics.shufflelog.json.JsonObj;
 import com.swrobotics.shufflelog.render.ImGuiRenderer;
 import com.swrobotics.shufflelog.render.Renderer2d;
 import com.swrobotics.shufflelog.tool.Tool;
@@ -98,5 +103,25 @@ public final class SmartDashboard implements Tool {
 
             ImGui.endMenu();
         }
+    }
+
+    @Override
+    public void load(JsonObj obj) {
+        JsonObj config = obj.getObject("smartdashboard");
+        JsonArr openItems = config.getArray("open");
+        for (JsonElement elem : openItems) {
+            this.openItems.add(elem.getAsString());
+        }
+    }
+
+    @Override
+    public void store(JsonObject obj) {
+        JsonObject config = new JsonObject();
+        JsonArray openItems = new JsonArray();
+        for (String item : this.openItems) {
+            openItems.add(item);
+        }
+        config.add("open", openItems);
+        obj.add("smartdashboard", config);
     }
 }
