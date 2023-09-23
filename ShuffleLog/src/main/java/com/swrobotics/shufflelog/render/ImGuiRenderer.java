@@ -111,7 +111,17 @@ public final class ImGuiRenderer implements Renderer2d {
 
     @Override
     public void rect(double x, double y, double w, double h) {
-//        throw new UnsupportedOperationException("TODO: Implement this");
+        if (shapeOrigin == ShapeOrigin.CENTER) {
+            x -= w / 2;
+            y -= h / 2;
+        }
+
+        beginShape(ShapeType.POLYGON);
+        vertex(x, y);
+        vertex(x + w, y);
+        vertex(x + w, y + h);
+        vertex(x, y + h);
+        endShape();
     }
 
     @Override
@@ -148,5 +158,6 @@ public final class ImGuiRenderer implements Renderer2d {
                     strokeColor,
                     shapeType == ShapeType.POLYGON ? ImDrawFlags.Closed : 0,
                     strokeWidth);
+        shapeType = null;
     }
 }

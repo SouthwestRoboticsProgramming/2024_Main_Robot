@@ -14,12 +14,6 @@ import imgui.type.ImInt;
 import java.util.*;
 
 public final class Field2dSettings {
-    public static final int UNITS_METERS = 0;
-    public static final int UNITS_FEET = 1;
-    public static final int UNITS_INCHES = 2;
-    public static final String[] UNITS_NAMES = {"Meters", "Feet", "Inches"};
-
-    public final ImInt units;
     public final ImDouble fieldWidth;
     public final ImDouble fieldHeight;
 
@@ -28,7 +22,6 @@ public final class Field2dSettings {
     public Field2dSettings(JsonObj obj) {
         poseSetSettings = new HashMap<>();
 
-        units = new ImInt(obj.getInt("units", UNITS_METERS));
         fieldWidth = new ImDouble(obj.getDouble("width", 16));
         fieldHeight = new ImDouble(obj.getDouble("height", 8));
 
@@ -56,7 +49,6 @@ public final class Field2dSettings {
     }
 
     public void edit(Set<String> poseSetsToShow) {
-        ImGui.combo("Units", units, UNITS_NAMES);
         ImGui.inputScalar("Field width", ImGuiDataType.Double, fieldWidth);
         ImGui.inputScalar("Field height", ImGuiDataType.Double, fieldHeight);
 
@@ -73,7 +65,6 @@ public final class Field2dSettings {
 
     public JsonObject save() {
         JsonObject obj = new JsonObject();
-        obj.addProperty("units", units.get());
         obj.addProperty("width", fieldWidth.get());
         obj.addProperty("height", fieldHeight.get());
 
@@ -130,10 +121,8 @@ public final class Field2dSettings {
         public void edit() {
             ImGui.combo("Style", style, STYLE_NAMES);
             int style = this.style.get();
-            if (style == STYLE_BOX) {
-                ImGui.inputScalar("Box width", ImGuiDataType.Double, boxWidth);
-                ImGui.inputScalar("Box length", ImGuiDataType.Double, boxLength);
-            }
+            ImGui.inputScalar("Box width", ImGuiDataType.Double, boxWidth);
+            ImGui.inputScalar("Box length", ImGuiDataType.Double, boxLength);
             if (style != STYLE_HIDDEN) {
                 ImGui.inputScalar("Line weight", ImGuiDataType.Double, lineWeight);
                 ImGui.colorEdit3("Line color", lineColor);
@@ -156,7 +145,7 @@ public final class Field2dSettings {
             obj.add("lineColor", colorToArray(lineColor));
             obj.addProperty("arrows", arrows.get());
             obj.addProperty("arrowSize", arrowSize.get());
-            obj.addProperty("arrowWeight", 2);
+            obj.addProperty("arrowWeight", arrowWeight.get());
             obj.add("arrowColor", colorToArray(arrowColor));
             return obj;
         }

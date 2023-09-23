@@ -69,6 +69,8 @@ public final class SmartDashboard implements Tool {
             settings.edit(published);
             ImGui.endPopup();
         }
+
+        view.render(createScaledRenderer(settings.fieldWidth.get(), settings.fieldHeight.get()), settings);
     }
 
     @Override
