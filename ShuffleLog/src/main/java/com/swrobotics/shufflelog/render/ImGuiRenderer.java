@@ -106,7 +106,6 @@ public final class ImGuiRenderer implements Renderer2d {
 
         Vector2f start = transform(x1, y1);
         Vector2f end = transform(x2, y2);
-        System.out.println("Line from " + start + " to " + end);
         draw.addLine(start.x, start.y, end.x, end.y, strokeColor, strokeWidth);
     }
 
