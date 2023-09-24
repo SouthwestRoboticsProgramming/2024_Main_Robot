@@ -37,6 +37,26 @@ public final class SmartDashboard implements Tool {
         table = null;
     }
 
+    private Field2dSettings getField2dSettings(String name) {
+        return field2dSettings.computeIfAbsent(name, (n) -> new Field2dSettings(new JsonObj(null)));
+    }
+
+    public Map<String, Field2dInfo> getAllField2d() {
+        if (table == null)
+            return Collections.emptyMap();
+
+        Set<String> avail = table.getSubTables();
+        Map<String, Field2dInfo> out = new HashMap<>();
+        for (String name : avail) {
+            NetworkTable subTable = table.getSubTable(name);
+            if (subTable.getEntry(".type").getString("unknown").equals("Field2d")) {
+                out.put(name, new Field2dInfo(getField2dSettings(name), new Field2dView(subTable)));
+            }
+        }
+
+        return out;
+    }
+
     private Renderer2d createScaledRenderer(double width, double height) {
         ImVec2 pos = ImGui.getWindowPos();
         ImVec2 min = ImGui.getWindowContentRegionMin();
@@ -61,7 +81,7 @@ public final class SmartDashboard implements Tool {
     }
 
     private void showField2dWindow(String name, Field2dView view) {
-        Field2dSettings settings = field2dSettings.computeIfAbsent(name, (n) -> new Field2dSettings(new JsonObj(null)));
+        Field2dSettings settings = getField2dSettings(name);
         Set<String> published = view.poseSets.keySet();
         settings.update(published);
 

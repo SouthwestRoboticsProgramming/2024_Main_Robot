@@ -8,6 +8,7 @@ import com.swrobotics.messenger.client.MessengerClient;
 import com.swrobotics.shufflelog.ShuffleLog;
 import com.swrobotics.shufflelog.math.*;
 import com.swrobotics.shufflelog.tool.ViewportTool;
+import com.swrobotics.shufflelog.tool.smartdashboard.SmartDashboard;
 import com.swrobotics.shufflelog.util.SmoothFloat;
 
 import imgui.ImGui;
@@ -21,6 +22,7 @@ import imgui.flag.ImGuiTableFlags;
 import imgui.flag.ImGuiWindowFlags;
 import imgui.type.ImInt;
 
+import processing.core.PConstants;
 import processing.core.PGraphics;
 import processing.opengl.PGraphicsOpenGL;
 
@@ -28,6 +30,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public final class FieldViewTool extends ViewportTool {
+    public static final float LAYER_Z_SPACING = 0.01f;
+
     private static final class SmoothMatrix {
         private final SmoothFloat[] elements;
 
@@ -78,7 +82,7 @@ public final class FieldViewTool extends ViewportTool {
     private float orthoScale;
     private float orthoCameraRotYTarget;
 
-    public FieldViewTool(ShuffleLog log) {
+    public FieldViewTool(ShuffleLog log, SmartDashboard smartDashboard) {
         // Be in 3d rendering mode
         super(
                 log,
@@ -90,6 +94,7 @@ public final class FieldViewTool extends ViewportTool {
         layers = new ArrayList<>();
         layers.add(new MeterGridLayer());
         // TODO-Kickoff: Field vector layer 2024
+        layers.add(new Field2dLayer(smartDashboard));
 
         projection = new SmoothMatrix(SMOOTH);
 
@@ -192,11 +197,11 @@ public final class FieldViewTool extends ViewportTool {
 
         float offset = 0;
         for (FieldLayer layer : layers) {
+            g.rectMode(PConstants.CORNER);
+            g.ellipseMode(PConstants.CORNER);
             g.pushMatrix();
-            if (layer.shouldOffset()) {
-                g.translate(0, 0, offset);
-                offset += 0.01;
-            }
+            g.translate(0, 0, offset);
+            offset += layer.getSubLayerCount() * LAYER_Z_SPACING;
             layer.draw(g);
             g.popMatrix();
         }
