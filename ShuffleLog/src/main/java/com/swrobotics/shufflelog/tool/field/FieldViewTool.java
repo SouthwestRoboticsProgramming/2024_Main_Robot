@@ -27,6 +27,7 @@ import org.joml.Matrix4f;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
+
 import processing.core.PConstants;
 import processing.core.PGraphics;
 import processing.opengl.PGraphicsOpenGL;
@@ -278,12 +279,7 @@ public final class FieldViewTool extends ViewportTool {
 
                 ImGuizmo.setRect(x, y, size.x, size.y);
                 ImGuizmo.setAllowAxisFlip(true);
-                ImGuizmo.manipulate(
-                        viewArr,
-                        projArr,
-                        transArr,
-                        gizmoOp,
-                        gizmoMode);
+                ImGuizmo.manipulate(viewArr, projArr, transArr, gizmoOp, gizmoMode);
                 if (ImGuizmo.isUsing()) {
                     gizmoTarget.setTransform(new Matrix4f().set(transArr));
                 }
@@ -295,21 +291,23 @@ public final class FieldViewTool extends ViewportTool {
             float mouseY = mouse.y - y;
 
             if (mouseX >= 0 && mouseY >= 0 && mouseX < size.x && mouseY < size.y) {
-//                Ray3f mouseRay;
+                //                Ray3f mouseRay;
                 Vector3f mouseOrigin, mouseDirection;
                 if (viewMode.get() == MODE_2D) {
                     float rayX = (mouseX - size.x / 2) / orthoScale;
                     float rayY = -(mouseY - size.y / 2) / orthoScale;
                     mouseOrigin = new Vector3f(rayX, rayY, 0);
                     mouseDirection = new Vector3f(0, 0, 1);
-//                    mouseRay = new Ray3f(new Vector3f(rayX, rayY, 0), new Vector3f(0, 0, 1));
+                    //                    mouseRay = new Ray3f(new Vector3f(rayX, rayY, 0), new
+                    // Vector3f(0, 0, 1));
                 } else {
                     float normX = (2.0f * mouseX) / size.x - 1.0f;
                     float normY = 1.0f - (2.0f * mouseY) / size.y;
                     Vector4f clipSpace = new Vector4f(normX, normY, -1, 1);
-                    Vector4f eyeSpace = new Matrix4f(projection.get()).invert().transform(clipSpace);
-//                    mouseRay =
-//                            new Ray3f(
+                    Vector4f eyeSpace =
+                            new Matrix4f(projection.get()).invert().transform(clipSpace);
+                    //                    mouseRay =
+                    //                            new Ray3f(
                     mouseOrigin = new Vector3f(0, 0, 0);
                     mouseDirection = new Vector3f(eyeSpace.x, eyeSpace.y, -1).normalize();
                 }
@@ -317,8 +315,9 @@ public final class FieldViewTool extends ViewportTool {
                 Matrix4f invView = new Matrix4f(view).invert();
                 Vector3f orig = invView.transformPosition(mouseOrigin);
                 Vector3f dir = invView.transformDirection(mouseDirection);
-//                Vector3f orig = invView.transformPosition(mouseRay.getOrigin());
-//                Vector3f dir = invView.transformDirection(mouseRay.getDirection());
+                //                Vector3f orig = invView.transformPosition(mouseRay.getOrigin());
+                //                Vector3f dir =
+                // invView.transformDirection(mouseRay.getDirection());
 
                 float zDelta = -orig.z;
                 float dirScale = zDelta / dir.z;
@@ -334,9 +333,9 @@ public final class FieldViewTool extends ViewportTool {
                 Matrix4f viewRotInv = new Matrix4f(view).invert();
                 viewRotInv.m03(0).m13(0).m23(0);
                 // Remove translation
-//                viewRotInv.m03 = 0;
-//                viewRotInv.m13 = 0;
-//                viewRotInv.m23 = 0;
+                //                viewRotInv.m03 = 0;
+                //                viewRotInv.m13 = 0;
+                //                viewRotInv.m23 = 0;
 
                 if (io.getMouseDown(ImGuiMouseButton.Right)) {
                     // Pan
