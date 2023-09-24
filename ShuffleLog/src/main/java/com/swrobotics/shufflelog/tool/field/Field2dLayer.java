@@ -1,5 +1,7 @@
 package com.swrobotics.shufflelog.tool.field;
 
+import com.google.gson.JsonObject;
+import com.swrobotics.shufflelog.json.JsonObj;
 import com.swrobotics.shufflelog.render.ProcessingRenderer;
 import com.swrobotics.shufflelog.render.Renderer2d;
 import com.swrobotics.shufflelog.tool.smartdashboard.Field2dInfo;
@@ -138,5 +140,36 @@ public final class Field2dLayer implements FieldLayer {
         return count;
     }
 
-    // TODO: Save overlays to persistence
+    @Override
+    public void load(JsonObj obj) {
+        JsonObj field2d = obj.getObject("field2d");
+        for (String key : field2d.keySet()) {
+            JsonObj overlayObj = field2d.getObject(key);
+
+            FieldOverlay overlay = new FieldOverlay();
+            overlay.enabled.set(overlayObj.getBoolean("enabled", false));
+            overlay.unit.set(overlayObj.getInt("unit", UNIT_METERS));
+            overlay.offsetX.set(overlayObj.getDouble("offsetX", 0));
+            overlay.offsetY.set(overlayObj.getDouble("offsetY", 0));
+
+            overlays.put(key, overlay);
+        }
+    }
+
+    @Override
+    public void store(JsonObject obj) {
+        JsonObject field2d = new JsonObject();
+        for (Map.Entry<String, FieldOverlay> entry : overlays.entrySet()) {
+            FieldOverlay overlay = entry.getValue();
+
+            JsonObject overlayObj = new JsonObject();
+            overlayObj.addProperty("enabled", overlay.enabled.get());
+            overlayObj.addProperty("unit", overlay.unit.get());
+            overlayObj.addProperty("offsetX", overlay.offsetX.get());
+            overlayObj.addProperty("offsetY", overlay.offsetY.get());
+
+            field2d.add(entry.getKey(), overlayObj);
+        }
+        obj.add("field2d", field2d);
+    }
 }
