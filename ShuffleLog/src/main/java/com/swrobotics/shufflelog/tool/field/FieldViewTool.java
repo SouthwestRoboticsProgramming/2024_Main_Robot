@@ -100,6 +100,7 @@ public final class FieldViewTool extends ViewportTool {
 
         projection = new SmoothMatrix(SMOOTH);
 
+        // TODO: Rework camera controls so target is always on the XY plane
         cameraRotX = new SmoothFloat(SMOOTH, 0);
         cameraRotY = new SmoothFloat(SMOOTH, 0);
         cameraTargetX = new SmoothFloat(SMOOTH, (float) WIDTH / 2);

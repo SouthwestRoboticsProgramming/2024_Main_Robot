@@ -47,10 +47,12 @@ public final class Field2dLayer implements FieldLayer {
 
     private final SmartDashboard smartDashboard;
     private final Map<String, FieldOverlay> overlays;
+    private String highlightOverlay;
 
     public Field2dLayer(SmartDashboard smartDashboard) {
         this.smartDashboard = smartDashboard;
         overlays = new HashMap<>();
+        highlightOverlay = null;
     }
 
     @Override
@@ -60,7 +62,8 @@ public final class Field2dLayer implements FieldLayer {
 
     @Override
     public void draw(PGraphics g) {
-        for (FieldOverlay overlay : overlays.values()) {
+        for (Map.Entry<String, FieldOverlay> entry : overlays.entrySet()) {
+            FieldOverlay overlay = entry.getValue();
             if (!overlay.shouldRender())
                 continue;
 
@@ -77,7 +80,8 @@ public final class Field2dLayer implements FieldLayer {
             else if (unit == UNIT_INCHES)
                 renderer.scale(INCHES_TO_METERS);
 
-            overlay.view.render(renderer, overlay.settings);
+            // Only show border if highlighted
+            overlay.view.render(renderer, overlay.settings, entry.getKey().equals(highlightOverlay));
             g.popMatrix();
 
             // Spacing between layers
@@ -108,6 +112,7 @@ public final class Field2dLayer implements FieldLayer {
 
         List<String> keys = new ArrayList<>(overlays.keySet());
         keys.sort(String.CASE_INSENSITIVE_ORDER);
+        highlightOverlay = null;
         for (String name : keys) {
             FieldOverlay overlay = overlays.get(name);
 
@@ -115,7 +120,10 @@ public final class Field2dLayer implements FieldLayer {
             if (!overlay.published)
                 ImGui.setNextItemOpen(false);
 
-            if (ImGui.treeNodeEx(name)) {
+            boolean open = ImGui.treeNodeEx(name);
+            if (ImGui.isItemHovered())
+                highlightOverlay = name;
+            if (open) {
                 ImGui.checkbox("Show", overlay.enabled);
                 ImGui.combo("Unit", overlay.unit, UNIT_NAMES);
                 ImGui.inputScalar("Offset X", ImGuiDataType.Double, overlay.offsetX);

@@ -90,7 +90,7 @@ public final class SmartDashboard implements Tool {
             ImGui.endPopup();
         }
 
-        view.render(createScaledRenderer(settings.fieldWidth.get(), settings.fieldHeight.get()), settings);
+        view.render(createScaledRenderer(settings.fieldWidth.get(), settings.fieldHeight.get()), settings, true);
     }
 
     @Override

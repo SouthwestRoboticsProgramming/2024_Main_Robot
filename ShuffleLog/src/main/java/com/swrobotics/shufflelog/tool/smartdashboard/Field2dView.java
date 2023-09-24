@@ -40,12 +40,14 @@ public final class Field2dView {
         r.setStroke(color[0] * 255, color[1] * 255, color[2] * 255);
     }
 
-    public void render(Renderer2d renderer, Field2dSettings settings) {
-        // Border
-        renderer.noFill();
-        renderer.setStroke(255);
-        renderer.setStrokeWidth(2);
-        renderer.rect(0, 0, settings.fieldWidth.get(), settings.fieldHeight.get());
+    public void render(Renderer2d renderer, Field2dSettings settings, boolean drawBorder) {
+        if (drawBorder) {
+            // Border
+            renderer.noFill();
+            renderer.setStroke(255);
+            renderer.setStrokeWidth(2);
+            renderer.rect(0, 0, settings.fieldWidth.get(), settings.fieldHeight.get());
+        }
 
         List<String> sortedKeys = new ArrayList<>(poseSets.keySet());
         sortedKeys.sort(String.CASE_INSENSITIVE_ORDER);
