@@ -4,8 +4,10 @@ import static com.swrobotics.shufflelog.util.ProcessingUtils.setPMatrix;
 
 import static processing.core.PConstants.P3D;
 
+import com.google.gson.JsonObject;
 import com.swrobotics.messenger.client.MessengerClient;
 import com.swrobotics.shufflelog.ShuffleLog;
+import com.swrobotics.shufflelog.json.JsonObj;
 import com.swrobotics.shufflelog.math.*;
 import com.swrobotics.shufflelog.tool.ViewportTool;
 import com.swrobotics.shufflelog.tool.smartdashboard.SmartDashboard;
@@ -379,5 +381,22 @@ public final class FieldViewTool extends ViewportTool {
         for (FieldLayer layer : layers) layer.processAlways();
 
         super.process();
+    }
+
+    @Override
+    public void load(JsonObj obj) {
+        JsonObj fieldViewObj = obj.getObject("field");
+        for (FieldLayer layer : layers) {
+            layer.load(fieldViewObj);
+        }
+    }
+
+    @Override
+    public void store(JsonObject obj) {
+        JsonObject fieldViewObj = new JsonObject();
+        for (FieldLayer layer : layers) {
+            layer.store(fieldViewObj);
+        }
+        obj.add("field", fieldViewObj);
     }
 }

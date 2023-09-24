@@ -26,4 +26,7 @@ public interface FieldLayer {
     void showGui();
 
     default int getSubLayerCount() { return 1; }
+
+    default void load(JsonObj obj) {}
+    default void store(JsonObject obj) {}
 }
