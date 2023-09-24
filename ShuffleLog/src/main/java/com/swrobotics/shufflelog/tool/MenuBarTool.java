@@ -32,10 +32,8 @@ public final class MenuBarTool implements Tool {
             }
 
             if (ImGui.beginMenu("Styles")) {
-                if (ImGui.menuItem("Switch to dark mode"))
-                    Styles.applyDarkColors();
-                if (ImGui.menuItem("Switch to light mode"))
-                    Styles.applyLightColors();
+                if (ImGui.menuItem("Switch to dark mode")) Styles.applyDarkColors();
+                if (ImGui.menuItem("Switch to light mode")) Styles.applyLightColors();
                 ImGui.endMenu();
             }
 
