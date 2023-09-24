@@ -559,7 +559,6 @@ public final class NetworkTablesTool implements Tool {
     @Override
     public void process() {
         if (ImGui.begin(TITLE, ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse)) {
-            ImGui.text("Instances: " + connection.getActiveInstances());
             showConnectionInfo();
             ImGui.separator();
             showData();
