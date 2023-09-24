@@ -544,7 +544,7 @@ public final class NetworkTablesTool implements Tool {
         NetworkTableRepr rootTable = connection.getRootTable();
         if (rootTable == null) {
             ImGui.textDisabled("Not connected");
-        } else if (ImGui.beginTable("data", 3, tableFlags)) {
+        } else if (ImGui.beginChild("scroll") && ImGui.beginTable("data", 3, tableFlags)) {
             NetworkTableRepr metadataTable = rootTable.getSubtable(METADATA_TABLE_NAME);
             ImGui.tableSetupColumn("Name", ImGuiTableColumnFlags.WidthStretch, 3);
             ImGui.tableSetupColumn("Value", ImGuiTableColumnFlags.WidthStretch, 2);
@@ -553,11 +553,12 @@ public final class NetworkTablesTool implements Tool {
             showTable(rootTable, metadataTable, true);
             ImGui.endTable();
         }
+        ImGui.endChild();
     }
 
     @Override
     public void process() {
-        if (ImGui.begin(TITLE)) {
+        if (ImGui.begin(TITLE, ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse)) {
             ImGui.text("Instances: " + connection.getActiveInstances());
             showConnectionInfo();
             ImGui.separator();
