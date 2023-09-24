@@ -28,22 +28,21 @@ public final class Styles {
         io.getFonts().addFontFromMemoryTTF(data, size, fontConfig);
     }
 
-    public static void applyLight() {
+    public static void applyStyling() {
         loadFont("fonts/RobotoMono-Regular.ttf", 15);
 
-        ImGui.styleColorsLight();
         ImGuiStyle style = ImGui.getStyle();
         style.setFrameRounding(4.0f);
         style.setGrabRounding(4.0f);
     }
 
-    public static void applyDark() {
-        loadFont("fonts/RobotoMono-Regular.ttf", 15);
+    public static void applyLightColors() {
+        ImGui.styleColorsLight();
+    }
 
+    public static void applyDarkColors() {
+        ImGui.styleColorsDark();
         ImGuiStyle style = ImGui.getStyle();
-        style.setFrameRounding(4.0f);
-        style.setGrabRounding(4.0f);
-
         style.setColor(ImGuiCol.Text, 0.95f, 0.96f, 0.98f, 1.00f);
         style.setColor(ImGuiCol.TextDisabled, 0.36f, 0.42f, 0.47f, 1.00f);
         style.setColor(ImGuiCol.WindowBg, 0.11f, 0.15f, 0.17f, 1.00f);

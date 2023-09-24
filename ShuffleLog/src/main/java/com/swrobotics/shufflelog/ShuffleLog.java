@@ -124,7 +124,8 @@ public final class ShuffleLog extends PApplet {
         ImGuiIO io = ImGui.getIO();
         io.setIniFilename(LAYOUT_FILE);
         io.setConfigFlags(ImGuiConfigFlags.DockingEnable);
-        Styles.applyDark();
+        Styles.applyStyling();
+        Styles.applyDarkColors();
 
         imGuiGlfw.init(windowHandle, true);
         imGuiGl3.init();

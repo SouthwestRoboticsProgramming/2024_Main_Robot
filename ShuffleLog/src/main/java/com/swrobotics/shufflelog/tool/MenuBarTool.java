@@ -1,5 +1,6 @@
 package com.swrobotics.shufflelog.tool;
 
+import com.swrobotics.shufflelog.Styles;
 import com.swrobotics.shufflelog.tool.smartdashboard.SmartDashboard;
 
 import imgui.ImGui;
@@ -27,6 +28,14 @@ public final class MenuBarTool implements Tool {
                 ImGui.menuItem("Show demo", null, showDemo);
                 ImGui.menuItem("Show plot demo", null, showPlotDemo);
 
+                ImGui.endMenu();
+            }
+
+            if (ImGui.beginMenu("Styles")) {
+                if (ImGui.menuItem("Switch to dark mode"))
+                    Styles.applyDarkColors();
+                if (ImGui.menuItem("Switch to light mode"))
+                    Styles.applyLightColors();
                 ImGui.endMenu();
             }
 
