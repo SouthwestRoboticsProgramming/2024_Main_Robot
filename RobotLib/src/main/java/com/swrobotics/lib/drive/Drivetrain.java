@@ -8,7 +8,6 @@ import com.pathplanner.lib.auto.BaseAutoBuilder;
 import com.swrobotics.lib.field.FieldInfo;
 import com.swrobotics.lib.field.FieldSymmetry;
 import com.swrobotics.lib.gyro.Gyroscope;
-import com.swrobotics.lib.schedule.SwitchableSubsystemBase;
 import com.swrobotics.mathlib.Angle;
 
 import edu.wpi.first.math.geometry.Pose2d;
@@ -20,6 +19,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
+import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -27,7 +27,7 @@ import java.util.List;
 import java.util.Map;
 
 /** Base class for a drivetrain. */
-public abstract class Drivetrain extends SwitchableSubsystemBase {
+public abstract class Drivetrain extends SubsystemBase {
     /** Information about the game field this drive base is running on. */
     protected final FieldInfo fieldInfo;
 
@@ -309,17 +309,7 @@ public abstract class Drivetrain extends SwitchableSubsystemBase {
     }
 
     @Override
-    public void onDisable() {
-        stop();
-    }
-
-    @Override
     public void periodic() {
-        if (!isEnabled()) {
-            stop();
-            return;
-        }
-
         drive(chassisSpeeds);
         chassisSpeeds = new ChassisSpeeds(0, 0, 0);
     }
