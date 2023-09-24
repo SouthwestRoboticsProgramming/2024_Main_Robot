@@ -104,8 +104,6 @@ public final class SmartDashboard implements Tool {
 
             closeButton.set(true);
             if (ImGui.begin("SD: " + open, closeButton)) {
-                if (!closeButton.get()) iter.remove();
-
                 if (table == null) {
                     ImGui.textDisabled("No NT instance");
                     ImGui.end();
@@ -131,6 +129,7 @@ public final class SmartDashboard implements Tool {
                 }
             }
             ImGui.end();
+            if (!closeButton.get()) iter.remove();
         }
     }
 
