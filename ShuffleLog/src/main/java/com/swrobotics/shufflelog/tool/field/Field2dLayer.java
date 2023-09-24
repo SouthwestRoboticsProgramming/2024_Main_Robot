@@ -92,14 +92,11 @@ public final class Field2dLayer implements FieldLayer {
             overlay.published = false;
         }
 
-        // FIXME: Probably shouldn't be a map
-        Map<String, Field2dInfo> infos = smartDashboard.getAllField2d();
-        for (Map.Entry<String, Field2dInfo> entry : infos.entrySet()) {
-            FieldOverlay overlay = overlays.computeIfAbsent(entry.getKey(), (n) -> new FieldOverlay());
+        for (Field2dInfo info : smartDashboard.getAllField2d()) {
+            FieldOverlay overlay = overlays.computeIfAbsent(info.getName(), (n) -> new FieldOverlay());
 
             // Only set published back to true if found in SmartDashboard
             overlay.published = true;
-            Field2dInfo info = entry.getValue();
             overlay.settings = info.getSettings();
             overlay.view = info.getView();
         }
@@ -123,6 +120,9 @@ public final class Field2dLayer implements FieldLayer {
                 ImGui.combo("Unit", overlay.unit, UNIT_NAMES);
                 ImGui.inputScalar("Offset X", ImGuiDataType.Double, overlay.offsetX);
                 ImGui.inputScalar("Offset Y", ImGuiDataType.Double, overlay.offsetY);
+                ImGui.spacing();
+                if (overlay.settings != null && overlay.view != null)
+                    overlay.settings.edit(overlay.view.poseSets.keySet());
 
                 ImGui.treePop();
             }

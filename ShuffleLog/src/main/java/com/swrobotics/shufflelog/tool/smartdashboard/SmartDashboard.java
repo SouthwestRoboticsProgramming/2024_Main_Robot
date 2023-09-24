@@ -41,16 +41,16 @@ public final class SmartDashboard implements Tool {
         return field2dSettings.computeIfAbsent(name, (n) -> new Field2dSettings(new JsonObj(null)));
     }
 
-    public Map<String, Field2dInfo> getAllField2d() {
+    public List<Field2dInfo> getAllField2d() {
         if (table == null)
-            return Collections.emptyMap();
+            return Collections.emptyList();
 
         Set<String> avail = table.getSubTables();
-        Map<String, Field2dInfo> out = new HashMap<>();
+        List<Field2dInfo> out = new ArrayList<>();
         for (String name : avail) {
             NetworkTable subTable = table.getSubTable(name);
             if (subTable.getEntry(".type").getString("unknown").equals("Field2d")) {
-                out.put(name, new Field2dInfo(getField2dSettings(name), new Field2dView(subTable)));
+                out.add(new Field2dInfo(name, getField2dSettings(name), new Field2dView(subTable)));
             }
         }
 
