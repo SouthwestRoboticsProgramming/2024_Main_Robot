@@ -1,6 +1,11 @@
 package com.swrobotics.robot;
 
 import com.swrobotics.messenger.client.MessengerClient;
+import com.swrobotics.robot.Settings.Mode;
+import com.swrobotics.robot.subsystems.drive.Drive;
+import com.swrobotics.robot.subsystems.drive.GyroIO;
+import com.swrobotics.robot.subsystems.drive.GyroIONavX2;
+import com.swrobotics.robot.subsystems.drive.SwerveModuleManager;
 import com.swrobotics.taskmanager.filesystem.FileSystemAPI;
 
 import edu.wpi.first.wpilibj.*;
@@ -29,9 +34,28 @@ public class RobotContainer {
 
     public final MessengerClient messenger;
 
+    private Drive drive;
+
     public RobotContainer() {
         // Turn off joystick warnings in sim
         DriverStation.silenceJoystickConnectionWarning(RobotBase.isSimulation());
+
+        SwerveModuleManager moduleManager = new SwerveModuleManager();
+
+        if (Settings.getMode() != Mode.REPLAY) {
+            switch (Settings.robot) {
+                case COMPETITION:
+                    drive = new Drive(new GyroIONavX2(), moduleManager);
+                    break;
+                case SIMULATION:
+                    drive = new Drive(new GyroIO() {}, moduleManager);
+            }
+        }
+
+        // Instantiate missing subsystems
+        if (drive == null) {
+            drive = new Drive(new GyroIO() {}, moduleManager);
+        }
 
         // Initialize Messenger
         String host = RobotBase.isSimulation() ? MESSENGER_HOST_SIM : MESSENGER_HOST_ROBOT;
