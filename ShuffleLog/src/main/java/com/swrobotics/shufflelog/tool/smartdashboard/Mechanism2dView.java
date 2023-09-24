@@ -1,7 +1,9 @@
 package com.swrobotics.shufflelog.tool.smartdashboard;
 
 import com.swrobotics.shufflelog.render.Renderer2d;
+
 import edu.wpi.first.networktables.NetworkTable;
+
 import org.joml.Vector3f;
 
 import java.util.ArrayList;
@@ -19,7 +21,8 @@ public final class Mechanism2dView {
         backgroundColor = colorFromHex(table.getEntry("backgroundColor").getString("#000000"));
 
         List<String> subTables = new ArrayList<>(table.getSubTables());
-        subTables.sort(String.CASE_INSENSITIVE_ORDER); // Sort by alphabetical for consistency with Glass
+        subTables.sort(
+                String.CASE_INSENSITIVE_ORDER); // Sort by alphabetical for consistency with Glass
         int i = 0;
         roots = new Root[subTables.size()];
         for (String subTable : subTables) {
@@ -29,7 +32,8 @@ public final class Mechanism2dView {
 
     private static Ligament[] getLigaments(NetworkTable table) {
         List<String> subTables = new ArrayList<>(table.getSubTables());
-        subTables.sort(String.CASE_INSENSITIVE_ORDER); // Sort by alphabetical for consistency with Glass
+        subTables.sort(
+                String.CASE_INSENSITIVE_ORDER); // Sort by alphabetical for consistency with Glass
 
         int i = 0;
         Ligament[] ligaments = new Ligament[subTables.size()];

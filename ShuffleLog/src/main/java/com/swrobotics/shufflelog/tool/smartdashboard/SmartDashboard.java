@@ -8,8 +8,10 @@ import com.swrobotics.shufflelog.json.JsonObj;
 import com.swrobotics.shufflelog.render.ImGuiRenderer;
 import com.swrobotics.shufflelog.render.Renderer2d;
 import com.swrobotics.shufflelog.tool.Tool;
+
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
+
 import imgui.ImGui;
 import imgui.ImVec2;
 import imgui.type.ImBoolean;
@@ -42,8 +44,7 @@ public final class SmartDashboard implements Tool {
     }
 
     public List<Field2dInfo> getAllField2d() {
-        if (table == null)
-            return Collections.emptyList();
+        if (table == null) return Collections.emptyList();
 
         Set<String> avail = table.getSubTables();
         List<Field2dInfo> out = new ArrayList<>();
@@ -90,7 +91,10 @@ public final class SmartDashboard implements Tool {
             ImGui.endPopup();
         }
 
-        view.render(createScaledRenderer(settings.fieldWidth.get(), settings.fieldHeight.get()), settings, true);
+        view.render(
+                createScaledRenderer(settings.fieldWidth.get(), settings.fieldHeight.get()),
+                settings,
+                true);
     }
 
     @Override
@@ -100,8 +104,7 @@ public final class SmartDashboard implements Tool {
 
             closeButton.set(true);
             if (ImGui.begin("SD: " + open, closeButton)) {
-                if (!closeButton.get())
-                    iter.remove();
+                if (!closeButton.get()) iter.remove();
 
                 if (table == null) {
                     ImGui.textDisabled("No NT instance");
@@ -117,8 +120,12 @@ public final class SmartDashboard implements Tool {
                 NetworkTable subTable = table.getSubTable(open);
                 String type = subTable.getEntry(".type").getString("unknown");
                 switch (type) {
-                    case "Mechanism2d": showMechanism2dWindow(new Mechanism2dView(subTable)); break;
-                    case "Field2d": showField2dWindow(open, new Field2dView(subTable)); break;
+                    case "Mechanism2d":
+                        showMechanism2dWindow(new Mechanism2dView(subTable));
+                        break;
+                    case "Field2d":
+                        showField2dWindow(open, new Field2dView(subTable));
+                        break;
                     default:
                         ImGui.textDisabled("Unknown item type: " + type);
                 }
@@ -132,18 +139,15 @@ public final class SmartDashboard implements Tool {
             Set<String> avail = table.getSubTables();
             List<String> all = new ArrayList<>(avail);
             for (String name : openItems) {
-                if (!all.contains(name))
-                    all.add(name);
+                if (!all.contains(name)) all.add(name);
             }
             all.sort(String.CASE_INSENSITIVE_ORDER);
 
             for (String name : all) {
                 boolean enabled = openItems.contains(name);
                 if (ImGui.menuItem(name, null, enabled)) {
-                    if (enabled)
-                        openItems.remove(name);
-                    else
-                        openItems.add(name);
+                    if (enabled) openItems.remove(name);
+                    else openItems.add(name);
                 }
             }
 

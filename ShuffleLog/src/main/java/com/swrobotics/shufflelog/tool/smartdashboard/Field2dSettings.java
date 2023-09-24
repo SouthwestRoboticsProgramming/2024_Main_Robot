@@ -5,6 +5,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.swrobotics.shufflelog.json.JsonArr;
 import com.swrobotics.shufflelog.json.JsonObj;
+
 import imgui.ImGui;
 import imgui.flag.ImGuiDataType;
 import imgui.type.ImBoolean;
@@ -83,7 +84,9 @@ public final class Field2dSettings {
         public static final int STYLE_LINE_CLOSED = 2;
         public static final int STYLE_TRACK = 3;
         public static final int STYLE_HIDDEN = 4;
-        public static final String[] STYLE_NAMES = {"Box", "Line", "Line (Closed)", "Track", "Hidden"};
+        public static final String[] STYLE_NAMES = {
+            "Box", "Line", "Line (Closed)", "Track", "Hidden"
+        };
 
         public final ImInt style;
         public final ImDouble boxWidth;
@@ -100,8 +103,7 @@ public final class Field2dSettings {
             int i = 0;
             for (JsonElement elem : arr) {
                 color[i++] = elem.getAsFloat();
-                if (i >= 3)
-                    break;
+                if (i >= 3) break;
             }
             return color;
         }

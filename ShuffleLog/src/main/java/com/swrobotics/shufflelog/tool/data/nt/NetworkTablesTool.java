@@ -5,8 +5,8 @@ import com.swrobotics.shufflelog.tool.Tool;
 import com.swrobotics.shufflelog.tool.data.DataLogTool;
 import com.swrobotics.shufflelog.tool.data.PlotDef;
 import com.swrobotics.shufflelog.tool.data.ValueAccessor;
-
 import com.swrobotics.shufflelog.tool.smartdashboard.SmartDashboard;
+
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.NetworkTableType;

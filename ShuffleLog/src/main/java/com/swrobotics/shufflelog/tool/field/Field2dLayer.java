@@ -8,12 +8,15 @@ import com.swrobotics.shufflelog.tool.smartdashboard.Field2dInfo;
 import com.swrobotics.shufflelog.tool.smartdashboard.Field2dSettings;
 import com.swrobotics.shufflelog.tool.smartdashboard.Field2dView;
 import com.swrobotics.shufflelog.tool.smartdashboard.SmartDashboard;
+
 import edu.wpi.first.math.util.Units;
+
 import imgui.ImGui;
 import imgui.flag.ImGuiDataType;
 import imgui.type.ImBoolean;
 import imgui.type.ImDouble;
 import imgui.type.ImInt;
+
 import processing.core.PGraphics;
 
 import java.util.ArrayList;
@@ -64,8 +67,7 @@ public final class Field2dLayer implements FieldLayer {
     public void draw(PGraphics g) {
         for (Map.Entry<String, FieldOverlay> entry : overlays.entrySet()) {
             FieldOverlay overlay = entry.getValue();
-            if (!overlay.shouldRender())
-                continue;
+            if (!overlay.shouldRender()) continue;
 
             g.pushMatrix();
             Renderer2d renderer = new ProcessingRenderer(g);
@@ -75,13 +77,12 @@ public final class Field2dLayer implements FieldLayer {
 
             // Scale overlay rendering to correct units
             int unit = overlay.unit.get();
-            if (unit == UNIT_FEET)
-                renderer.scale(FEET_TO_METERS);
-            else if (unit == UNIT_INCHES)
-                renderer.scale(INCHES_TO_METERS);
+            if (unit == UNIT_FEET) renderer.scale(FEET_TO_METERS);
+            else if (unit == UNIT_INCHES) renderer.scale(INCHES_TO_METERS);
 
             // Only show border if highlighted
-            overlay.view.render(renderer, overlay.settings, entry.getKey().equals(highlightOverlay));
+            overlay.view.render(
+                    renderer, overlay.settings, entry.getKey().equals(highlightOverlay));
             g.popMatrix();
 
             // Spacing between layers
@@ -97,7 +98,8 @@ public final class Field2dLayer implements FieldLayer {
         }
 
         for (Field2dInfo info : smartDashboard.getAllField2d()) {
-            FieldOverlay overlay = overlays.computeIfAbsent(info.getName(), (n) -> new FieldOverlay());
+            FieldOverlay overlay =
+                    overlays.computeIfAbsent(info.getName(), (n) -> new FieldOverlay());
 
             // Only set published back to true if found in SmartDashboard
             overlay.published = true;
@@ -117,12 +119,10 @@ public final class Field2dLayer implements FieldLayer {
             FieldOverlay overlay = overlays.get(name);
 
             ImGui.beginDisabled(!overlay.published);
-            if (!overlay.published)
-                ImGui.setNextItemOpen(false);
+            if (!overlay.published) ImGui.setNextItemOpen(false);
 
             boolean open = ImGui.treeNodeEx(name);
-            if (ImGui.isItemHovered())
-                highlightOverlay = name;
+            if (ImGui.isItemHovered()) highlightOverlay = name;
             if (open) {
                 ImGui.checkbox("Show", overlay.enabled);
                 ImGui.combo("Unit", overlay.unit, UNIT_NAMES);
@@ -142,8 +142,7 @@ public final class Field2dLayer implements FieldLayer {
     public int getSubLayerCount() {
         int count = 0;
         for (FieldOverlay overlay : overlays.values()) {
-            if (overlay.shouldRender())
-                count++;
+            if (overlay.shouldRender()) count++;
         }
         return count;
     }

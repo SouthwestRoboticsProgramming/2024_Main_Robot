@@ -1,6 +1,7 @@
 package com.swrobotics.shufflelog.tool;
 
 import com.swrobotics.shufflelog.tool.smartdashboard.SmartDashboard;
+
 import imgui.ImGui;
 import imgui.extension.implot.ImPlot;
 import imgui.type.ImBoolean;

@@ -2,6 +2,7 @@ package com.swrobotics.shufflelog.tool.field;
 
 import com.google.gson.JsonObject;
 import com.swrobotics.shufflelog.json.JsonObj;
+
 import processing.core.PGraphics;
 
 public interface FieldLayer {
@@ -25,8 +26,11 @@ public interface FieldLayer {
     /** Draws the ImGui content for this layer. */
     void showGui();
 
-    default int getSubLayerCount() { return 1; }
+    default int getSubLayerCount() {
+        return 1;
+    }
 
     default void load(JsonObj obj) {}
+
     default void store(JsonObject obj) {}
 }

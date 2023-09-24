@@ -3,6 +3,7 @@ package com.swrobotics.shufflelog.tool.smartdashboard;
 import com.swrobotics.shufflelog.render.Renderer2d;
 import com.swrobotics.shufflelog.render.ShapeOrigin;
 import com.swrobotics.shufflelog.render.ShapeType;
+
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.networktables.NetworkTable;
@@ -19,17 +20,16 @@ public final class Field2dView {
         poseSets = new HashMap<>();
 
         for (String key : table.getKeys()) {
-            if (key.startsWith("."))
-                continue;
+            if (key.startsWith(".")) continue;
 
             double[] components = table.getEntry(key).getDoubleArray(new double[0]);
             Pose2d[] poses = new Pose2d[components.length / 3];
             for (int i = 0; i < poses.length; i++) {
-                poses[i] = new Pose2d(
-                        components[i * 3],
-                        components[i * 3 + 1],
-                        Rotation2d.fromDegrees(components[i * 3 + 2])
-                );
+                poses[i] =
+                        new Pose2d(
+                                components[i * 3],
+                                components[i * 3 + 1],
+                                Rotation2d.fromDegrees(components[i * 3 + 2]));
             }
 
             poseSets.put(key, poses);
@@ -62,8 +62,12 @@ public final class Field2dView {
             stroke(renderer, poseSettings.lineColor);
             renderer.noFill();
             int style = poseSettings.style.get();
-            if (style == Field2dSettings.PoseSetSettings.STYLE_LINE || style == Field2dSettings.PoseSetSettings.STYLE_LINE_CLOSED) {
-                renderer.beginShape(style == Field2dSettings.PoseSetSettings.STYLE_LINE_CLOSED ? ShapeType.POLYGON : ShapeType.LINE_STRIP);
+            if (style == Field2dSettings.PoseSetSettings.STYLE_LINE
+                    || style == Field2dSettings.PoseSetSettings.STYLE_LINE_CLOSED) {
+                renderer.beginShape(
+                        style == Field2dSettings.PoseSetSettings.STYLE_LINE_CLOSED
+                                ? ShapeType.POLYGON
+                                : ShapeType.LINE_STRIP);
                 for (Pose2d pose : poses) {
                     renderer.vertex(pose.getX(), pose.getY());
                 }

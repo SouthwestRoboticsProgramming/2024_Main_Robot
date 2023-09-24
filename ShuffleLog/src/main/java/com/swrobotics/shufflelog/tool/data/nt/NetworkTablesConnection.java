@@ -1,6 +1,7 @@
 package com.swrobotics.shufflelog.tool.data.nt;
 
 import com.swrobotics.shufflelog.tool.smartdashboard.SmartDashboard;
+
 import edu.wpi.first.networktables.NetworkTableInstance;
 
 import imgui.ImGui;
