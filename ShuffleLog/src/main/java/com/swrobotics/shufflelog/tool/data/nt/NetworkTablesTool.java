@@ -147,9 +147,8 @@ public final class NetworkTablesTool implements Tool {
                 break;
             case BOOL_MODE_MOMENTARY:
             case BOOL_MODE_INV_MOMENTARY:
-                val.set(
-                        ImGui.button((val.get() ? "True" : "False") + "##bool")
-                                ^ (mode == BOOL_MODE_INV_MOMENTARY));
+                ImGui.button((val.get() ? "True" : "False") + "##bool");
+                val.set(ImGui.isItemActive() ^ (mode == BOOL_MODE_INV_MOMENTARY));
                 break;
             case BOOL_MODE_INDICATOR:
                 float textSz = ImGui.getTextLineHeight();
