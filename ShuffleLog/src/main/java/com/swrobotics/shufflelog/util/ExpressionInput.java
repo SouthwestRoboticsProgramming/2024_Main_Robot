@@ -3,6 +3,7 @@ package com.swrobotics.shufflelog.util;
 import imgui.ImGui;
 import imgui.flag.ImGuiCol;
 import imgui.type.ImDouble;
+import imgui.type.ImInt;
 import imgui.type.ImString;
 
 import java.util.*;
@@ -10,6 +11,45 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 
 public final class ExpressionInput {
+    private static final ExpressionInput INSTANCE = new ExpressionInput();
+
+    public static void newFrame() {
+        INSTANCE.clearInactive();
+    }
+
+    public static boolean inputDouble(String label, ImDouble value) {
+        return INSTANCE.edit(label, new ValueIO() {
+            @Override
+            public double get() {
+                return value.get();
+            }
+
+            @Override
+            public void set(double v) {
+                value.set(v);
+            }
+        }, "%.6f");
+    }
+
+    public static boolean inputInt(String label, ImInt value) {
+        return INSTANCE.edit(label, new ValueIO() {
+            @Override
+            public double get() {
+                return value.get();
+            }
+
+            @Override
+            public void set(double v) {
+                value.set((int) v);
+            }
+        }, "%.0f");
+    }
+
+    private interface ValueIO {
+        double get();
+        void set(double v);
+    }
+
     private static final class State {
         ImString inputBuffer = null;
         boolean wasActive = false;
@@ -20,7 +60,7 @@ public final class ExpressionInput {
     private final Set<Integer> inactive;
     private ImString inactivePreview;
 
-    public ExpressionInput() {
+    private ExpressionInput() {
         inputStorage = new HashMap<>();
         inactive = new HashSet<>();
         inactivePreview = new ImString(128);
@@ -290,11 +330,11 @@ public final class ExpressionInput {
         return valStack.pop();
     }
 
-    public Double tryParse(String expr) {
+    private Double tryParse(String expr) {
         return parseExpr(new Lexer(expr), false);
     }
 
-    public void inputDouble(String label, ImDouble value) {
+    private boolean edit(String label, ValueIO io, String previewFmt) {
         // Get stored state
         Integer id = ImGui.getID(label);
         State state = inputStorage.computeIfAbsent(id, (l) -> new State());
@@ -305,13 +345,13 @@ public final class ExpressionInput {
             str = state.inputBuffer;
         } else {
             str = inactivePreview;
-            str.set(String.format("%.6f", value.get())); // Preview stored value
+            str.set(String.format(previewFmt, io.get())); // Preview stored value
         }
 
         boolean colorInvalid = state.wasActive && !state.exprValid;
         if (colorInvalid)
             ImGui.pushStyleColor(ImGuiCol.FrameBg, 0.3f, 0.1f, 0.1f, 1.0f);
-        ImGui.inputText(label, str);
+        boolean change = ImGui.inputText(label, str);
         if (colorInvalid)
             ImGui.popStyleColor();
 
@@ -323,16 +363,20 @@ public final class ExpressionInput {
                 inactivePreview = new ImString(128);
             }
 
-            // Attempt to parse current value
-            Double newVal = tryParse(state.inputBuffer.get());
-            if (state.exprValid = newVal != null) {
-                value.set(newVal);
+            if (change) {
+                // Attempt to parse current value
+                Double newVal = tryParse(state.inputBuffer.get());
+                if (state.exprValid = newVal != null) {
+                    io.set(newVal);
+                }
             }
         }
         state.wasActive = active;
+
+        return change;
     }
 
-    public void newFrame() {
+    public void clearInactive() {
         for (Integer s : inactive) {
             inputStorage.remove(s);
         }
