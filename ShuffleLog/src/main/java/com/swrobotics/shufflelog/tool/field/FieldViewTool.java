@@ -85,6 +85,7 @@ public final class FieldViewTool extends ViewportTool {
     private final ImInt viewMode;
 
     private Vector2f cursorPos;
+    private float prevMouseX, prevMouseY;
     private float orthoScale;
     private float orthoCameraRotYTarget;
 
@@ -104,7 +105,6 @@ public final class FieldViewTool extends ViewportTool {
 
         projection = new SmoothMatrix(SMOOTH);
 
-        // TODO: Rework camera controls so target is always on the XY plane
         cameraRotX = new SmoothFloat(SMOOTH, 0);
         cameraRotY = new SmoothFloat(SMOOTH, 0);
         cameraTargetX = new SmoothFloat(SMOOTH, (float) WIDTH / 2);
@@ -290,73 +290,27 @@ public final class FieldViewTool extends ViewportTool {
             float mouseX = mouse.x - x;
             float mouseY = mouse.y - y;
 
-            if (mouseX >= 0 && mouseY >= 0 && mouseX < size.x && mouseY < size.y) {
-                //                Ray3f mouseRay;
-                Vector3f mouseOrigin, mouseDirection;
-                if (viewMode.get() == MODE_2D) {
-                    float rayX = (mouseX - size.x / 2) / orthoScale;
-                    float rayY = -(mouseY - size.y / 2) / orthoScale;
-                    mouseOrigin = new Vector3f(rayX, rayY, 0);
-                    mouseDirection = new Vector3f(0, 0, 1);
-                    //                    mouseRay = new Ray3f(new Vector3f(rayX, rayY, 0), new
-                    // Vector3f(0, 0, 1));
-                } else {
-                    float normX = (2.0f * mouseX) / size.x - 1.0f;
-                    float normY = 1.0f - (2.0f * mouseY) / size.y;
-                    Vector4f clipSpace = new Vector4f(normX, normY, -1, 1);
-                    Vector4f eyeSpace =
-                            new Matrix4f(projection.get()).invert().transform(clipSpace);
-                    //                    mouseRay =
-                    //                            new Ray3f(
-                    mouseOrigin = new Vector3f(0, 0, 0);
-                    mouseDirection = new Vector3f(eyeSpace.x, eyeSpace.y, -1).normalize();
-                }
-
-                Matrix4f invView = new Matrix4f(view).invert();
-                Vector3f orig = invView.transformPosition(mouseOrigin);
-                Vector3f dir = invView.transformDirection(mouseDirection);
-                //                Vector3f orig = invView.transformPosition(mouseRay.getOrigin());
-                //                Vector3f dir =
-                // invView.transformDirection(mouseRay.getDirection());
-
-                float zDelta = -orig.z;
-                float dirScale = zDelta / dir.z;
-
-                cursorPos = new Vector2f(orig.x + dir.x * dirScale, orig.y + dir.y * dirScale);
-            } else {
-                cursorPos = null;
-            }
+            cursorPos = calcCursorPos(mouseX, mouseY, size);
+            Vector2f prevCursorPos = calcCursorPos(prevMouseX, prevMouseY, size);
+            prevMouseX = mouseX;
+            prevMouseY = mouseY;
 
             if (hovered && !gizmoConsumesMouse) {
                 ImGuiIO io = ImGui.getIO();
 
-                Matrix4f viewRotInv = new Matrix4f(view).invert();
-                viewRotInv.m03(0).m13(0).m23(0);
+//                Matrix4f viewRotInv = new Matrix4f(view).invert();
+//                viewRotInv.m03(0).m13(0).m23(0);
                 // Remove translation
                 //                viewRotInv.m03 = 0;
                 //                viewRotInv.m13 = 0;
                 //                viewRotInv.m23 = 0;
 
-                if (io.getMouseDown(ImGuiMouseButton.Right)) {
+                if (io.getMouseDown(ImGuiMouseButton.Right) && cursorPos != null && prevCursorPos != null) {
                     // Pan
 
-                    float deltaX = io.getMouseDeltaX();
-                    float deltaY = io.getMouseDeltaY();
-
-                    Vector3f up = viewRotInv.transformPosition(new Vector3f(0, 1, 0)).normalize();
-                    Vector3f right =
-                            viewRotInv.transformPosition(new Vector3f(1, 0, 0)).normalize();
-
-                    float dist = cameraDist.get();
-                    float scaleUp = deltaY * 0.002f * dist;
-                    float scaleRight = deltaX * -0.002f * dist;
-
-                    cameraTargetX.set(
-                            cameraTargetX.getTarget() + up.x * scaleUp + right.x * scaleRight);
-                    cameraTargetY.set(
-                            cameraTargetY.getTarget() + up.y * scaleUp + right.y * scaleRight);
-                    cameraTargetZ.set(
-                            cameraTargetZ.getTarget() + up.z * scaleUp + right.z * scaleRight);
+                    Vector2f delta = new Vector2f(cursorPos).sub(prevCursorPos);
+                    cameraTargetX.set(cameraTargetX.getTarget() - delta.x);
+                    cameraTargetY.set(cameraTargetY.getTarget() - delta.y);
                 }
 
                 if (viewMode.get() == MODE_3D) {
@@ -389,6 +343,45 @@ public final class FieldViewTool extends ViewportTool {
             }
             ImGui.endChild();
             ImGui.endTable();
+        }
+    }
+
+    private Vector2f calcCursorPos(float mouseX, float mouseY, ImVec2 size) {
+        if (mouseX >= 0 && mouseY >= 0 && mouseX < size.x && mouseY < size.y) {
+            //                Ray3f mouseRay;
+            Vector3f mouseOrigin, mouseDirection;
+            if (viewMode.get() == MODE_2D) {
+                float rayX = (mouseX - size.x / 2) / orthoScale;
+                float rayY = -(mouseY - size.y / 2) / orthoScale;
+                mouseOrigin = new Vector3f(rayX, rayY, 0);
+                mouseDirection = new Vector3f(0, 0, 1);
+                //                    mouseRay = new Ray3f(new Vector3f(rayX, rayY, 0), new
+                // Vector3f(0, 0, 1));
+            } else {
+                float normX = (2.0f * mouseX) / size.x - 1.0f;
+                float normY = 1.0f - (2.0f * mouseY) / size.y;
+                Vector4f clipSpace = new Vector4f(normX, normY, -1, 1);
+                Vector4f eyeSpace =
+                        new Matrix4f(projection.get()).invert().transform(clipSpace);
+                //                    mouseRay =
+                //                            new Ray3f(
+                mouseOrigin = new Vector3f(0, 0, 0);
+                mouseDirection = new Vector3f(eyeSpace.x, eyeSpace.y, -1).normalize();
+            }
+
+            Matrix4f invView = new Matrix4f(view).invert();
+            Vector3f orig = invView.transformPosition(mouseOrigin);
+            Vector3f dir = invView.transformDirection(mouseDirection);
+            //                Vector3f orig = invView.transformPosition(mouseRay.getOrigin());
+            //                Vector3f dir =
+            // invView.transformDirection(mouseRay.getDirection());
+
+            float zDelta = -orig.z;
+            float dirScale = zDelta / dir.z;
+
+            return new Vector2f(orig.x + dir.x * dirScale, orig.y + dir.y * dirScale);
+        } else {
+            return null;
         }
     }
 
