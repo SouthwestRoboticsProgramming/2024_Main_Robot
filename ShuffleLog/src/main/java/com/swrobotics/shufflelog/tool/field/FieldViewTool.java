@@ -298,14 +298,16 @@ public final class FieldViewTool extends ViewportTool {
             if (hovered && !gizmoConsumesMouse) {
                 ImGuiIO io = ImGui.getIO();
 
-//                Matrix4f viewRotInv = new Matrix4f(view).invert();
-//                viewRotInv.m03(0).m13(0).m23(0);
+                //                Matrix4f viewRotInv = new Matrix4f(view).invert();
+                //                viewRotInv.m03(0).m13(0).m23(0);
                 // Remove translation
                 //                viewRotInv.m03 = 0;
                 //                viewRotInv.m13 = 0;
                 //                viewRotInv.m23 = 0;
 
-                if (io.getMouseDown(ImGuiMouseButton.Right) && cursorPos != null && prevCursorPos != null) {
+                if (io.getMouseDown(ImGuiMouseButton.Right)
+                        && cursorPos != null
+                        && prevCursorPos != null) {
                     // Pan
 
                     Vector2f delta = new Vector2f(cursorPos).sub(prevCursorPos);
@@ -361,8 +363,7 @@ public final class FieldViewTool extends ViewportTool {
                 float normX = (2.0f * mouseX) / size.x - 1.0f;
                 float normY = 1.0f - (2.0f * mouseY) / size.y;
                 Vector4f clipSpace = new Vector4f(normX, normY, -1, 1);
-                Vector4f eyeSpace =
-                        new Matrix4f(projection.get()).invert().transform(clipSpace);
+                Vector4f eyeSpace = new Matrix4f(projection.get()).invert().transform(clipSpace);
                 //                    mouseRay =
                 //                            new Ray3f(
                 mouseOrigin = new Vector3f(0, 0, 0);
