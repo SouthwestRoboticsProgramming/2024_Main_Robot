@@ -3,6 +3,7 @@ package com.swrobotics.shufflelog.util;
 import imgui.ImGui;
 import imgui.flag.ImGuiCol;
 import imgui.type.ImDouble;
+import imgui.type.ImFloat;
 import imgui.type.ImInt;
 import imgui.type.ImString;
 
@@ -17,6 +18,20 @@ public final class ExpressionInput {
         INSTANCE.clearInactive();
     }
 
+    public static boolean inputDouble(String label, double[] value) {
+        return INSTANCE.edit(label, new ValueIO() {
+            @Override
+            public double get() {
+                return value[0];
+            }
+
+            @Override
+            public void set(double v) {
+                value[0] = v;
+            }
+        }, "%.6f");
+    }
+
     public static boolean inputDouble(String label, ImDouble value) {
         return INSTANCE.edit(label, new ValueIO() {
             @Override
@@ -29,6 +44,48 @@ public final class ExpressionInput {
                 value.set(v);
             }
         }, "%.6f");
+    }
+
+    public static boolean inputFloat(String label, float[] value) {
+        return INSTANCE.edit(label, new ValueIO() {
+            @Override
+            public double get() {
+                return value[0];
+            }
+
+            @Override
+            public void set(double v) {
+                value[0] = (float) v;
+            }
+        }, "%.3f");
+    }
+
+    public static boolean inputFloat(String label, ImFloat value) {
+        return INSTANCE.edit(label, new ValueIO() {
+            @Override
+            public double get() {
+                return value.get();
+            }
+
+            @Override
+            public void set(double v) {
+                value.set((float) v);
+            }
+        }, "%.6f");
+    }
+
+    public static boolean inputInt(String label, int[] value) {
+        return INSTANCE.edit(label, new ValueIO() {
+            @Override
+            public double get() {
+                return value[0];
+            }
+
+            @Override
+            public void set(double v) {
+                value[0] = (int) v;
+            }
+        }, "%.0f");
     }
 
     public static boolean inputInt(String label, ImInt value) {
@@ -363,12 +420,10 @@ public final class ExpressionInput {
                 inactivePreview = new ImString(128);
             }
 
-            if (change) {
-                // Attempt to parse current value
-                Double newVal = tryParse(state.inputBuffer.get());
-                if (state.exprValid = newVal != null) {
-                    io.set(newVal);
-                }
+            // Attempt to parse current value
+            Double newVal = tryParse(state.inputBuffer.get());
+            if (state.exprValid = newVal != null) {
+                io.set(newVal);
             }
         }
         state.wasActive = active;

@@ -6,6 +6,7 @@ import com.google.gson.JsonObject;
 import com.swrobotics.shufflelog.json.JsonArr;
 import com.swrobotics.shufflelog.json.JsonObj;
 
+import com.swrobotics.shufflelog.util.ExpressionInput;
 import imgui.ImGui;
 import imgui.flag.ImGuiDataType;
 import imgui.type.ImBoolean;
@@ -50,8 +51,8 @@ public final class Field2dSettings {
     }
 
     public void edit(Set<String> poseSetsToShow) {
-        ImGui.inputScalar("Field width", ImGuiDataType.Double, fieldWidth);
-        ImGui.inputScalar("Field height", ImGuiDataType.Double, fieldHeight);
+        ExpressionInput.inputDouble("Field width", fieldWidth);
+        ExpressionInput.inputDouble("Field height", fieldHeight);
 
         List<String> keys = new ArrayList<>(poseSetsToShow);
         keys.sort(String.CASE_INSENSITIVE_ORDER);
@@ -123,17 +124,17 @@ public final class Field2dSettings {
         public void edit() {
             ImGui.combo("Style", style, STYLE_NAMES);
             int style = this.style.get();
-            ImGui.inputScalar("Box width", ImGuiDataType.Double, boxWidth);
-            ImGui.inputScalar("Box length", ImGuiDataType.Double, boxLength);
+            ExpressionInput.inputDouble("Box width",  boxWidth);
+            ExpressionInput.inputDouble("Box length", boxLength);
             if (style != STYLE_HIDDEN) {
-                ImGui.inputScalar("Line weight", ImGuiDataType.Double, lineWeight);
+                ExpressionInput.inputDouble("Line weight", lineWeight);
                 ImGui.colorEdit3("Line color", lineColor);
             }
             ImGui.spacing();
             ImGui.checkbox("Arrows", arrows);
             if (arrows.get()) {
                 ImGui.sliderScalar("Arrow size", ImGuiDataType.Double, arrowSize, 0, 1);
-                ImGui.inputScalar("Arrow weight", ImGuiDataType.Double, arrowWeight);
+                ExpressionInput.inputDouble("Arrow weight", arrowWeight);
                 ImGui.colorEdit3("Arrow color", arrowColor);
             }
         }

@@ -9,10 +9,10 @@ import com.swrobotics.shufflelog.tool.smartdashboard.Field2dSettings;
 import com.swrobotics.shufflelog.tool.smartdashboard.Field2dView;
 import com.swrobotics.shufflelog.tool.smartdashboard.SmartDashboard;
 
+import com.swrobotics.shufflelog.util.ExpressionInput;
 import edu.wpi.first.math.util.Units;
 
 import imgui.ImGui;
-import imgui.flag.ImGuiDataType;
 import imgui.type.ImBoolean;
 import imgui.type.ImDouble;
 import imgui.type.ImInt;
@@ -126,8 +126,8 @@ public final class Field2dLayer implements FieldLayer {
             if (open) {
                 ImGui.checkbox("Show", overlay.enabled);
                 ImGui.combo("Unit", overlay.unit, UNIT_NAMES);
-                ImGui.inputScalar("Offset X", ImGuiDataType.Double, overlay.offsetX);
-                ImGui.inputScalar("Offset Y", ImGuiDataType.Double, overlay.offsetY);
+                ExpressionInput.inputDouble("Offset X", overlay.offsetX);
+                ExpressionInput.inputDouble("Offset Y", overlay.offsetY);
                 ImGui.spacing();
                 if (overlay.settings != null && overlay.view != null)
                     overlay.settings.edit(overlay.view.poseSets.keySet());

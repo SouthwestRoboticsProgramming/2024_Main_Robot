@@ -7,6 +7,7 @@ import com.swrobotics.shufflelog.tool.data.PlotDef;
 import com.swrobotics.shufflelog.tool.data.ValueAccessor;
 import com.swrobotics.shufflelog.tool.smartdashboard.SmartDashboard;
 
+import com.swrobotics.shufflelog.util.ExpressionInput;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.NetworkTableType;
@@ -164,17 +165,17 @@ public final class NetworkTablesTool implements Tool {
 
     private void editInt(ValueAccessor<Integer> val) {
         int[] tempVal = {val.get()};
-        if (ImGui.dragInt("##int", tempVal)) val.set(tempVal[0]);
+        if (ExpressionInput.inputInt("##int", tempVal)) val.set(tempVal[0]);
     }
 
     private void editFloat(ValueAccessor<Float> val) {
         float[] tempVal = {val.get()};
-        if (ImGui.dragFloat("##float", tempVal)) val.set(tempVal[0]);
+        if (ExpressionInput.inputFloat("##float", tempVal)) val.set(tempVal[0]);
     }
 
     private void editDouble(ValueAccessor<Double> val) {
         tempDouble.set(val.get());
-        if (ImGui.dragScalar("##double", ImGuiDataType.Double, tempDouble, 1))
+        if (ExpressionInput.inputDouble("##double", tempDouble))
             val.set(tempDouble.get());
     }
 

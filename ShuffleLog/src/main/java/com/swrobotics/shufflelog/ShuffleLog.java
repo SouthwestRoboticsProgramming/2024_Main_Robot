@@ -183,6 +183,7 @@ public final class ShuffleLog extends PApplet {
         imGuiGlfw.newFrame();
         ImGui.newFrame();
         ImGuizmo.beginFrame();
+        ExpressionInput.newFrame();
         Profiler.pop();
 
         background(210);
@@ -206,7 +207,6 @@ public final class ShuffleLog extends PApplet {
         addedTools.clear();
         removedTools.clear();
 
-        ExpressionInput.newFrame();
         if (ImGui.begin("Expr test")) {
             ExpressionInput.inputDouble("Test", testDouble);
             ExpressionInput.inputInt("Int", testInt);
