@@ -207,13 +207,6 @@ public final class ShuffleLog extends PApplet {
         addedTools.clear();
         removedTools.clear();
 
-        if (ImGui.begin("Expr test")) {
-            ExpressionInput.inputDouble("Test", testDouble);
-            ExpressionInput.inputInt("Int", testInt);
-            ImGui.text("Values are: " + testDouble.get() + " " + testInt.get());
-        }
-        ImGui.end();
-
         Profiler.push("Render GUI");
         Profiler.push("Flush");
         flush();
@@ -226,8 +219,6 @@ public final class ShuffleLog extends PApplet {
 
         Profiler.endMeasurements();
     }
-    ImDouble testDouble = new ImDouble(123);
-    ImInt testInt = new ImInt(456);
 
     @Override
     public void exit() {
