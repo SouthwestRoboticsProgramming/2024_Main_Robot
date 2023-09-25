@@ -8,8 +8,8 @@ import com.swrobotics.shufflelog.tool.smartdashboard.Field2dInfo;
 import com.swrobotics.shufflelog.tool.smartdashboard.Field2dSettings;
 import com.swrobotics.shufflelog.tool.smartdashboard.Field2dView;
 import com.swrobotics.shufflelog.tool.smartdashboard.SmartDashboard;
-
 import com.swrobotics.shufflelog.util.ExpressionInput;
+
 import edu.wpi.first.math.util.Units;
 
 import imgui.ImGui;

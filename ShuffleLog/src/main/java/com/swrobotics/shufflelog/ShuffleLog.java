@@ -17,8 +17,8 @@ import com.swrobotics.shufflelog.tool.profile.ShuffleLogProfilerTool;
 import com.swrobotics.shufflelog.tool.smartdashboard.SmartDashboard;
 import com.swrobotics.shufflelog.tool.taskmanager.RoboRIOFilesTool;
 import com.swrobotics.shufflelog.tool.taskmanager.TaskManagerTool;
-
 import com.swrobotics.shufflelog.util.ExpressionInput;
+
 import edu.wpi.first.math.WPIMathJNI;
 import edu.wpi.first.networktables.NetworkTablesJNI;
 import edu.wpi.first.util.CombinedRuntimeLoader;
@@ -32,8 +32,6 @@ import imgui.extension.implot.ImPlotContext;
 import imgui.flag.ImGuiConfigFlags;
 import imgui.gl3.ImGuiImplGl3;
 
-import imgui.type.ImDouble;
-import imgui.type.ImInt;
 import processing.core.PApplet;
 import processing.core.PFont;
 

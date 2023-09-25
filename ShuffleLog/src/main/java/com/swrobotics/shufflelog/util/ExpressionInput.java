@@ -19,91 +19,110 @@ public final class ExpressionInput {
     }
 
     public static boolean inputDouble(String label, double[] value) {
-        return INSTANCE.edit(label, new ValueIO() {
-            @Override
-            public double get() {
-                return value[0];
-            }
+        return INSTANCE.edit(
+                label,
+                new ValueIO() {
+                    @Override
+                    public double get() {
+                        return value[0];
+                    }
 
-            @Override
-            public void set(double v) {
-                value[0] = v;
-            }
-        }, "%.6f");
+                    @Override
+                    public void set(double v) {
+                        value[0] = v;
+                    }
+                },
+                "%.6f");
     }
 
     public static boolean inputDouble(String label, ImDouble value) {
-        return INSTANCE.edit(label, new ValueIO() {
-            @Override
-            public double get() {
-                return value.get();
-            }
+        return INSTANCE.edit(
+                label,
+                new ValueIO() {
+                    @Override
+                    public double get() {
+                        return value.get();
+                    }
 
-            @Override
-            public void set(double v) {
-                value.set(v);
-            }
-        }, "%.6f");
+                    @Override
+                    public void set(double v) {
+                        value.set(v);
+                    }
+                },
+                "%.6f");
     }
 
     public static boolean inputFloat(String label, float[] value) {
-        return INSTANCE.edit(label, new ValueIO() {
-            @Override
-            public double get() {
-                return value[0];
-            }
+        return INSTANCE.edit(
+                label,
+                new ValueIO() {
+                    @Override
+                    public double get() {
+                        return value[0];
+                    }
 
-            @Override
-            public void set(double v) {
-                value[0] = (float) v;
-            }
-        }, "%.3f");
+                    @Override
+                    public void set(double v) {
+                        value[0] = (float) v;
+                    }
+                },
+                "%.3f");
     }
 
     public static boolean inputFloat(String label, ImFloat value) {
-        return INSTANCE.edit(label, new ValueIO() {
-            @Override
-            public double get() {
-                return value.get();
-            }
+        return INSTANCE.edit(
+                label,
+                new ValueIO() {
+                    @Override
+                    public double get() {
+                        return value.get();
+                    }
 
-            @Override
-            public void set(double v) {
-                value.set((float) v);
-            }
-        }, "%.6f");
+                    @Override
+                    public void set(double v) {
+                        value.set((float) v);
+                    }
+                },
+                "%.6f");
     }
 
     public static boolean inputInt(String label, int[] value) {
-        return INSTANCE.edit(label, new ValueIO() {
-            @Override
-            public double get() {
-                return value[0];
-            }
+        return INSTANCE.edit(
+                label,
+                new ValueIO() {
+                    @Override
+                    public double get() {
+                        return value[0];
+                    }
 
-            @Override
-            public void set(double v) {
-                value[0] = (int) v;
-            }
-        }, "%.0f");
+                    @Override
+                    public void set(double v) {
+                        value[0] = (int) v;
+                    }
+                },
+                "%.0f");
     }
 
     public static boolean inputInt(String label, ImInt value) {
-        return INSTANCE.edit(label, new ValueIO() {
-            @Override
-            public double get() {
-                return value.get();
-            }
+        return INSTANCE.edit(
+                label,
+                new ValueIO() {
+                    @Override
+                    public double get() {
+                        return value.get();
+                    }
 
-            @Override
-            public void set(double v) {
-                value.set((int) v);
-            }
-        }, "%.0f");
+                    @Override
+                    public void set(double v) {
+                        value.set((int) v);
+                    }
+                },
+                "%.0f");
     }
 
     private interface ValueIO {
         double get();
+
         void set(double v);
     }
 
@@ -124,9 +143,15 @@ public final class ExpressionInput {
     }
 
     private enum TokenType {
-        Number, Name,
-        Add, Subtract, Multiply, Divide, Exponent,
-        OpenParen, CloseParen,
+        Number,
+        Name,
+        Add,
+        Subtract,
+        Multiply,
+        Divide,
+        Exponent,
+        OpenParen,
+        CloseParen,
 
         End, // Represents hitting end of input
         Error // Represents invalid character found
@@ -166,7 +191,9 @@ public final class ExpressionInput {
                 currentIdx++;
 
                 // Make sure it's not just a single .
-                if (!hasDigitsBeforeDecimal && (currentIdx >= input.length() || !Character.isDigit(input.charAt(currentIdx))))
+                if (!hasDigitsBeforeDecimal
+                        && (currentIdx >= input.length()
+                                || !Character.isDigit(input.charAt(currentIdx))))
                     return new Token(TokenType.Error);
 
                 while (currentIdx < input.length() && Character.isDigit(input.charAt(currentIdx)))
@@ -176,8 +203,8 @@ public final class ExpressionInput {
         }
 
         Token nextName() {
-            while (currentIdx < input.length() && Character.isLetterOrDigit(input.charAt(currentIdx)))
-                currentIdx++;
+            while (currentIdx < input.length()
+                    && Character.isLetterOrDigit(input.charAt(currentIdx))) currentIdx++;
             return new Token(TokenType.Name, input.substring(startIdx, currentIdx));
         }
 
@@ -189,20 +216,33 @@ public final class ExpressionInput {
             startIdx = currentIdx;
             while (startIdx < input.length() && Character.isWhitespace(input.charAt(startIdx)))
                 startIdx++;
-            if (startIdx == input.length())
-                return new Token(TokenType.End);
+            if (startIdx == input.length()) return new Token(TokenType.End);
             currentIdx = startIdx;
 
             char c = input.charAt(currentIdx);
             switch (c) {
-                case '+': currentIdx++; return new Token(TokenType.Add);
-                case '-': currentIdx++; return new Token(TokenType.Subtract);
-                case '*': currentIdx++; return new Token(TokenType.Multiply);
-                case '/': currentIdx++; return new Token(TokenType.Divide);
-                case '^': currentIdx++; return new Token(TokenType.Exponent);
+                case '+':
+                    currentIdx++;
+                    return new Token(TokenType.Add);
+                case '-':
+                    currentIdx++;
+                    return new Token(TokenType.Subtract);
+                case '*':
+                    currentIdx++;
+                    return new Token(TokenType.Multiply);
+                case '/':
+                    currentIdx++;
+                    return new Token(TokenType.Divide);
+                case '^':
+                    currentIdx++;
+                    return new Token(TokenType.Exponent);
 
-                case '(': currentIdx++; return new Token(TokenType.OpenParen);
-                case ')': currentIdx++; return new Token(TokenType.CloseParen);
+                case '(':
+                    currentIdx++;
+                    return new Token(TokenType.OpenParen);
+                case ')':
+                    currentIdx++;
+                    return new Token(TokenType.CloseParen);
 
                 default:
                     if (Character.isDigit(c) || c == '.') {
@@ -238,6 +278,7 @@ public final class ExpressionInput {
 
     private static final Map<TokenType, Operator> operators = new EnumMap<>(TokenType.class);
     private static final Map<String, Function<Double, Double>> functions = new HashMap<>();
+
     static {
         operators.put(TokenType.Add, Operator.Add);
         operators.put(TokenType.Subtract, Operator.Subtract);
@@ -270,21 +311,20 @@ public final class ExpressionInput {
         Token token;
         boolean prevWasOp = true;
         TokenType prevType = null;
-        loop: while ((token = lexer.nextToken()).type != TokenType.End) {
+        loop:
+        while ((token = lexer.nextToken()).type != TokenType.End) {
             switch (token.type) {
                 case Number:
                     if (prevType == TokenType.Number) {
                         err("Cannot have multiple numbers in a row");
                         return null;
                     }
-                    if (!prevWasOp)
-                        operStack.push(Operator.Multiply);
+                    if (!prevWasOp) operStack.push(Operator.Multiply);
                     prevWasOp = false;
                     valStack.push(Double.parseDouble(token.str));
                     break;
                 case Name:
-                    if (!prevWasOp)
-                        operStack.push(Operator.Multiply);
+                    if (!prevWasOp) operStack.push(Operator.Multiply);
                     prevWasOp = false;
                     if (token.str.equals("pi")) {
                         valStack.push(Math.PI);
@@ -312,12 +352,10 @@ public final class ExpressionInput {
                     break;
 
                 case OpenParen:
-                    if (!prevWasOp)
-                        operStack.push(Operator.Multiply);
+                    if (!prevWasOp) operStack.push(Operator.Multiply);
                     prevWasOp = false;
                     input = parseExpr(lexer, true);
-                    if (input == null)
-                        return null;
+                    if (input == null) return null;
                     valStack.push(input);
                     nextType = lexer.nextToken().type;
                     if (nextType != TokenType.CloseParen) {
@@ -327,10 +365,11 @@ public final class ExpressionInput {
                     }
                     break;
 
-                case Error: {
-                    err("Unexpected token");
-                    return null;
-                }
+                case Error:
+                    {
+                        err("Unexpected token");
+                        return null;
+                    }
 
                 case CloseParen:
                     if (insideParen) {
@@ -355,7 +394,8 @@ public final class ExpressionInput {
                     Operator op2;
                     while (!operStack.empty()) {
                         op2 = operStack.peek();
-                        if ((!op.rightAssoc && op.precedence == op2.precedence) || op.precedence < op2.precedence) {
+                        if ((!op.rightAssoc && op.precedence == op2.precedence)
+                                || op.precedence < op2.precedence) {
                             operStack.pop();
                             if (valStack.size() < 2) {
                                 err("Missing left or right operand");
@@ -406,11 +446,9 @@ public final class ExpressionInput {
         }
 
         boolean colorInvalid = state.wasActive && !state.exprValid;
-        if (colorInvalid)
-            ImGui.pushStyleColor(ImGuiCol.FrameBg, 0.3f, 0.1f, 0.1f, 1.0f);
+        if (colorInvalid) ImGui.pushStyleColor(ImGuiCol.FrameBg, 0.3f, 0.1f, 0.1f, 1.0f);
         boolean change = ImGui.inputText(label, str);
-        if (colorInvalid)
-            ImGui.popStyleColor();
+        if (colorInvalid) ImGui.popStyleColor();
 
         boolean active = ImGui.isItemActive();
         if (active) {

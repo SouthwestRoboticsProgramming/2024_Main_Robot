@@ -5,8 +5,8 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.swrobotics.shufflelog.json.JsonArr;
 import com.swrobotics.shufflelog.json.JsonObj;
-
 import com.swrobotics.shufflelog.util.ExpressionInput;
+
 import imgui.ImGui;
 import imgui.flag.ImGuiDataType;
 import imgui.type.ImBoolean;
@@ -124,7 +124,7 @@ public final class Field2dSettings {
         public void edit() {
             ImGui.combo("Style", style, STYLE_NAMES);
             int style = this.style.get();
-            ExpressionInput.inputDouble("Box width",  boxWidth);
+            ExpressionInput.inputDouble("Box width", boxWidth);
             ExpressionInput.inputDouble("Box length", boxLength);
             if (style != STYLE_HIDDEN) {
                 ExpressionInput.inputDouble("Line weight", lineWeight);
