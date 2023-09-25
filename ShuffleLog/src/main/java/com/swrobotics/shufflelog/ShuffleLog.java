@@ -18,6 +18,7 @@ import com.swrobotics.shufflelog.tool.smartdashboard.SmartDashboard;
 import com.swrobotics.shufflelog.tool.taskmanager.RoboRIOFilesTool;
 import com.swrobotics.shufflelog.tool.taskmanager.TaskManagerTool;
 
+import com.swrobotics.shufflelog.util.ExpressionInput;
 import edu.wpi.first.math.WPIMathJNI;
 import edu.wpi.first.networktables.NetworkTablesJNI;
 import edu.wpi.first.util.CombinedRuntimeLoader;
@@ -31,6 +32,7 @@ import imgui.extension.implot.ImPlotContext;
 import imgui.flag.ImGuiConfigFlags;
 import imgui.gl3.ImGuiImplGl3;
 
+import imgui.type.ImDouble;
 import processing.core.PApplet;
 import processing.core.PFont;
 
@@ -203,6 +205,14 @@ public final class ShuffleLog extends PApplet {
         addedTools.clear();
         removedTools.clear();
 
+        expr.newFrame();
+        if (ImGui.begin("Expr test")) {
+            expr.inputDouble("Test", testDouble);
+            expr.inputDouble("Test 2", testDouble2);
+            ImGui.text("Values are: " + testDouble.get() + " " + testDouble2.get());
+        }
+        ImGui.end();
+
         Profiler.push("Render GUI");
         Profiler.push("Flush");
         flush();
@@ -215,6 +225,9 @@ public final class ShuffleLog extends PApplet {
 
         Profiler.endMeasurements();
     }
+    ExpressionInput expr = new ExpressionInput();
+    ImDouble testDouble = new ImDouble(123);
+    ImDouble testDouble2 = new ImDouble(456);
 
     @Override
     public void exit() {
