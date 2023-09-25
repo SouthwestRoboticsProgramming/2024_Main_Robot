@@ -38,6 +38,8 @@ import java.util.List;
 public final class FieldViewTool extends ViewportTool {
     public static final float LAYER_Z_SPACING = 0.01f;
 
+    // This is not how transformation matrices work, this is just to
+    // make the transition between projections look nice
     private static final class SmoothMatrix {
         private final SmoothFloat[] elements;
 
@@ -298,13 +300,6 @@ public final class FieldViewTool extends ViewportTool {
             if (hovered && !gizmoConsumesMouse) {
                 ImGuiIO io = ImGui.getIO();
 
-                //                Matrix4f viewRotInv = new Matrix4f(view).invert();
-                //                viewRotInv.m03(0).m13(0).m23(0);
-                // Remove translation
-                //                viewRotInv.m03 = 0;
-                //                viewRotInv.m13 = 0;
-                //                viewRotInv.m23 = 0;
-
                 if (io.getMouseDown(ImGuiMouseButton.Right)
                         && cursorPos != null
                         && prevCursorPos != null) {
@@ -350,22 +345,17 @@ public final class FieldViewTool extends ViewportTool {
 
     private Vector2f calcCursorPos(float mouseX, float mouseY, ImVec2 size) {
         if (mouseX >= 0 && mouseY >= 0 && mouseX < size.x && mouseY < size.y) {
-            //                Ray3f mouseRay;
             Vector3f mouseOrigin, mouseDirection;
             if (viewMode.get() == MODE_2D) {
                 float rayX = (mouseX - size.x / 2) / orthoScale;
                 float rayY = -(mouseY - size.y / 2) / orthoScale;
                 mouseOrigin = new Vector3f(rayX, rayY, 0);
                 mouseDirection = new Vector3f(0, 0, 1);
-                //                    mouseRay = new Ray3f(new Vector3f(rayX, rayY, 0), new
-                // Vector3f(0, 0, 1));
             } else {
                 float normX = (2.0f * mouseX) / size.x - 1.0f;
                 float normY = 1.0f - (2.0f * mouseY) / size.y;
                 Vector4f clipSpace = new Vector4f(normX, normY, -1, 1);
                 Vector4f eyeSpace = new Matrix4f(projection.get()).invert().transform(clipSpace);
-                //                    mouseRay =
-                //                            new Ray3f(
                 mouseOrigin = new Vector3f(0, 0, 0);
                 mouseDirection = new Vector3f(eyeSpace.x, eyeSpace.y, -1).normalize();
             }
@@ -373,9 +363,6 @@ public final class FieldViewTool extends ViewportTool {
             Matrix4f invView = new Matrix4f(view).invert();
             Vector3f orig = invView.transformPosition(mouseOrigin);
             Vector3f dir = invView.transformDirection(mouseDirection);
-            //                Vector3f orig = invView.transformPosition(mouseRay.getOrigin());
-            //                Vector3f dir =
-            // invView.transformDirection(mouseRay.getDirection());
 
             float zDelta = -orig.z;
             float dirScale = zDelta / dir.z;
