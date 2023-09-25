@@ -19,5 +19,12 @@ public class Drive extends SubsystemBase {
     public void periodic() {
         gyroIO.updateInputs(gyroInputs);
         Logger.getInstance().processInputs("Drive/Gyro", gyroInputs);
+
+        /* Run module periodic from here
+         * allows modules to be turned off with drive being turned off
+         */
+        for (var module : modules) {
+            module.periodic();
+        }
     }
 }

@@ -5,15 +5,15 @@ import org.littletonrobotics.junction.Logger;
 public class SwerveModule { // Intentionally not a subsystem
     private final SwerveModuleIO io;
     private final SwerveModuleIOInputsAutoLogged inputs = new SwerveModuleIOInputsAutoLogged();
-    private final int index;
+    private final String name;
 
-    public SwerveModule(SwerveModuleIO io, int index) {
+    public SwerveModule(SwerveModuleIO io, String name) {
         this.io = io;
-        this.index = index;
+        this.name = name;
     }
 
     public void periodic() {
         io.updateInputa(inputs);
-        Logger.getInstance().processInputs("Drive/Module" + index, inputs);
+        Logger.getInstance().processInputs("Drive/" + name + " Module", inputs);
     }
 }
