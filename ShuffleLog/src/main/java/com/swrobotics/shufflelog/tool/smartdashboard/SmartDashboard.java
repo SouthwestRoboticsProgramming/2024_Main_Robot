@@ -139,11 +139,13 @@ public final class SmartDashboard implements Tool {
                 if (table == null) {
                     ImGui.textDisabled("No NT instance");
                     ImGui.end();
+                    if (!closeButton.get()) iter.remove();
                     continue;
                 }
                 if (!table.containsSubTable(open)) {
                     ImGui.textDisabled("Not currently published");
                     ImGui.end();
+                    if (!closeButton.get()) iter.remove();
                     continue;
                 }
 
@@ -161,8 +163,7 @@ public final class SmartDashboard implements Tool {
                         break;
                     case "unknown":
                         ImGui.textDisabled("Not currently published");
-                        ImGui.end();
-                        continue;
+                        break;
                     default:
                         ImGui.textDisabled("Unknown item type: " + type);
                         break;
