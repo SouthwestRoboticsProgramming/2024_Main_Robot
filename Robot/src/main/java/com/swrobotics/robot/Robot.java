@@ -1,8 +1,9 @@
 package com.swrobotics.robot;
 
 import com.swrobotics.lib.ThreadUtils;
-import com.swrobotics.robot.Settings.Mode;
-import com.swrobotics.robot.Settings.RobotType;
+import com.swrobotics.robot.config.Settings;
+import com.swrobotics.robot.config.Settings.Mode;
+import com.swrobotics.robot.config.Settings.RobotType;
 
 import edu.wpi.first.hal.AllianceStationID;
 import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;

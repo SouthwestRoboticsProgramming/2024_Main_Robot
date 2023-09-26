@@ -1,4 +1,4 @@
-package com.swrobotics.robot;
+package com.swrobotics.robot.config;
 
 import edu.wpi.first.wpilibj.RobotBase;
 
