@@ -10,11 +10,13 @@ import com.swrobotics.shufflelog.render.Renderer2d;
 import com.swrobotics.shufflelog.tool.Tool;
 
 import edu.wpi.first.networktables.NetworkTable;
+import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
 
 import imgui.ImGui;
 import imgui.ImVec2;
 import imgui.type.ImBoolean;
+import imgui.type.ImInt;
 
 import java.util.*;
 
@@ -23,12 +25,14 @@ public final class SmartDashboard implements Tool {
     private final Set<String> openItems;
     private final Map<String, Field2dSettings> field2dSettings;
     private final ImBoolean closeButton;
+    private final ImInt chooserIdx;
 
     public SmartDashboard() {
         table = null;
         openItems = new HashSet<>();
         field2dSettings = new HashMap<>();
         closeButton = new ImBoolean();
+        chooserIdx = new ImInt();
     }
 
     public void init(NetworkTableInstance instance) {
@@ -97,6 +101,34 @@ public final class SmartDashboard implements Tool {
                 true);
     }
 
+    private void showChooserWindow(NetworkTable table) {
+        NetworkTableEntry selectedEntry = table.getEntry("selected");
+
+        String current = table.getEntry("active").getString("");
+        String selected = selectedEntry.getString(current);
+        String[] options = table.getEntry("options").getStringArray(new String[0]);
+
+        boolean found = false;
+        for (int i = 0; i < options.length; i++) {
+            if (options[i].equals(selected)) {
+                chooserIdx.set(i);
+                found = true;
+                break;
+            }
+        }
+        if (!found) {
+            ImGui.textDisabled("Selection not in options?? WPILib bug");
+            return;
+        }
+
+        String acceptedByRobot = current.equals(selected) ? "GOOD" : "WAITING";
+        if (ImGui.combo(acceptedByRobot + "##chooser", chooserIdx, options)) {
+            // Keep the entry there if ShuffleLog disconnects
+            selectedEntry.getTopic().setRetained(true);
+            selectedEntry.setString(options[chooserIdx.get()]);
+        }
+    }
+
     @Override
     public void process() {
         for (Iterator<String> iter = openItems.iterator(); iter.hasNext(); ) {
@@ -124,8 +156,16 @@ public final class SmartDashboard implements Tool {
                     case "Field2d":
                         showField2dWindow(open, new Field2dView(subTable));
                         break;
+                    case "String Chooser":
+                        showChooserWindow(subTable);
+                        break;
+                    case "unknown":
+                        ImGui.textDisabled("Not currently published");
+                        ImGui.end();
+                        continue;
                     default:
                         ImGui.textDisabled("Unknown item type: " + type);
+                        break;
                 }
             }
             ImGui.end();
