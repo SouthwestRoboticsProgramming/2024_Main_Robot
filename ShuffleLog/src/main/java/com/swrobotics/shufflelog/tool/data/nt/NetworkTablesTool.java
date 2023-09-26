@@ -560,7 +560,11 @@ public final class NetworkTablesTool implements Tool {
         if (ImGui.begin(TITLE, ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse)) {
             showConnectionInfo();
             ImGui.separator();
-            showData();
+            if (connection.getStatus() != NetworkTablesConnection.Status.CONNECTED) {
+                ImGui.textDisabled("Not connected");
+            } else {
+                showData();
+            }
         }
         ImGui.end();
     }
