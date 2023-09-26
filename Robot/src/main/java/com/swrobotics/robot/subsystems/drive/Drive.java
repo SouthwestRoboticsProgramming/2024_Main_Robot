@@ -15,6 +15,10 @@ public class Drive extends SubsystemBase {
         modules = manager.getModules();
     }
 
+    public void resetGyro() {
+        
+    }
+
     @Override
     public void periodic() {
         gyroIO.updateInputs(gyroInputs);

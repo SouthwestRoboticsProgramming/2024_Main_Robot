@@ -1,11 +1,13 @@
 package com.swrobotics.robot.control;
 
 import com.swrobotics.lib.input.XboxController;
+import com.swrobotics.robot.RobotContainer;
+
+import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 
 public class ControlBoard {
     private static final double DEADBAND = 0.15;
-
-    private static ControlBoard instance = null;
 
     /** Manages demands to go to an exact angle demanded by the driver */
     public enum SwerveCardinal {
@@ -22,20 +24,19 @@ public class ControlBoard {
         }
     }
 
-    // Ensures that only one instance is created
-    public static ControlBoard getInstance() {
-        if (instance == null) {
-            instance = new ControlBoard();
-        }
-
-        return instance;
-    }
-
     public final XboxController driver;
     public final XboxController operator;
 
-    private ControlBoard() {
+    public ControlBoard(RobotContainer robot) {
         driver = new XboxController(0, DEADBAND);
         operator = new XboxController(1, DEADBAND);
+
+        // Congigure triggers
+        driver.start.onFalling(robot.drive::resetGyro);
+        driver.back.onFalling(robot.drive::resetGyro); // Two buttons to reset gyro so the driver can't get confused
+
+        new Trigger(() -> driver.dpad.up.isPressed()).whileTrue(new InstantCommand());
     }
+
+    
 }

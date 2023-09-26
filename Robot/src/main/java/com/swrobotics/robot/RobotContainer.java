@@ -35,7 +35,7 @@ public class RobotContainer {
 
     public final MessengerClient messenger;
 
-    private Drive drive;
+    public final Drive drive;
 
     public RobotContainer() {
         // Turn off joystick warnings in sim
@@ -50,11 +50,11 @@ public class RobotContainer {
                     break;
                 case SIMULATION:
                     drive = new Drive(new GyroIO() {}, moduleManager);
+                    break;
+                default: // Should never happen
+                    drive = new Drive(new GyroIO() {}, moduleManager);
             }
-        }
-
-        // Instantiate missing subsystems
-        if (drive == null) {
+        } else {
             drive = new Drive(new GyroIO() {}, moduleManager);
         }
 
