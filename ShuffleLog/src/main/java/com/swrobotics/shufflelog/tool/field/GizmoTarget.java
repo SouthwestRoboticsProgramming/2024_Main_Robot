@@ -1,6 +1,6 @@
 package com.swrobotics.shufflelog.tool.field;
 
-import com.swrobotics.shufflelog.math.Matrix4f;
+import org.joml.Matrix4f;
 
 public interface GizmoTarget {
     Matrix4f getTransform();

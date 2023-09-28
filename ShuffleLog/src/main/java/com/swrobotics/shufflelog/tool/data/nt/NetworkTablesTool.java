@@ -1,9 +1,12 @@
 package com.swrobotics.shufflelog.tool.data.nt;
 
+import com.swrobotics.shufflelog.ShuffleLog;
 import com.swrobotics.shufflelog.tool.Tool;
 import com.swrobotics.shufflelog.tool.data.DataLogTool;
 import com.swrobotics.shufflelog.tool.data.PlotDef;
 import com.swrobotics.shufflelog.tool.data.ValueAccessor;
+import com.swrobotics.shufflelog.tool.smartdashboard.SmartDashboard;
+import com.swrobotics.shufflelog.util.ExpressionInput;
 
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
@@ -62,14 +65,19 @@ public final class NetworkTablesTool implements Tool {
     private final ImDouble tempDouble = new ImDouble();
     private final ImString tempString = new ImString(1024);
 
-    public NetworkTablesTool(ExecutorService threadPool) {
-        version = new ImInt(DEFAULT_VERSION);
-        connectionMode = new ImInt(DEFAULT_CONN_MODE);
+    public NetworkTablesTool(ExecutorService threadPool, SmartDashboard smartDashboard) {
+        if (ShuffleLog.SIM_MODE) {
+            version = new ImInt(VERSION_NT3);
+            connectionMode = new ImInt(CONN_MODE_ADDRESS);
+        } else {
+            version = new ImInt(DEFAULT_VERSION);
+            connectionMode = new ImInt(DEFAULT_CONN_MODE);
+        }
         host = new ImString(64);
         host.set(DEFAULT_HOST);
         portOrTeamNumber = new ImInt(getDefaultPortOrTeamNumber());
 
-        connection = new NetworkTablesConnection(threadPool);
+        connection = new NetworkTablesConnection(threadPool, smartDashboard);
     }
 
     // --- Server connection ---
@@ -140,9 +148,8 @@ public final class NetworkTablesTool implements Tool {
                 break;
             case BOOL_MODE_MOMENTARY:
             case BOOL_MODE_INV_MOMENTARY:
-                val.set(
-                        ImGui.button((val.get() ? "True" : "False") + "##bool")
-                                ^ (mode == BOOL_MODE_INV_MOMENTARY));
+                ImGui.button((val.get() ? "True" : "False") + "##bool");
+                val.set(ImGui.isItemActive() ^ (mode == BOOL_MODE_INV_MOMENTARY));
                 break;
             case BOOL_MODE_INDICATOR:
                 float textSz = ImGui.getTextLineHeight();
@@ -158,18 +165,17 @@ public final class NetworkTablesTool implements Tool {
 
     private void editInt(ValueAccessor<Integer> val) {
         int[] tempVal = {val.get()};
-        if (ImGui.dragInt("##int", tempVal)) val.set(tempVal[0]);
+        if (ExpressionInput.inputInt("##int", tempVal)) val.set(tempVal[0]);
     }
 
     private void editFloat(ValueAccessor<Float> val) {
         float[] tempVal = {val.get()};
-        if (ImGui.dragFloat("##float", tempVal)) val.set(tempVal[0]);
+        if (ExpressionInput.inputFloat("##float", tempVal)) val.set(tempVal[0]);
     }
 
     private void editDouble(ValueAccessor<Double> val) {
         tempDouble.set(val.get());
-        if (ImGui.dragScalar("##double", ImGuiDataType.Double, tempDouble, 1))
-            val.set(tempDouble.get());
+        if (ExpressionInput.inputDouble("##double", tempDouble)) val.set(tempDouble.get());
     }
 
     private void editString(ValueAccessor<String> val) {
@@ -537,7 +543,7 @@ public final class NetworkTablesTool implements Tool {
         NetworkTableRepr rootTable = connection.getRootTable();
         if (rootTable == null) {
             ImGui.textDisabled("Not connected");
-        } else if (ImGui.beginTable("data", 3, tableFlags)) {
+        } else if (ImGui.beginChild("scroll") && ImGui.beginTable("data", 3, tableFlags)) {
             NetworkTableRepr metadataTable = rootTable.getSubtable(METADATA_TABLE_NAME);
             ImGui.tableSetupColumn("Name", ImGuiTableColumnFlags.WidthStretch, 3);
             ImGui.tableSetupColumn("Value", ImGuiTableColumnFlags.WidthStretch, 2);
@@ -546,15 +552,19 @@ public final class NetworkTablesTool implements Tool {
             showTable(rootTable, metadataTable, true);
             ImGui.endTable();
         }
+        ImGui.endChild();
     }
 
     @Override
     public void process() {
-        if (ImGui.begin(TITLE)) {
-            ImGui.text("Instances: " + connection.getActiveInstances());
+        if (ImGui.begin(TITLE, ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse)) {
             showConnectionInfo();
             ImGui.separator();
-            showData();
+            if (connection.getStatus() != NetworkTablesConnection.Status.CONNECTED) {
+                ImGui.textDisabled("Not connected");
+            } else {
+                showData();
+            }
         }
         ImGui.end();
     }

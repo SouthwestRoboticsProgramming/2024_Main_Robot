@@ -1,5 +1,7 @@
 package com.swrobotics.shufflelog.tool.data.nt;
 
+import com.swrobotics.shufflelog.tool.smartdashboard.SmartDashboard;
+
 import edu.wpi.first.networktables.NetworkTableInstance;
 
 import imgui.ImGui;
@@ -68,6 +70,8 @@ public final class NetworkTablesConnection {
     private static final String CLIENT_ID = "ShuffleLog";
 
     private final ExecutorService threadPool;
+    private final SmartDashboard smartDashboard;
+
     private NetworkTableInstance instance;
     private Future<?> stopFuture;
     private Boolean isNt4;
@@ -76,8 +80,10 @@ public final class NetworkTablesConnection {
     private NetworkTableRepr rootTable;
     private final AtomicInteger activeInstances;
 
-    public NetworkTablesConnection(ExecutorService threadPool) {
+    public NetworkTablesConnection(ExecutorService threadPool, SmartDashboard smartDashboard) {
         this.threadPool = threadPool;
+        this.smartDashboard = smartDashboard;
+
         instance = null;
         stopFuture = null;
         isNt4 = null;
@@ -101,6 +107,7 @@ public final class NetworkTablesConnection {
             else instance.setServerTeam(params.portOrTeam);
 
             rootTable = new NetworkTableRepr(instance.getTable("/"));
+            smartDashboard.init(instance);
             this.params = params;
         }
 
@@ -120,6 +127,7 @@ public final class NetworkTablesConnection {
         // the instance can't be used after closing
         NetworkTableInstance savedInstance = instance;
         instance = null;
+        smartDashboard.close();
 
         // Stop on other thread because stopping the client can take around
         // 10 seconds sometimes, and we don't want to freeze the GUI

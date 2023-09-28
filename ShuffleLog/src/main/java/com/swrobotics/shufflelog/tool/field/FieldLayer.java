@@ -1,5 +1,8 @@
 package com.swrobotics.shufflelog.tool.field;
 
+import com.google.gson.JsonObject;
+import com.swrobotics.shufflelog.json.JsonObj;
+
 import processing.core.PGraphics;
 
 public interface FieldLayer {
@@ -23,13 +26,11 @@ public interface FieldLayer {
     /** Draws the ImGui content for this layer. */
     void showGui();
 
-    /**
-     * Gets whether this layer should be sequentially offset to prevent z-fighting of 2D objects.
-     * This should typically be disabled for 3D objects, so they render in the correct spot.
-     *
-     * @return whether to offset
-     */
-    default boolean shouldOffset() {
-        return true;
+    default int getSubLayerCount() {
+        return 1;
     }
+
+    default void load(JsonObj obj) {}
+
+    default void store(JsonObject obj) {}
 }
