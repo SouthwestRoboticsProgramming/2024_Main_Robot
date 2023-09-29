@@ -203,10 +203,10 @@ public final class MessengerTool implements Tool {
             }
 
             showConnectionParams(changed);
-//            ImGui.separator();
-//            showClients();
-//            ImGui.separator();
-//            showEventLog();
+            //            ImGui.separator();
+            //            showClients();
+            //            ImGui.separator();
+            //            showEventLog();
         }
         ImGui.end();
     }
