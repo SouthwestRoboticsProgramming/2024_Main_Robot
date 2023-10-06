@@ -23,20 +23,6 @@ public final class NetworkTablesConnection {
         private final String host;
         private final int portOrTeam;
 
-        @Deprecated
-        public Params(int team) {
-            mode = ConnectionMode.CLIENT_TEAM_NUMBER;
-            host = null;
-            this.portOrTeam = team;
-        }
-
-        @Deprecated
-        public Params(String host, int portOrTeam) {
-            mode = ConnectionMode.CLIENT_ADDRESS;
-            this.host = host;
-            this.portOrTeam = portOrTeam;
-        }
-
         public Params(ConnectionMode mode, String host, int portOrTeam) {
             this.mode = mode;
             this.host = host;
