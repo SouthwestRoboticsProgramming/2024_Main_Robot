@@ -12,19 +12,33 @@ import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public final class NetworkTablesConnection {
+    public enum ConnectionMode {
+        CLIENT_ADDRESS,
+        CLIENT_TEAM_NUMBER,
+        SERVER_TEAM_NUMBER
+    }
+
     public static final class Params {
-        private final boolean isAddress;
+        private final ConnectionMode mode;
         private final String host;
         private final int portOrTeam;
 
+        @Deprecated
         public Params(int team) {
-            isAddress = false;
+            mode = ConnectionMode.CLIENT_TEAM_NUMBER;
             host = null;
             this.portOrTeam = team;
         }
 
+        @Deprecated
         public Params(String host, int portOrTeam) {
-            isAddress = true;
+            mode = ConnectionMode.CLIENT_ADDRESS;
+            this.host = host;
+            this.portOrTeam = portOrTeam;
+        }
+
+        public Params(ConnectionMode mode, String host, int portOrTeam) {
+            this.mode = mode;
             this.host = host;
             this.portOrTeam = portOrTeam;
         }
@@ -34,14 +48,14 @@ public final class NetworkTablesConnection {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
             Params params = (Params) o;
-            return isAddress == params.isAddress
+            return mode == params.mode
                     && portOrTeam == params.portOrTeam
                     && Objects.equals(host, params.host);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(isAddress, host, portOrTeam);
+            return Objects.hash(mode, host, portOrTeam);
         }
     }
 
@@ -103,7 +117,7 @@ public final class NetworkTablesConnection {
 
             this.isNt4 = isNt4;
 
-            if (params.isAddress) instance.setServer(params.host, params.portOrTeam);
+            if (params.mode == ConnectionMode.CLIENT_ADDRESS) instance.setServer(params.host, params.portOrTeam);
             else instance.setServerTeam(params.portOrTeam);
 
             rootTable = new NetworkTableRepr(instance.getTable("/"));

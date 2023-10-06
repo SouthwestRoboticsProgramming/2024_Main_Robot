@@ -91,8 +91,9 @@ public final class NetworkTablesTool implements Tool {
     private void updateConnectionServer() {
         NetworkTablesConnection.Params params;
         if (connectionMode.get() == CONN_MODE_TEAM_NUMBER)
-            params = new NetworkTablesConnection.Params(portOrTeamNumber.get());
-        else params = new NetworkTablesConnection.Params(host.get(), portOrTeamNumber.get());
+            params = new NetworkTablesConnection.Params(NetworkTablesConnection.ConnectionMode.CLIENT_TEAM_NUMBER, null, portOrTeamNumber.get());
+        else
+            params = new NetworkTablesConnection.Params(NetworkTablesConnection.ConnectionMode.CLIENT_ADDRESS, host.get(), portOrTeamNumber.get());
 
         connection.setServerParams(version.get() == VERSION_NT4, params);
     }
