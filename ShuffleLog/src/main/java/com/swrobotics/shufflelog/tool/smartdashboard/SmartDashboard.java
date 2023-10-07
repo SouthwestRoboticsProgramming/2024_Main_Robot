@@ -9,6 +9,7 @@ import com.swrobotics.shufflelog.render.ImGuiRenderer;
 import com.swrobotics.shufflelog.render.Renderer2d;
 import com.swrobotics.shufflelog.tool.Tool;
 
+import com.swrobotics.shufflelog.tool.data.nt.NTInstanceListener;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
@@ -20,7 +21,7 @@ import imgui.type.ImInt;
 
 import java.util.*;
 
-public final class SmartDashboard implements Tool {
+public final class SmartDashboard implements Tool, NTInstanceListener {
     private NetworkTable table;
     private final Set<String> openItems;
     private final Map<String, Field2dSettings> field2dSettings;
@@ -35,11 +36,13 @@ public final class SmartDashboard implements Tool {
         chooserIdx = new ImInt();
     }
 
-    public void init(NetworkTableInstance instance) {
+    @Override
+    public void onNTInit(NetworkTableInstance instance) {
         table = instance.getTable("SmartDashboard");
     }
 
-    public void close() {
+    @Override
+    public void onNTClose() {
         table = null;
     }
 

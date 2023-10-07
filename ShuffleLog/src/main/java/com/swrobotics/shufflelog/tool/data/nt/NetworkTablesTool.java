@@ -16,10 +16,7 @@ import imgui.ImGui;
 import imgui.flag.*;
 import imgui.type.*;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Function;
 
@@ -36,7 +33,8 @@ public final class NetworkTablesTool implements Tool {
 
     private static final int CONN_MODE_TEAM_NUMBER = 0;
     private static final int CONN_MODE_ADDRESS = 1;
-    private static final String[] CONN_MODE_NAMES = {"Team Number", "Address"};
+    private static final int CONN_MODE_SERVER = 2;
+    private static final String[] CONN_MODE_NAMES = {"Team Number", "Address", "Server"};
 
     private static final int DEFAULT_VERSION = VERSION_NT3;
     private static final int DEFAULT_CONN_MODE = CONN_MODE_TEAM_NUMBER;
@@ -65,7 +63,9 @@ public final class NetworkTablesTool implements Tool {
     private final ImDouble tempDouble = new ImDouble();
     private final ImString tempString = new ImString(1024);
 
-    public NetworkTablesTool(ExecutorService threadPool, SmartDashboard smartDashboard) {
+    private final Map<String, NTSubscriber> subscribers;
+
+    public NetworkTablesTool(ExecutorService threadPool) {
         if (ShuffleLog.SIM_MODE) {
             version = new ImInt(VERSION_NT3);
             connectionMode = new ImInt(CONN_MODE_ADDRESS);
@@ -77,7 +77,35 @@ public final class NetworkTablesTool implements Tool {
         host.set(DEFAULT_HOST);
         portOrTeamNumber = new ImInt(getDefaultPortOrTeamNumber());
 
-        connection = new NetworkTablesConnection(threadPool, smartDashboard);
+        subscribers = new HashMap<>();
+        connection = new NetworkTablesConnection(threadPool);
+        connection.addListener(new NTInstanceListener() {
+            @Override
+            public void onNTInit(NetworkTableInstance inst) {
+                for (NTSubscriber sub : subscribers.values())
+                    sub.init(inst);
+            }
+
+            @Override
+            public void onNTClose() {
+                for (NTSubscriber sub : subscribers.values())
+                    sub.close();
+            }
+        });
+    }
+
+    public NTSubscriber subscribe(String path) {
+        return subscribers.computeIfAbsent(path, (p) -> {
+            NTSubscriber sub = new NTSubscriber(p);
+            NetworkTableInstance instance = connection.getInstance();
+            if (instance != null)
+                sub.init(instance);
+            return sub;
+        });
+    }
+
+    public void addListener(NTInstanceListener listener) {
+        connection.addListener(listener);
     }
 
     // --- Server connection ---
@@ -92,8 +120,10 @@ public final class NetworkTablesTool implements Tool {
         NetworkTablesConnection.Params params;
         if (connectionMode.get() == CONN_MODE_TEAM_NUMBER)
             params = new NetworkTablesConnection.Params(NetworkTablesConnection.ConnectionMode.CLIENT_TEAM_NUMBER, null, portOrTeamNumber.get());
-        else
+        else if (connectionMode.get() == CONN_MODE_ADDRESS)
             params = new NetworkTablesConnection.Params(NetworkTablesConnection.ConnectionMode.CLIENT_ADDRESS, host.get(), portOrTeamNumber.get());
+        else
+            params = new NetworkTablesConnection.Params(NetworkTablesConnection.ConnectionMode.SERVER, null, 0);
 
         connection.setServerParams(version.get() == VERSION_NT4, params);
     }
@@ -118,7 +148,7 @@ public final class NetworkTablesTool implements Tool {
             if (connectionMode.get() == CONN_MODE_TEAM_NUMBER) {
                 label("Team Number:");
                 ImGui.inputInt("##team_num", portOrTeamNumber);
-            } else {
+            } else if (connectionMode.get() == CONN_MODE_ADDRESS) {
                 label("Host:");
                 ImGui.inputText("##host", host);
                 label("Port:");

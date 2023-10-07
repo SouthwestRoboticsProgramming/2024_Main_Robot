@@ -143,6 +143,8 @@ public final class ShuffleLog extends PApplet {
         }
 
         SmartDashboard smartDashboard = new SmartDashboard();
+        NetworkTablesTool nt = new NetworkTablesTool(threadPool);
+        nt.addListener(smartDashboard);
 
         tools.add(new MenuBarTool(smartDashboard));
         MessengerTool msg = new MessengerTool(this);
@@ -151,8 +153,9 @@ public final class ShuffleLog extends PApplet {
 
         DataLogTool dataLog = new DataLogTool(this);
         tools.add(dataLog);
-        tools.add(new NetworkTablesTool(threadPool, smartDashboard));
+        tools.add(nt);
         tools.add(smartDashboard);
+
 
         tools.add(new TaskManagerTool(this, "TaskManager"));
         tools.add(new RoboRIOFilesTool(this));
