@@ -9,6 +9,7 @@ import com.swrobotics.messenger.client.MessengerClient;
 import com.swrobotics.shufflelog.ShuffleLog;
 import com.swrobotics.shufflelog.json.JsonObj;
 import com.swrobotics.shufflelog.tool.ViewportTool;
+import com.swrobotics.shufflelog.tool.data.nt.NetworkTablesTool;
 import com.swrobotics.shufflelog.tool.smartdashboard.SmartDashboard;
 import com.swrobotics.shufflelog.util.SmoothFloat;
 
@@ -91,7 +92,7 @@ public final class FieldViewTool extends ViewportTool {
     private float orthoScale;
     private float orthoCameraRotYTarget;
 
-    public FieldViewTool(ShuffleLog log, SmartDashboard smartDashboard) {
+    public FieldViewTool(ShuffleLog log, SmartDashboard smartDashboard, NetworkTablesTool nt) {
         // Be in 3d rendering mode
         super(
                 log,
@@ -104,6 +105,9 @@ public final class FieldViewTool extends ViewportTool {
         layers.add(new MeterGridLayer());
         // TODO-Kickoff: Field vector layer 2024
         layers.add(new Field2dLayer(smartDashboard));
+        TagTrackerLayer tagTrackerLayer = new TagTrackerLayer();
+        layers.add(tagTrackerLayer);
+        nt.addListener(tagTrackerLayer);
 
         projection = new SmoothMatrix(SMOOTH);
 
