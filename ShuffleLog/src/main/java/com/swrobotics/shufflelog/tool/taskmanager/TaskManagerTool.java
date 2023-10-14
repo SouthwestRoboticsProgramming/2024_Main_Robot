@@ -23,6 +23,7 @@ public final class TaskManagerTool implements Tool {
     public static final String MSG_LIST_TASKS = ":ListTasks";
     public static final String MSG_CREATE_TASK = ":CreateTask";
     public static final String MSG_DELETE_TASK = ":DeleteTask";
+    public static final String MSG_RESTART_TASK = ":RestartTask";
     public static final String MSG_TASKS = ":Tasks";
 
     // Logging
@@ -92,6 +93,10 @@ public final class TaskManagerTool implements Tool {
                         tool.setOpen();
                         log.addTool(tool);
                     }
+                }
+                if (ImGui.selectable("Restart")) {
+                    msg.prepare(this.name + MSG_RESTART_TASK).addString(name).send();
+                    ImGui.closeCurrentPopup();
                 }
                 if (ImGui.selectable("Delete")) {
                     msg.prepare(this.name + MSG_DELETE_TASK).addString(name).send();

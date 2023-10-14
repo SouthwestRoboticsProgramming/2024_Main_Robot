@@ -61,6 +61,13 @@ public final class Task {
         startProcess();
     }
 
+    public void restart() {
+        if (!enabled) return;
+
+        forceStop();
+        start();
+    }
+
     private void startProcess() {
         try {
             System.out.println("Starting task '" + name + "'");

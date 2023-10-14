@@ -13,6 +13,7 @@ public final class TaskManagerAPI {
     private static final String MSG_LIST_TASKS = ":ListTasks";
     private static final String MSG_CREATE_TASK = ":CreateTask";
     private static final String MSG_DELETE_TASK = ":DeleteTask";
+    private static final String MSG_RESTART_TASK = ":RestartTask";
     private static final String MSG_TASKS = ":Tasks";
 
     // Logging
@@ -52,6 +53,7 @@ public final class TaskManagerAPI {
         String msgListTasks = prefix + MSG_LIST_TASKS;
         String msgCreateTask = prefix + MSG_CREATE_TASK;
         String msgDeleteTask = prefix + MSG_DELETE_TASK;
+        String msgRestartTask = prefix + MSG_RESTART_TASK;
 
         msgTasks = prefix + MSG_TASKS;
         msgStdOut = prefix + MSG_STDOUT;
@@ -63,6 +65,7 @@ public final class TaskManagerAPI {
         msg.addHandler(msgListTasks, this::onListTasks);
         msg.addHandler(msgCreateTask, this::onCreateTask);
         msg.addHandler(msgDeleteTask, this::onDeleteTask);
+        msg.addHandler(msgRestartTask, this::onRestartTask);
     }
 
     private String removeTrailingSeparator(String path) {
@@ -120,6 +123,13 @@ public final class TaskManagerAPI {
 
     private void onDeleteTask(String type, MessageReader reader) {
         mgr.removeTask(reader.readString());
+    }
+
+    private void onRestartTask(String type, MessageReader reader) {
+        String name = reader.readString();
+        Task task = mgr.getTask(name);
+        if (task != null)
+            task.restart();
     }
 
     public void broadcastTaskOutput(Task task, LogOutputType type, String line) {
