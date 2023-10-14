@@ -70,7 +70,6 @@ public class RobotContainer {
         autoSelector = new SendableChooser<>();
         autoSelector.setDefaultOption("No Auto", () -> blankAuto);
         SmartDashboard.putData("Auto", autoSelector);
-        
     }
 
     public Command getAutonomousCommand() {

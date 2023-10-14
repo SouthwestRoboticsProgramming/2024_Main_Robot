@@ -1,23 +1,21 @@
 package com.swrobotics.robot.subsystems.drive;
 
-import org.littletonrobotics.junction.Logger;
-
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+
+import org.littletonrobotics.junction.Logger;
 
 public class Drive extends SubsystemBase {
     private final GyroIO gyroIO;
     private final GyroIOInputsAutoLogged gyroInputs = new GyroIOInputsAutoLogged();
     private final SwerveModule[] modules;
-    
+
     public Drive(GyroIO gyroIO, SwerveModuleManager manager) {
         System.out.println("[Init] Creating Drive");
         this.gyroIO = gyroIO;
         modules = manager.getModules();
     }
 
-    public void resetGyro() {
-        
-    }
+    public void resetGyro() {}
 
     @Override
     public void periodic() {

@@ -3,7 +3,7 @@ package com.swrobotics.robot.subsystems.drive;
 import com.ctre.phoenix.motorcontrol.can.TalonFXConfiguration;
 
 public class ModuleIOFalcon implements SwerveModuleIO {
-    
+
     public ModuleIOFalcon(int index) {
         System.out.println("[Init] Creating Falcon Module " + index);
     }

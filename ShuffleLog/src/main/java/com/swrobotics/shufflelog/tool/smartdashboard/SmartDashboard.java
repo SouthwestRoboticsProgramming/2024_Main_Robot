@@ -8,8 +8,8 @@ import com.swrobotics.shufflelog.json.JsonObj;
 import com.swrobotics.shufflelog.render.ImGuiRenderer;
 import com.swrobotics.shufflelog.render.Renderer2d;
 import com.swrobotics.shufflelog.tool.Tool;
-
 import com.swrobotics.shufflelog.tool.data.nt.NTInstanceListener;
+
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;

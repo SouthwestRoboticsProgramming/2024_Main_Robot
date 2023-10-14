@@ -128,8 +128,7 @@ public final class TaskManagerAPI {
     private void onRestartTask(String type, MessageReader reader) {
         String name = reader.readString();
         Task task = mgr.getTask(name);
-        if (task != null)
-            task.restart();
+        if (task != null) task.restart();
     }
 
     public void broadcastTaskOutput(Task task, LogOutputType type, String line) {

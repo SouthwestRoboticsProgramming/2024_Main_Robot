@@ -5,7 +5,6 @@ import com.swrobotics.shufflelog.tool.Tool;
 import com.swrobotics.shufflelog.tool.data.DataLogTool;
 import com.swrobotics.shufflelog.tool.data.PlotDef;
 import com.swrobotics.shufflelog.tool.data.ValueAccessor;
-import com.swrobotics.shufflelog.tool.smartdashboard.SmartDashboard;
 import com.swrobotics.shufflelog.util.ExpressionInput;
 
 import edu.wpi.first.networktables.NetworkTable;
@@ -79,29 +78,29 @@ public final class NetworkTablesTool implements Tool {
 
         subscribers = new HashMap<>();
         connection = new NetworkTablesConnection(threadPool);
-        connection.addListener(new NTInstanceListener() {
-            @Override
-            public void onNTInit(NetworkTableInstance inst) {
-                for (NTSubscriber sub : subscribers.values())
-                    sub.init(inst);
-            }
+        connection.addListener(
+                new NTInstanceListener() {
+                    @Override
+                    public void onNTInit(NetworkTableInstance inst) {
+                        for (NTSubscriber sub : subscribers.values()) sub.init(inst);
+                    }
 
-            @Override
-            public void onNTClose() {
-                for (NTSubscriber sub : subscribers.values())
-                    sub.close();
-            }
-        });
+                    @Override
+                    public void onNTClose() {
+                        for (NTSubscriber sub : subscribers.values()) sub.close();
+                    }
+                });
     }
 
     public NTSubscriber subscribe(String path) {
-        return subscribers.computeIfAbsent(path, (p) -> {
-            NTSubscriber sub = new NTSubscriber(p);
-            NetworkTableInstance instance = connection.getInstance();
-            if (instance != null)
-                sub.init(instance);
-            return sub;
-        });
+        return subscribers.computeIfAbsent(
+                path,
+                (p) -> {
+                    NTSubscriber sub = new NTSubscriber(p);
+                    NetworkTableInstance instance = connection.getInstance();
+                    if (instance != null) sub.init(instance);
+                    return sub;
+                });
     }
 
     public void addListener(NTInstanceListener listener) {
@@ -119,11 +118,21 @@ public final class NetworkTablesTool implements Tool {
     private void updateConnectionServer() {
         NetworkTablesConnection.Params params;
         if (connectionMode.get() == CONN_MODE_TEAM_NUMBER)
-            params = new NetworkTablesConnection.Params(NetworkTablesConnection.ConnectionMode.CLIENT_TEAM_NUMBER, null, portOrTeamNumber.get());
+            params =
+                    new NetworkTablesConnection.Params(
+                            NetworkTablesConnection.ConnectionMode.CLIENT_TEAM_NUMBER,
+                            null,
+                            portOrTeamNumber.get());
         else if (connectionMode.get() == CONN_MODE_ADDRESS)
-            params = new NetworkTablesConnection.Params(NetworkTablesConnection.ConnectionMode.CLIENT_ADDRESS, host.get(), portOrTeamNumber.get());
+            params =
+                    new NetworkTablesConnection.Params(
+                            NetworkTablesConnection.ConnectionMode.CLIENT_ADDRESS,
+                            host.get(),
+                            portOrTeamNumber.get());
         else
-            params = new NetworkTablesConnection.Params(NetworkTablesConnection.ConnectionMode.SERVER, null, 0);
+            params =
+                    new NetworkTablesConnection.Params(
+                            NetworkTablesConnection.ConnectionMode.SERVER, null, 0);
 
         connection.setServerParams(version.get() == VERSION_NT4, params);
     }

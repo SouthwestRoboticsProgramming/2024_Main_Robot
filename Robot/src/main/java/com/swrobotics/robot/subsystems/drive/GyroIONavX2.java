@@ -24,6 +24,7 @@ public class GyroIONavX2 implements GyroIO {
         inputs.pitchPositionRad = Units.degreesToRadians(navx.getPitch());
         inputs.yawPositionRad = Units.degreesToRadians(navx.getAngle());
 
-        // The NavX2 does not have velocity functionality so those values are intentionally left blank
+        // The NavX2 does not have velocity functionality so those values are intentionally left
+        // blank
     }
 }

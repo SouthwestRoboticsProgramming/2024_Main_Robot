@@ -1,6 +1,5 @@
 package com.swrobotics.shufflelog.tool.data.nt;
 
-import com.swrobotics.shufflelog.tool.smartdashboard.SmartDashboard;
 
 import edu.wpi.first.networktables.NetworkTableInstance;
 
@@ -77,7 +76,7 @@ public final class NetworkTablesConnection {
 
     private final ExecutorService threadPool;
     private final Set<NTInstanceListener> listeners;
-//    private final SmartDashboard smartDashboard;
+    //    private final SmartDashboard smartDashboard;
 
     private NetworkTableInstance instance;
     private Future<?> stopFuture;
@@ -109,7 +108,8 @@ public final class NetworkTablesConnection {
                 if (isNt4) instance.startClient4(CLIENT_ID);
                 else instance.startClient3(CLIENT_ID);
 
-                if (params.mode == ConnectionMode.CLIENT_ADDRESS) instance.setServer(params.host, params.portOrTeam);
+                if (params.mode == ConnectionMode.CLIENT_ADDRESS)
+                    instance.setServer(params.host, params.portOrTeam);
                 else instance.setServerTeam(params.portOrTeam);
             } else {
                 instance.startServer("shufflelog-nt.ini");
@@ -117,8 +117,7 @@ public final class NetworkTablesConnection {
 
             this.isNt4 = isNt4;
             rootTable = new NetworkTableRepr(instance.getTable("/"));
-            for (NTInstanceListener listener : listeners)
-                listener.onNTInit(instance);
+            for (NTInstanceListener listener : listeners) listener.onNTInit(instance);
 
             this.params = params;
         }
@@ -140,8 +139,7 @@ public final class NetworkTablesConnection {
         NetworkTableInstance savedInstance = instance;
         instance = null;
         boolean savedIsClient = params.mode.isClient();
-        for (NTInstanceListener listener : listeners)
-            listener.onNTClose();
+        for (NTInstanceListener listener : listeners) listener.onNTClose();
 
         // Stop on other thread because stopping the client can take around
         // 10 seconds sometimes, and we don't want to freeze the GUI
@@ -165,8 +163,7 @@ public final class NetworkTablesConnection {
     public Status getStatus() {
         if (stopFuture != null && !stopFuture.isDone()) return Status.CLOSING;
 
-        if (params != null && params.mode == ConnectionMode.SERVER)
-            return Status.CONNECTED;
+        if (params != null && params.mode == ConnectionMode.SERVER) return Status.CONNECTED;
 
         return (instance != null && instance.isConnected()) ? Status.CONNECTED : Status.IDLE;
     }

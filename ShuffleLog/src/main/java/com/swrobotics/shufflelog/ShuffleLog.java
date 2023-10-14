@@ -156,7 +156,6 @@ public final class ShuffleLog extends PApplet {
         tools.add(nt);
         tools.add(smartDashboard);
 
-
         tools.add(new TaskManagerTool(this, "TaskManager"));
         tools.add(new RoboRIOFilesTool(this));
         tools.add(new FieldViewTool(this, smartDashboard, nt));

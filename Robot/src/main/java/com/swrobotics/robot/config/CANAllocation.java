@@ -10,7 +10,6 @@ public final class CANAllocation {
     public static final SwerveIDs SWERVE_BL = new SwerveIDs(11, 7, 3);
     public static final SwerveIDs SWERVE_BR = new SwerveIDs(12, 8, 4);
 
-
     public static final class SwerveIDs {
         public final int drive, turn, encoder;
 

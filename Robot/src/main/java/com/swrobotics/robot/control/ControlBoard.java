@@ -33,10 +33,10 @@ public class ControlBoard {
 
         // Congigure triggers
         driver.start.onFalling(robot.drive::resetGyro);
-        driver.back.onFalling(robot.drive::resetGyro); // Two buttons to reset gyro so the driver can't get confused
+        driver.back.onFalling(
+                robot.drive
+                        ::resetGyro); // Two buttons to reset gyro so the driver can't get confused
 
         new Trigger(() -> driver.dpad.up.isPressed()).whileTrue(new InstantCommand());
     }
-
-    
 }

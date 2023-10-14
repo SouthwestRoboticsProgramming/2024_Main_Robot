@@ -1,15 +1,16 @@
 package com.swrobotics.shufflelog.tool.field;
 
 import com.swrobotics.shufflelog.tool.data.nt.NTInstanceListener;
+
 import edu.wpi.first.math.Vector;
 import edu.wpi.first.math.geometry.*;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
+
 import processing.core.PConstants;
 import processing.core.PGraphics;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -43,14 +44,14 @@ public final class TagTrackerLayer implements FieldLayer, NTInstanceListener {
     }
 
     private Pose3d unpackPose(int i, double[] data) {
-        return new Pose3d(new Translation3d(data[i], data[i + 1], data[i + 2]),
+        return new Pose3d(
+                new Translation3d(data[i], data[i + 1], data[i + 2]),
                 new Rotation3d(new Quaternion(data[i + 3], data[i + 4], data[i + 5], data[i + 6])));
     }
 
     @Override
     public void draw(PGraphics g) {
-        if (table == null)
-            return;
+        if (table == null) return;
 
         double[] envData = table.getEntry("environment").getDoubleArray(new double[0]);
 
@@ -59,7 +60,10 @@ public final class TagTrackerLayer implements FieldLayer, NTInstanceListener {
         for (String subTable : cameras.getSubTables()) {
             NetworkTable t = cameras.getSubTable(subTable);
 
-            double[] poseData = t.getEntry("poses").getDoubleArray(new double[1]); // Have one entry (containing 0) by default
+            double[] poseData =
+                    t.getEntry("poses")
+                            .getDoubleArray(
+                                    new double[1]); // Have one entry (containing 0) by default
 
             int poseCount = (int) poseData[0];
             Pose3d bestPose = null;
@@ -79,18 +83,25 @@ public final class TagTrackerLayer implements FieldLayer, NTInstanceListener {
 
                 g.pushMatrix();
                 g.translate((float) tx.getX(), (float) tx.getY(), (float) tx.getZ());
-//                float angle = (float) ((System.currentTimeMillis() % 1000) / 1000.0f * 2 * Math.PI);
-                g.rotate((float) bestPose.getRotation().getAngle(), (float) axis.get(0, 0), (float) axis.get(1, 0), (float) axis.get(2, 0));
+                //                float angle = (float) ((System.currentTimeMillis() % 1000) /
+                // 1000.0f * 2 * Math.PI);
+                g.rotate(
+                        (float) bestPose.getRotation().getAngle(),
+                        (float) axis.get(0, 0),
+                        (float) axis.get(1, 0),
+                        (float) axis.get(2, 0));
                 drawAxes(g);
-//                axis = axis.div(axis.norm());
-//                g.line(0, 0, 0, (float) axis.get(0, 0), (float) axis.get(1, 0), (float) axis.get(2, 0));
+                //                axis = axis.div(axis.norm());
+                //                g.line(0, 0, 0, (float) axis.get(0, 0), (float) axis.get(1, 0),
+                // (float) axis.get(2, 0));
                 g.popMatrix();
             }
 
-//            int[] visibleIds = new int[poseData.length - poseCount * 8 - 1];
+            //            int[] visibleIds = new int[poseData.length - poseCount * 8 - 1];
             int idCount = poseData.length - poseCount * 8 - 1;
             for (int i = 0; i < idCount; i++) {
-//                visibleIds[i] = (int) poseData[poseData.length - visibleIds.length + i];
+                //                visibleIds[i] = (int) poseData[poseData.length - visibleIds.length
+                // + i];
                 visibleIds.add((int) poseData[poseData.length - idCount + i]);
             }
         }
@@ -105,7 +116,11 @@ public final class TagTrackerLayer implements FieldLayer, NTInstanceListener {
 
             g.pushMatrix();
             g.translate((float) tx.getX(), (float) tx.getY(), (float) tx.getZ());
-            g.rotate((float) pose.getRotation().getAngle(), (float) axis.get(0, 0), (float) axis.get(1, 0), (float) axis.get(2, 0));
+            g.rotate(
+                    (float) pose.getRotation().getAngle(),
+                    (float) axis.get(0, 0),
+                    (float) axis.get(1, 0),
+                    (float) axis.get(2, 0));
             g.fill(visible ? 128 : 64);
             g.stroke(255);
             g.strokeWeight(2);
@@ -121,7 +136,5 @@ public final class TagTrackerLayer implements FieldLayer, NTInstanceListener {
     }
 
     @Override
-    public void showGui() {
-
-    }
+    public void showGui() {}
 }
