@@ -1,6 +1,5 @@
 package com.swrobotics.shufflelog.tool.data.nt;
 
-
 import edu.wpi.first.networktables.NetworkTableInstance;
 
 import imgui.ImGui;

@@ -9,16 +9,15 @@ import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
-import org.littletonrobotics.junction.Logger;
-
 public class Drive extends SubsystemBase {
 
     private final SwerveDriveKinematics kinematics;
     private final SwerveDriveOdometry odometry;
 
-    private final SwerveModule[] modules = new SwerveModule[] {
-        new SwerveModule(), new SwerveModule(), new SwerveModule(), new SwerveModule()
-    };
+    private final SwerveModule[] modules =
+            new SwerveModule[] {
+                new SwerveModule(), new SwerveModule(), new SwerveModule(), new SwerveModule()
+            };
 
     private Rotation2d gyroAngle = new Rotation2d();
 
@@ -33,12 +32,9 @@ public class Drive extends SubsystemBase {
         SmartDashboard.putData("Field", field);
     }
 
-    public void resetGyro() {
-    }
+    public void resetGyro() {}
 
-    public void setChassisSpeeds(ChassisSpeeds speeds) {
-
-    }
+    public void setChassisSpeeds(ChassisSpeeds speeds) {}
 
     public SwerveModulePosition[] getSwerveModulePositions() {
         SwerveModulePosition[] positions = new SwerveModulePosition[4];

@@ -1,8 +1,6 @@
 package com.swrobotics.robot;
 
 import com.swrobotics.messenger.client.MessengerClient;
-import com.swrobotics.robot.config.Settings;
-import com.swrobotics.robot.config.Settings.Mode;
 import com.swrobotics.robot.subsystems.drive.Drive;
 import com.swrobotics.taskmanager.filesystem.FileSystemAPI;
 
