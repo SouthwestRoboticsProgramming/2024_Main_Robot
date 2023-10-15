@@ -1,19 +1,29 @@
 package com.swrobotics.robot.subsystems.drive;
 
-import org.littletonrobotics.junction.Logger;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.kinematics.SwerveModulePosition;
+import edu.wpi.first.math.kinematics.SwerveModuleState;
 
-public class SwerveModule { // Intentionally not a subsystem
-    private final SwerveModuleIO io;
-    private final SwerveModuleIOInputsAutoLogged inputs = new SwerveModuleIOInputsAutoLogged();
-    private final String name;
+public class SwerveModule {
+    private SwerveModuleState targetState = new SwerveModuleState();
 
-    public SwerveModule(SwerveModuleIO io, String name) {
-        this.io = io;
-        this.name = name;
+    private double simulatedDistance = 0.0;
+
+    public void setState(SwerveModuleState state) {
+        targetState = state;
+
+        simulatedDistance += targetState.speedMetersPerSecond * 0.02;
     }
 
-    public void periodic() {
-        io.updateInputa(inputs);
-        Logger.getInstance().processInputs("Drive/" + name + " Module", inputs);
+    public SwerveModulePosition getPosition() {
+        return new SwerveModulePosition(getDistance(), getAngle());
+    }
+
+    public Rotation2d getAngle() {
+        return targetState.angle;
+    }
+
+    public double getDistance() {
+        return simulatedDistance;
     }
 }
