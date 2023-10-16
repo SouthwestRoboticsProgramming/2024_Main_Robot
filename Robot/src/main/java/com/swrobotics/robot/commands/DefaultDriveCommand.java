@@ -1,6 +1,5 @@
 package com.swrobotics.robot.commands;
 
-import java.util.function.Supplier;
 
 import com.swrobotics.mathlib.Angle;
 import com.swrobotics.mathlib.CWAngle;
@@ -31,8 +30,14 @@ public class DefaultDriveCommand extends CommandBase {
 
         // Scale inputs
         Vec2d translation = rawTranslation.mul(drive.getKinematicLimits().maxDriveVelocity);
-        Angle rotation = CWAngle.rad(drive.getKinematicLimits().maxAnglularVelocity).mul(rawRotation);
+        Angle rotation =
+                CWAngle.rad(drive.getKinematicLimits().maxAnglularVelocity).mul(rawRotation);
 
-        drive.setChassisSpeeds(ChassisSpeeds.fromFieldRelativeSpeeds(translation.x, translation.y, rotation.ccw().rad(), drive.getPose().getRotation()));
+        drive.setChassisSpeeds(
+                ChassisSpeeds.fromFieldRelativeSpeeds(
+                        translation.x,
+                        translation.y,
+                        rotation.ccw().rad(),
+                        drive.getPose().getRotation()));
     }
 }
