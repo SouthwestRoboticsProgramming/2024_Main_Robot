@@ -1,6 +1,8 @@
 package com.swrobotics.robot;
 
 import com.swrobotics.messenger.client.MessengerClient;
+import com.swrobotics.robot.commands.DefaultDriveCommand;
+import com.swrobotics.robot.control.ControlBoard;
 import com.swrobotics.robot.subsystems.drive.Drive;
 import com.swrobotics.taskmanager.filesystem.FileSystemAPI;
 
@@ -30,6 +32,7 @@ public class RobotContainer {
 
     public final MessengerClient messenger;
 
+    private final ControlBoard controlboard;
     public final Drive drive;
 
     public RobotContainer() {
@@ -42,6 +45,8 @@ public class RobotContainer {
         new FileSystemAPI(messenger, "RoboRIO", Filesystem.getOperatingDirectory());
 
         drive = new Drive();
+        controlboard = new ControlBoard(this);
+        drive.setDefaultCommand(new DefaultDriveCommand(drive, controlboard));
 
         // Autos that don't do anything
         Command blankAuto = new InstantCommand();

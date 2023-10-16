@@ -15,6 +15,10 @@ public class SwerveModule {
         simulatedDistance += targetState.speedMetersPerSecond * 0.02;
     }
 
+    public SwerveModuleState getState() {
+        return targetState;
+    }
+
     public SwerveModulePosition getPosition() {
         return new SwerveModulePosition(getDistance(), getAngle());
     }
