@@ -1,6 +1,5 @@
 package com.swrobotics.robot.commands;
 
-
 import com.swrobotics.mathlib.Angle;
 import com.swrobotics.mathlib.CWAngle;
 import com.swrobotics.mathlib.Vec2d;
