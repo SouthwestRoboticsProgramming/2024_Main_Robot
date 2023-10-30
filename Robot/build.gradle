@@ -1,7 +1,7 @@
 plugins {
     id "java"
-    id "edu.wpi.first.GradleRIO" version "2024.1.1-beta-2"
-    // id "com.peterabeles.gversion" version "1.10"
+    id "edu.wpi.first.GradleRIO" version "2023.3.2"
+    id "com.peterabeles.gversion" version "1.10"
 }
 
 sourceCompatibility = JavaVersion.VERSION_17
@@ -57,14 +57,15 @@ test {
 
 // Create a class with data on what verion the code is
 // FIXME: Using the gversion plugin breaks project import in IDEA for some reason
-// gversion {
-//     srcDir       = "src/main/java/"
-//     classPackage = "com.swrobotics.robot"
-//     className    = "BuildConstants"
-//     dateFormat   = "yyyy-MM-dd HH:mm:ss z"
-//     timeZone     = "America/Chicago" // Use preferred time zone
-//     indent       = "  "
-// }
+project.compileJava.dependsOn(createVersionFile)
+gversion {
+    srcDir       = "src/main/java/"
+    classPackage = "com.swrobotics.robot"
+    className    = "BuildConstants"
+    dateFormat   = "yyyy-MM-dd HH:mm:ss z"
+    timeZone     = "America/Chicago" // Use preferred time zone
+    indent       = "  "
+}
 
 // Defining my dependencies. In this case, WPILib (+ friends), and vendor libraries.
 // Also defines JUnit 4.
@@ -126,11 +127,3 @@ jar {
 deployArtifact.jarTask = jar
 wpi.java.configureExecutableTasks(jar)
 wpi.java.configureTestTasks(test)
-
-// Configure string concat to always inline compile
-tasks.withType(JavaCompile) {
-    options.compilerArgs.add '-XDstringConcat=inline'
-}
-
-// Create version file
-project.compileJava.dependsOn(createVersionFile)
