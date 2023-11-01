@@ -9,7 +9,7 @@ import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 
 public class ControlBoard {
-    private static final double DEADBAND = 0.15;
+    private static final double DEADBAND = 0.1;
 
     /** Manages demands to go to an exact angle demanded by the driver */
     public enum SwerveCardinal {
@@ -46,7 +46,11 @@ public class ControlBoard {
         double x = -driver.getLeftStick().y;
         double y = -driver.getLeftStick().x;
 
-        return new Vec2d(x, y).deadband(DEADBAND);
+        // Map the somewhat square possible values onto a circle
+        Vec2d demand = new Vec2d(x * Math.sqrt(1 - y * y / 2),
+                                 y * Math.sqrt(1 - x * x / 2))
+                                 .deadband(DEADBAND);
+        return new Vec2d(demand.angle(), demand.magnitudeSq());
     }
 
     public double getDriveRotation() {

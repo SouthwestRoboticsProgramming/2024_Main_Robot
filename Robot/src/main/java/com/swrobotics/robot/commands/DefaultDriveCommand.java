@@ -7,6 +7,7 @@ import com.swrobotics.robot.control.ControlBoard;
 import com.swrobotics.robot.subsystems.drive.Drive;
 
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 
 public class DefaultDriveCommand extends CommandBase {
@@ -25,13 +26,11 @@ public class DefaultDriveCommand extends CommandBase {
         Vec2d rawTranslation = input.getDriveTranslation();
         double rawRotation = input.getDriveRotation();
 
-        System.out.println("Running");
-
         // Scale inputs
-        Vec2d translation = rawTranslation.mul(drive.getKinematicLimits().maxDriveVelocity);
-        Angle rotation =
-                CWAngle.rad(drive.getKinematicLimits().maxAnglularVelocity).mul(rawRotation);
+        Vec2d translation = rawTranslation.mul(Units.feetToMeters(18.0));
 
+        Angle rotation = CWAngle.rad(3).mul(rawRotation);
+        
         drive.setChassisSpeeds(
                 ChassisSpeeds.fromFieldRelativeSpeeds(
                         translation.x,
