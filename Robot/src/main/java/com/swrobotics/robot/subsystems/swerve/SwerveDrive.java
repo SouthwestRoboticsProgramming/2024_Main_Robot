@@ -1,6 +1,7 @@
 package com.swrobotics.robot.subsystems.swerve;
 
 import com.kauailabs.navx.frc.AHRS;
+import com.swrobotics.lib.field.FieldInfo;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -30,7 +31,7 @@ public final class SwerveDrive extends SubsystemBase {
     private SwerveModulePosition[] prevPositions;
     private Rotation2d prevGyroAngle;
 
-    public SwerveDrive() {
+    public SwerveDrive(FieldInfo fieldInfo) {
         gyro = new AHRS(SPI.Port.kMXP);
 
         modules = new SimSwerveModule[INFOS.length];
@@ -42,7 +43,7 @@ public final class SwerveDrive extends SubsystemBase {
         }
 
         this.kinematics = new SwerveKinematics(positions);
-        this.estimator = new SwerveEstimator();
+        this.estimator = new SwerveEstimator(fieldInfo);
 
         prevPositions = null;
     }
@@ -63,7 +64,7 @@ public final class SwerveDrive extends SubsystemBase {
             if (RobotBase.isReal())
                 twist.dtheta = gyroAngle.getRadians() - prevGyroAngle.getRadians();
 
-            estimator.addDriveMovement(twist);
+            estimator.update(twist);
         }
         prevPositions = positions;
         prevGyroAngle = gyroAngle;
