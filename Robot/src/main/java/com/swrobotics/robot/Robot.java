@@ -65,7 +65,7 @@ public class Robot extends LoggedRobot {
                 logger.addDataReceiver(new NT4Publisher());
                 if (Settings.robot == RobotType.COMPETITION) {
                     LoggedPowerDistribution.getInstance(
-                            50, ModuleType.kAutomatic); // FIXME: Correct ID
+                            50, ModuleType.kRev); // FIXME: Correct ID
                 }
                 break;
 

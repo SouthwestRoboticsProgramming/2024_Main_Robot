@@ -34,12 +34,12 @@ public class ControlBoard {
         operator = new XboxController(1, DEADBAND);
 
         // Congigure triggers
-        driver.start.onFalling(robot.drive::resetGyro);
-        driver.back.onFalling(
-                robot.drive
-                        ::resetGyro); // Two buttons to reset gyro so the driver can't get confused
+//        driver.start.onFalling(robot.drive::resetGyro);
+//        driver.back.onFalling(
+//                robot.drive
+//                        ::resetGyro); // Two buttons to reset gyro so the driver can't get confused
 
-        new Trigger(() -> driver.dpad.up.isPressed()).whileTrue(new InstantCommand());
+//        new Trigger(() -> driver.dpad.up.isPressed()).whileTrue(new InstantCommand());
     }
 
     public Vec2d getDriveTranslation() {

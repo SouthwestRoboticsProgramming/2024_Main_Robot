@@ -3,7 +3,7 @@ package com.swrobotics.robot;
 import com.swrobotics.messenger.client.MessengerClient;
 import com.swrobotics.robot.commands.DefaultDriveCommand;
 import com.swrobotics.robot.control.ControlBoard;
-import com.swrobotics.robot.subsystems.drive.Drive;
+import com.swrobotics.robot.subsystems.swerve.SwerveDrive;
 import com.swrobotics.taskmanager.filesystem.FileSystemAPI;
 
 import edu.wpi.first.wpilibj.*;
@@ -33,7 +33,7 @@ public class RobotContainer {
     public final MessengerClient messenger;
 
     private final ControlBoard controlboard;
-    public final Drive drive;
+    public final SwerveDrive drive;
 
     public RobotContainer() {
         // Turn off joystick warnings in sim
@@ -44,8 +44,12 @@ public class RobotContainer {
         messenger = new MessengerClient(host, MESSENGER_PORT, MESSENGER_NAME);
         new FileSystemAPI(messenger, "RoboRIO", Filesystem.getOperatingDirectory());
 
-        drive = new Drive();
         controlboard = new ControlBoard(this);
+
+        drive = new SwerveDrive();
+
+//        drive = new Drive();
+//        controlboard = new ControlBoard(this);
         drive.setDefaultCommand(new DefaultDriveCommand(drive, controlboard));
 
         // Autos that don't do anything
