@@ -84,4 +84,11 @@ public final class SwerveDrive extends SubsystemBase {
             module.update();
         }
     }
+
+    // private SwerveModuleState optimizeSwerveModuleState(SwerveModuleState targetState, SwerveModuleState currentState) {
+    //     Rotation2d currentAngle = currentState.angle;
+    //     Rotation2d targetAngle = targetState.angle;
+    //     Rotation2d inverseAngle = targetAngle.plus(Rotation2d.fromDegrees(180));
+
+    // }
 }
