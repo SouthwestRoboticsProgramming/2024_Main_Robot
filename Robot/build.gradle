@@ -75,6 +75,9 @@ dependencies {
     implementation project(':MathLib')
     implementation project(':RobotLib')
 
+    def akitJson = new groovy.json.JsonSlurper().parseText(new File(projectDir.getAbsolutePath() + "/vendordeps/AdvantageKit.json").text)
+    annotationProcessor "org.littletonrobotics.akit.junction:junction-autolog:$akitJson.version"
+
     implementation 'com.google.code.gson:gson:2.9.0'
 
     implementation wpi.java.deps.wpilib()

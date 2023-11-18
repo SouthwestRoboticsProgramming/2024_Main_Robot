@@ -28,7 +28,7 @@ public class DefaultDriveCommand extends CommandBase {
 //        System.out.println("Running");
 
         // Scale inputs
-        Vec2d translation = rawTranslation.mul(1);
+        Vec2d translation = rawTranslation.mul(4.11);
         Angle rotation =
                 CWAngle.rad(2 * Math.PI).mul(rawRotation);
 

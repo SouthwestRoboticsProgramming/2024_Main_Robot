@@ -1,1 +1,34 @@
-[]
+[
+  {
+    "name": "/Swerve/Modules/Front Left Offset",
+    "type": "double",
+    "value": 0.0,
+    "properties": {
+      "persistent": true
+    }
+  },
+  {
+    "name": "/Swerve/Modules/Front Right Offset",
+    "type": "double",
+    "value": 0.0,
+    "properties": {
+      "persistent": true
+    }
+  },
+  {
+    "name": "/Swerve/Modules/Back Left Offset",
+    "type": "double",
+    "value": 0.0,
+    "properties": {
+      "persistent": true
+    }
+  },
+  {
+    "name": "/Swerve/Modules/Back Right Offset",
+    "type": "double",
+    "value": 0.0,
+    "properties": {
+      "persistent": true
+    }
+  }
+]

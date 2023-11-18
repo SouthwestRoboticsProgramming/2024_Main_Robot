@@ -1,5 +1,7 @@
 package com.swrobotics.robot.subsystems.swerve;
 
+import org.littletonrobotics.junction.Logger;
+
 import com.kauailabs.navx.frc.AHRS;
 import com.swrobotics.lib.field.FieldInfo;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -16,7 +18,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public final class SwerveDrive extends SubsystemBase {
     private static final double HALF_SPACING = Units.inchesToMeters(20); // FIXME
-    private static final SimSwerveModule.Info[] INFOS = {
+    private static final SwerveModule.Info[] INFOS = {
             new SwerveModule.Info(9, 5, 1, HALF_SPACING, HALF_SPACING, "Front Left"),
             new SwerveModule.Info(10, 6, 2, HALF_SPACING, -HALF_SPACING, "Front Right"),
             new SwerveModule.Info(11, 7, 3, -HALF_SPACING, HALF_SPACING, "Back Left"),
@@ -24,7 +26,7 @@ public final class SwerveDrive extends SubsystemBase {
     };
 
     private final AHRS gyro;
-    private final SimSwerveModule[] modules;
+    private final SwerveModule[] modules;
     private final SwerveKinematics kinematics;
     private final SwerveEstimator estimator;
 
@@ -34,11 +36,12 @@ public final class SwerveDrive extends SubsystemBase {
     public SwerveDrive(FieldInfo fieldInfo) {
         gyro = new AHRS(SPI.Port.kMXP);
 
-        modules = new SimSwerveModule[INFOS.length];
+        modules = new SwerveModule[INFOS.length];
         Translation2d[] positions = new Translation2d[INFOS.length];
         for (int i = 0; i < modules.length; i++) {
-            SimSwerveModule.Info info = INFOS[i];
-            modules[i] = new SimSwerveModule(info);
+            SwerveModule.Info info = INFOS[i];
+            // TODO: If sim
+            modules[i] = new SwerveModule(new SwerveModuleIOSim(), INFOS[i]);
             positions[i] = info.position();
         }
 
@@ -52,7 +55,7 @@ public final class SwerveDrive extends SubsystemBase {
         SwerveModuleState[] targetStates = kinematics.getStates(robotRelSpeeds);
         SwerveModulePosition[] positions = new SwerveModulePosition[modules.length];
         for (int i = 0; i < modules.length; i++) {
-            modules[i].update(targetStates[i]);
+            modules[i].setTargetState(targetStates[i]);
             positions[i] = modules[i].getCurrentPosition();
         }
 
@@ -72,5 +75,13 @@ public final class SwerveDrive extends SubsystemBase {
 
     public Pose2d getEstimatedPose() {
         return estimator.getEstimatedPose();
+    }
+
+    @Override
+    public void periodic() {
+        Logger.getInstance().recordOutput("Pose estimate", getEstimatedPose());
+        for (SwerveModule module: modules) {
+            module.update();
+        }
     }
 }
