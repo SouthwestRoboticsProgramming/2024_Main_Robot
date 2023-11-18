@@ -29,12 +29,12 @@ public class SwerveModule {
 
     private final Info info;
     private SwerveModuleIO hardwareIO;
-    private SwerveModuleIOInputsAutoLogged inputs;
+    private SwerveModuleIO.SwerveModuleIOInputs inputs;
 
     public SwerveModule(SwerveModuleIO hardwareIO, Info info) {
         this.hardwareIO = hardwareIO;
         this.info = info;
-        inputs = new SwerveModuleIOInputsAutoLogged();
+        inputs = new SwerveModuleIO.SwerveModuleIOInputs();
     }
     
     public void setTargetState(SwerveModuleState targetState) {

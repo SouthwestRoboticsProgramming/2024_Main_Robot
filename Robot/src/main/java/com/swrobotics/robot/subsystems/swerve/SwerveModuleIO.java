@@ -1,5 +1,6 @@
 package com.swrobotics.robot.subsystems.swerve;
 
+import com.swrobotics.robot.logging.AutoLoggedInputs;
 import org.littletonrobotics.junction.AutoLog;
 
 import com.ctre.phoenix6.BaseStatusSignal;
@@ -26,8 +27,8 @@ public interface SwerveModuleIO {
     /**
      * Holds data that can be read from the corresponding swerve drive module IO implementation.
      */
-    @AutoLog
-    class SwerveModuleIOInputs {
+//    @AutoLog
+    class SwerveModuleIOInputs extends AutoLoggedInputs {
         // Drive Inputs
         public double drivePositionRad = 0;
         /**
