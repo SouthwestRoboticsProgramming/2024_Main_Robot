@@ -6,6 +6,7 @@ import com.swrobotics.lib.net.NTDouble;
 import com.swrobotics.lib.net.NTEntry;
 
 import edu.wpi.first.math.geometry.Rotation2d;
+import com.swrobotics.robot.config.CANAllocation;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
@@ -15,15 +16,14 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
  */
 public class SwerveModule {
     record Info(
-        int driveId, int turnId, int encoderId,
-        Translation2d position,
-        NTEntry<Double> offset,
-        String name) {
-        public Info(int driveId, int turnId, int encoderId, double x, double y, String name) {
-            this(driveId, turnId, encoderId,
+            int driveId, int turnId, int encoderId,
+            Translation2d position,
+            NTEntry<Double> offset,
+            String name) {
+        public Info(CANAllocation.SwerveIDs ids, double x, double y, NTEntry<Double> offset, String name) {
+            this(ids.drive, ids.turn, ids.encoder,
                     new Translation2d(x, y),
-                    new NTDouble("Swerve/Modules/" + name + " Offset", 0).setPersistent(),
-                    name);
+                    offset, name);
         }
     }
 

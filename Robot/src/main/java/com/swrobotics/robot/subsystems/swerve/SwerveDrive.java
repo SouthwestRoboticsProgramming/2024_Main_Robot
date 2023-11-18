@@ -4,6 +4,8 @@ import org.littletonrobotics.junction.Logger;
 
 import com.kauailabs.navx.frc.AHRS;
 import com.swrobotics.lib.field.FieldInfo;
+import com.swrobotics.robot.NTData;
+import com.swrobotics.robot.config.CANAllocation;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -19,10 +21,10 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 public final class SwerveDrive extends SubsystemBase {
     private static final double HALF_SPACING = Units.inchesToMeters(20); // FIXME
     private static final SwerveModule.Info[] INFOS = {
-            new SwerveModule.Info(9, 5, 1, HALF_SPACING, HALF_SPACING, "Front Left"),
-            new SwerveModule.Info(10, 6, 2, HALF_SPACING, -HALF_SPACING, "Front Right"),
-            new SwerveModule.Info(11, 7, 3, -HALF_SPACING, HALF_SPACING, "Back Left"),
-            new SwerveModule.Info(12, 8, 4, -HALF_SPACING, -HALF_SPACING, "Back Right")
+            new SwerveModule.Info(CANAllocation.SWERVE_FL, HALF_SPACING, HALF_SPACING, NTData.FL_OFFSET, "Front Left"),
+            new SwerveModule.Info(CANAllocation.SWERVE_FR, HALF_SPACING, -HALF_SPACING, NTData.FR_OFFSET, "Front Right"),
+            new SwerveModule.Info(CANAllocation.SWERVE_BL, -HALF_SPACING, HALF_SPACING, NTData.BL_OFFSET, "Back Left"),
+            new SwerveModule.Info(CANAllocation.SWERVE_BR, -HALF_SPACING, -HALF_SPACING, NTData.BR_OFFSET, "Back Right")
     };
 
     private final AHRS gyro;
@@ -51,6 +53,7 @@ public final class SwerveDrive extends SubsystemBase {
         prevPositions = null;
     }
 
+    // TODO: Better way of selecting between manual/auto input
     public void drive(ChassisSpeeds robotRelSpeeds) {
         SwerveModuleState[] targetStates = kinematics.getStates(robotRelSpeeds);
         SwerveModulePosition[] positions = new SwerveModulePosition[modules.length];
