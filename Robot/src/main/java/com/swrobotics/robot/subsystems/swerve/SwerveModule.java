@@ -56,6 +56,10 @@ public class SwerveModule {
         Logger.getInstance().processInputs("Drive/" + info.name() + " Module", inputs);
     }
 
+    public double getMaxVelocity() {
+        return hardwareIO.getMaxVelocity();
+    }
+
     // TODO
     // /** CTRE-Specific signals directly from the motor controllers and encoders */
     // public BaseStatusSignal[] getSignals() {
