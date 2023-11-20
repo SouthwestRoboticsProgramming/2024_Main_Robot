@@ -43,7 +43,7 @@ public final class SwerveDrive extends SubsystemBase {
         for (int i = 0; i < modules.length; i++) {
             SwerveModule.Info info = INFOS[i];
             // TODO: If sim
-            modules[i] = new SwerveModule(new SwerveModuleIOSim(), INFOS[i]);
+            modules[i] = new SwerveModule(new SwerveModuleIORealisticSim(), INFOS[i]);
             positions[i] = info.position();
         }
 
@@ -51,6 +51,30 @@ public final class SwerveDrive extends SubsystemBase {
         this.estimator = new SwerveEstimator(fieldInfo);
 
         prevPositions = null;
+    }
+
+    public SwerveModuleState[] getCurrentModuleStates() {
+        SwerveModuleState[] states = new SwerveModuleState[INFOS.length];
+        for (int i = 0; i < states.length; i++) {
+            states[i] = modules[i].getCurrentState();
+        }
+        return states;
+    }
+
+    public SwerveModuleState[] getTargetModuleStates() {
+        SwerveModuleState[] states = new SwerveModuleState[INFOS.length];
+        for (int i = 0; i < states.length; i++) {
+            states[i] = modules[i].getTargetState();
+        }
+        return states;
+    }
+
+    public SwerveModulePosition[] getCurrentModulePositions() {
+        SwerveModulePosition[] positions = new SwerveModulePosition[INFOS.length];
+        for (int i = 0; i < positions.length; i++) {
+            positions[i] = modules[i].getCurrentPosition();
+        }
+        return positions;
     }
 
     // TODO: Better way of selecting between manual/auto input
@@ -86,6 +110,10 @@ public final class SwerveDrive extends SubsystemBase {
         for (SwerveModule module: modules) {
             module.update();
         }
+
+        Logger.getInstance().recordOutput("Drive/Current Swerve Module States", getCurrentModuleStates());
+        Logger.getInstance().recordOutput("Drive/Target Swerve Module States", getTargetModuleStates());
+
     }
 
     // private SwerveModuleState optimizeSwerveModuleState(SwerveModuleState targetState, SwerveModuleState currentState) {
