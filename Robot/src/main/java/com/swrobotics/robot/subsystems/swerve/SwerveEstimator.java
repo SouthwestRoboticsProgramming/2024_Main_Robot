@@ -101,8 +101,11 @@ public final class SwerveEstimator {
 
                 List<TagTrackerInput.VisionUpdate> newVisionUpdates = new ArrayList<>();
                 newVisionUpdates.add(visionUpdate);
-                newVisionUpdates.sort(this::compareStdDevs);
+
+                // Insert new update entry for this vision update
                 updates.put(timestamp, new PoseUpdate(prevToVisionTwist, newVisionUpdates));
+
+                // Overwrite nextUpdate with twist after this vision update
                 updates.put(nextUpdate.getKey(), new PoseUpdate(visionToNextTwist, nextUpdate.getValue().visionUpdates));
             }
         }
