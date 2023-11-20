@@ -1,4 +1,4 @@
-package com.swrobotics.robot.subsystems.swerve;
+package com.swrobotics.robot.subsystems.swerve.modules;
 
 public class SwerveModuleIOSim implements SwerveModuleIO {
 

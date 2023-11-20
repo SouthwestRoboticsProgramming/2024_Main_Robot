@@ -1,7 +1,6 @@
-package com.swrobotics.robot.subsystems.swerve;
+package com.swrobotics.robot.subsystems.swerve.modules;
 
 import com.swrobotics.robot.logging.AutoLoggedInputs;
-import org.littletonrobotics.junction.AutoLog;
 
 import com.ctre.phoenix6.BaseStatusSignal;
 

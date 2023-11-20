@@ -6,6 +6,10 @@ import com.kauailabs.navx.frc.AHRS;
 import com.swrobotics.lib.field.FieldInfo;
 import com.swrobotics.robot.NTData;
 import com.swrobotics.robot.config.CANAllocation;
+import com.swrobotics.robot.subsystems.swerve.modules.SwerveModule;
+import com.swrobotics.robot.subsystems.swerve.modules.SwerveModuleIORealisticSim;
+import com.swrobotics.robot.subsystems.swerve.modules.SwerveModuleIOTalonFX;
+
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -42,8 +46,11 @@ public final class SwerveDrive extends SubsystemBase {
         Translation2d[] positions = new Translation2d[INFOS.length];
         for (int i = 0; i < modules.length; i++) {
             SwerveModule.Info info = INFOS[i];
-            // TODO: If sim
-            modules[i] = new SwerveModule(new SwerveModuleIORealisticSim(), INFOS[i]);
+            if (RobotBase.isSimulation()) {
+                modules[i] = new SwerveModule(new SwerveModuleIORealisticSim(), INFOS[i]);
+            } else {
+                modules[i] = new SwerveModule(new SwerveModuleIOTalonFX(INFOS[i], CANAllocation.CANIVORE_BUS), INFOS[i]);
+            }
             positions[i] = info.position();
         }
 

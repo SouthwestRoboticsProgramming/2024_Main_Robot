@@ -1,4 +1,4 @@
-package com.swrobotics.robot.subsystems.swerve;
+package com.swrobotics.robot.subsystems.swerve.modules;
 
 import org.littletonrobotics.junction.Logger;
 
@@ -6,6 +6,7 @@ import com.swrobotics.lib.net.NTEntry;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import com.swrobotics.robot.config.CANAllocation;
+
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
@@ -14,7 +15,7 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
  * - Also does the heavy lifting when it comes to math
  */
 public class SwerveModule {
-    record Info(
+    public record Info(
             int driveId, int turnId, int encoderId,
             Translation2d position,
             NTEntry<Double> offset,
