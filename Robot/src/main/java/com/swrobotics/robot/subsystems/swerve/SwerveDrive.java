@@ -47,7 +47,12 @@ public final class SwerveDrive extends SubsystemBase {
             positions[i] = info.position();
         }
 
-        this.kinematics = new SwerveKinematics(positions);
+        double minMax = Double.POSITIVE_INFINITY;
+        for (SwerveModule module : modules) {
+            minMax = Math.min(module.getMaxVelocity(), minMax);
+        }
+
+        this.kinematics = new SwerveKinematics(positions, minMax);
         this.estimator = new SwerveEstimator(fieldInfo);
 
         prevPositions = null;

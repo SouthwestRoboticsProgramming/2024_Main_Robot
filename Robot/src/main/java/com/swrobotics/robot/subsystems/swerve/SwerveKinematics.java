@@ -11,9 +11,11 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 
 public final class SwerveKinematics {
     private final SwerveDriveKinematics kinematics;
+    private final double maxVelocity;
 
-    public SwerveKinematics(Translation2d[] modulePositions) {
+    public SwerveKinematics(Translation2d[] modulePositions, double maxVelocity) {
         kinematics = new SwerveDriveKinematics(modulePositions);
+        this.maxVelocity = maxVelocity;
     }
 
     public SwerveModuleState[] getStates(ChassisSpeeds robotRelSpeeds) {
@@ -32,7 +34,10 @@ public final class SwerveKinematics {
                         twistVel.dy / periodicTime,
                         twistVel.dtheta / periodicTime);
 
-        return kinematics.toSwerveModuleStates(robotRelSpeeds);
+        SwerveModuleState[] states = kinematics.toSwerveModuleStates(robotRelSpeeds);
+        SwerveDriveKinematics.desaturateWheelSpeeds(states, maxVelocity);
+
+        return states;
     }
 
     public Twist2d getTwistDelta(SwerveModulePosition[] startPositions, SwerveModulePosition[] endPositions) {
