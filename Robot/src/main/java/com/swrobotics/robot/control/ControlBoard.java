@@ -1,10 +1,16 @@
 package com.swrobotics.robot.control;
 
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.path.PathConstraints;
 import com.swrobotics.lib.input.XboxController;
 import com.swrobotics.mathlib.MathUtil;
 import com.swrobotics.mathlib.Vec2d;
 import com.swrobotics.robot.RobotContainer;
 
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 
@@ -30,8 +36,17 @@ public class ControlBoard {
     public final XboxController operator;
 
     public ControlBoard(RobotContainer robot) {
+        // Create the constraints to use while pathfinding
+        PathConstraints constraints = new PathConstraints(
+            3.0, 4.0, 
+            Units.degreesToRadians(540), Units.degreesToRadians(720));
+
+        Command pathfindingCommand = AutoBuilder.pathfindToPose(new Pose2d(7.5, 4.5, new Rotation2d()), constraints);
+        
         driver = new XboxController(0, DEADBAND);
         operator = new XboxController(1, DEADBAND);
+
+        driver.a.onFalling(pathfindingCommand);
 
         // Congigure triggers
 //        driver.start.onFalling(robot.drive::resetGyro);

@@ -3,6 +3,14 @@ package com.swrobotics.robot.subsystems.swerve;
 import org.littletonrobotics.junction.Logger;
 
 import com.kauailabs.navx.frc.AHRS;
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.pathfinding.LocalADStar;
+import com.pathplanner.lib.pathfinding.Pathfinder;
+import com.pathplanner.lib.pathfinding.Pathfinding;
+import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
+import com.pathplanner.lib.util.PIDConstants;
+import com.pathplanner.lib.util.PathPlannerLogging;
+import com.pathplanner.lib.util.ReplanningConfig;
 import com.swrobotics.lib.field.FieldInfo;
 import com.swrobotics.robot.NTData;
 import com.swrobotics.robot.config.CANAllocation;
@@ -63,6 +71,27 @@ public final class SwerveDrive extends SubsystemBase {
         this.estimator = new SwerveEstimator(fieldInfo);
 
         prevPositions = null;
+
+        // Configure pathing
+        AutoBuilder.configureHolonomic(
+            this::getEstimatedPose,
+            this::setPose,
+            this::getRobotRelativeSpeeds,
+            this::drive,
+            new HolonomicPathFollowerConfig(
+                new PIDConstants(8.0), new PIDConstants(4.0, 0.0), minMax, Math.hypot(HALF_SPACING, HALF_SPACING), new ReplanningConfig(), 0.020),
+            this);
+
+        Pathfinding.setPathfinder(new LocalADStar()); // TODO: Theta*
+        PathPlannerLogging.setLogActivePathCallback(
+            (activePath) -> {
+              Logger.recordOutput(
+                  "Drive/Trajectory", activePath.toArray(new Pose2d[activePath.size()]));
+        });
+        PathPlannerLogging.setLogTargetPoseCallback(
+            (targetPose) -> {
+                Logger.recordOutput("Odometry/TrajectorySetpoint", targetPose);
+        });
     }
 
     public SwerveModuleState[] getCurrentModuleStates() {
@@ -115,6 +144,14 @@ public final class SwerveDrive extends SubsystemBase {
 
     public Pose2d getEstimatedPose() {
         return estimator.getEstimatedPose();
+    }
+
+    public void setPose(Pose2d newPose) {
+        estimator.resetPose(newPose);
+    }
+
+    public ChassisSpeeds getRobotRelativeSpeeds() {
+        return kinematics.toChassisSpeeds(getCurrentModuleStates());
     }
 
     @Override
