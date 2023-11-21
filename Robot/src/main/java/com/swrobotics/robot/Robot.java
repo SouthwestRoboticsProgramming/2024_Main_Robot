@@ -34,8 +34,6 @@ public class Robot extends LoggedRobot {
 
     @Override
     public void robotInit() {
-        // Configure logging
-        Logger logger = Logger.getInstance();
 
         // Record metadata so that the logs have more to work off of
         // logger.recordMetadata("ProjectName", BuildConstants.MAVEN_NAME);
@@ -60,48 +58,47 @@ public class Robot extends LoggedRobot {
             case REAL:
                 String folder = Settings.logFolders.get(Settings.robot);
                 if (folder != null) {
-                    logger.addDataReceiver(new WPILOGWriter(folder));
+                    Logger.addDataReceiver(new WPILOGWriter(folder));
                 }
-                logger.addDataReceiver(new NT4Publisher());
+                Logger.addDataReceiver(new NT4Publisher());
                 if (Settings.robot == RobotType.COMPETITION) {
                     LoggedPowerDistribution.getInstance(
-                            50, ModuleType.kAutomatic); // FIXME: Correct ID
+                            50, ModuleType.kRev); // FIXME: Correct ID
                 }
                 break;
 
             case SIMULATION:
-                logger.addDataReceiver(new NT4Publisher());
+                Logger.addDataReceiver(new NT4Publisher());
                 break;
 
             case REPLAY:
                 String path = LogFileUtil.findReplayLog();
-                logger.setReplaySource(new WPILOGReader(path));
-                logger.addDataReceiver(new WPILOGWriter(LogFileUtil.addPathSuffix(path, "_sim")));
+                Logger.setReplaySource(new WPILOGReader(path));
+                Logger.addDataReceiver(new WPILOGWriter(LogFileUtil.addPathSuffix(path, "_sim")));
                 break;
         }
 
         // Start AdvantageKit logger
         setUseTiming(Settings.getMode() != Mode.REPLAY);
-        logger.start();
+        Logger.start();
 
         // Create a RobotContainer to manage our subsystems and our buttons
         robotContainer = new RobotContainer();
 
-        // Log active commands
+        // Log active commands FIXME: is this automatic now?
         Map<String, Integer> commandCounts = new HashMap<>();
         BiConsumer<Command, Boolean> logCommandFunction =
                 (Command command, Boolean active) -> {
                     String name = command.getName();
                     int count = commandCounts.getOrDefault(name, 0) + (active ? 1 : -1);
                     commandCounts.put(name, count);
-                    Logger.getInstance()
-                            .recordOutput(
-                                    "CommandsUnique/"
-                                            + name
-                                            + "_"
-                                            + Integer.toHexString(command.hashCode()),
-                                    active);
-                    Logger.getInstance().recordOutput("CommandsAll/" + name, count > 0);
+                    // Logger.recordOutput(
+                    //                 "CommandsUnique/"
+                    //                         + name
+                    //                         + "_"
+                    //                         + Integer.toHexString(command.hashCode()),
+                    //                 active);
+                    Logger.recordOutput("CommandsAll/" + name, count > 0);
                 };
         CommandScheduler.getInstance()
                 .onCommandInitialize(

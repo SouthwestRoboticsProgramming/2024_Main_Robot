@@ -3,9 +3,9 @@ plugins {
 }
 
 group 'com.swrobotics'
-version '2023'
+version '2024'
 
 compileJava {
-    sourceCompatibility = '11'
-    targetCompatibility = '11'
+    sourceCompatibility = '17'
+    targetCompatibility = '17'
 }
