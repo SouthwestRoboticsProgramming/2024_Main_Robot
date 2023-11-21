@@ -62,7 +62,7 @@ public enum FieldSymmetry {
      * @return pose relative to the current alliance
      */
     public Pose2d flipForAlliance(Pose2d bluePose, FieldInfo field) {
-        if (DriverStation.getAlliance() == DriverStation.Alliance.Blue) {
+        if (DriverStation.getAlliance().get() == DriverStation.Alliance.Blue) {
             return bluePose;
         }
 

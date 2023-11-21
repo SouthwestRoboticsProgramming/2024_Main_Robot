@@ -85,7 +85,7 @@ public final class FieldInfo {
      * @return alliance forward vector
      */
     public Vec2d getAllianceForward() {
-        return DriverStation.getAlliance() == DriverStation.Alliance.Blue
+        return DriverStation.getAlliance().get() == DriverStation.Alliance.Blue
                 ? new Vec2d(1, 0)
                 : new Vec2d(-1, 0);
     }
@@ -96,7 +96,7 @@ public final class FieldInfo {
      * @return alliance forward angle
      */
     public Angle getAllianceForwardAngle() {
-        return DriverStation.getAlliance() == DriverStation.Alliance.Blue
+        return DriverStation.getAlliance().get() == DriverStation.Alliance.Blue
                 ? Angle.ZERO
                 : CCWAngle.deg(180);
     }
@@ -107,7 +107,7 @@ public final class FieldInfo {
      * @return alliance reverse vector
      */
     public Vec2d getAllianceReverse() {
-        return DriverStation.getAlliance() == DriverStation.Alliance.Blue
+        return DriverStation.getAlliance().get() == DriverStation.Alliance.Blue
                 ? new Vec2d(-1, 0)
                 : new Vec2d(1, 0);
     }
@@ -118,7 +118,7 @@ public final class FieldInfo {
      * @return alliance reverse angle
      */
     public Angle getAllianceReverseAngle() {
-        return DriverStation.getAlliance() == DriverStation.Alliance.Blue
+        return DriverStation.getAlliance().get() == DriverStation.Alliance.Blue
                 ? CCWAngle.deg(180)
                 : Angle.ZERO;
     }

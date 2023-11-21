@@ -112,19 +112,19 @@ public abstract class AutoLoggedInputs implements LoggableInputs {
                     table.put(name, (byte[]) val);
                     break;
                 case Boolean:
-                    table.put(name, (Boolean) val);
+                    table.put(name, (boolean) val);
                     break;
                 case Integer:
-                    table.put(name, (Integer) val);
+                    table.put(name, (int) val);
                     break;
                 case Long:
-                    table.put(name, (Long) val);
+                    table.put(name, (long) val);
                     break;
                 case Float:
-                    table.put(name, (Float) val);
+                    table.put(name, (float) val);
                     break;
                 case Double:
-                    table.put(name, (Double) val);
+                    table.put(name, (double) val);
                     break;
                 case String:
                     table.put(name, (String) val);
@@ -143,6 +143,9 @@ public abstract class AutoLoggedInputs implements LoggableInputs {
                     break;
                 case StringArray:
                     table.put(name, (String[]) val);
+                    break;
+                case FloatArray:
+                    table.put(name, (float[]) val);
                     break;
             }
         }

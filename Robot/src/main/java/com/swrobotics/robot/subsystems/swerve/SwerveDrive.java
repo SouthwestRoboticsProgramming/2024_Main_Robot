@@ -118,13 +118,13 @@ public final class SwerveDrive extends SubsystemBase {
 
     @Override
     public void periodic() {
-        Logger.getInstance().recordOutput("Pose estimate", getEstimatedPose());
+        Logger.recordOutput("Pose estimate", getEstimatedPose());
         for (SwerveModule module: modules) {
             module.update();
         }
 
-        Logger.getInstance().recordOutput("Drive/Current Swerve Module States", getCurrentModuleStates());
-        Logger.getInstance().recordOutput("Drive/Target Swerve Module States", getTargetModuleStates());
+        Logger.recordOutput("Drive/Current Swerve Module States", getCurrentModuleStates());
+        Logger.recordOutput("Drive/Target Swerve Module States", getTargetModuleStates());
 
     }
 
