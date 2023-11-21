@@ -1,5 +1,6 @@
 package com.swrobotics.robot;
 
+import com.pathplanner.lib.auto.AutoBuilder;
 import com.swrobotics.lib.field.FieldInfo;
 import com.swrobotics.lib.field.FieldSymmetry;
 import com.swrobotics.messenger.client.MessengerClient;
@@ -13,8 +14,11 @@ import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.PrintCommand;
 
 import java.util.function.Supplier;
+
+import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -30,7 +34,7 @@ public class RobotContainer {
     private static final String MESSENGER_NAME = "Robot";
 
     // Create a way to choose between autonomous sequences
-    private final SendableChooser<Supplier<Command>> autoSelector;
+    private final LoggedDashboardChooser<Command> autoSelector;
 
     public final MessengerClient messenger;
 
@@ -46,22 +50,20 @@ public class RobotContainer {
         messenger = new MessengerClient(host, MESSENGER_PORT, MESSENGER_NAME);
         new FileSystemAPI(messenger, "RoboRIO", Filesystem.getOperatingDirectory());
 
-        controlboard = new ControlBoard(this);
-
+        
         // FIXME: Update at kickoff
         drive = new SwerveDrive(FieldInfo.CHARGED_UP_2023);
+        controlboard = new ControlBoard(this);
         drive.setDefaultCommand(new DefaultDriveCommand(drive, controlboard));
 
-        // Autos that don't do anything
-        Command blankAuto = new InstantCommand();
-
         // Create a chooser to select the autonomous
-        autoSelector = new SendableChooser<>();
-        autoSelector.setDefaultOption("No Auto", () -> blankAuto);
-        SmartDashboard.putData("Auto", autoSelector);
+        autoSelector = new LoggedDashboardChooser<>("Auto Selection", AutoBuilder.buildAutoChooser());
+        autoSelector.addDefaultOption("Drive forward", new PrintCommand("FIXME!!"));
+
+        autoSelector.addOption("Example other auto", new PrintCommand("Example Auto"));
     }
 
     public Command getAutonomousCommand() {
-        return autoSelector.getSelected().get();
+        return autoSelector.get();
     }
 }
