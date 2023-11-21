@@ -91,6 +91,7 @@ public final class SwerveDrive extends SubsystemBase {
 
     // TODO: Better way of selecting between manual/auto input
     public void drive(ChassisSpeeds robotRelSpeeds) {
+        robotRelSpeeds = ChassisSpeeds.discretize(robotRelSpeeds, 0.020);
         SwerveModuleState[] targetStates = kinematics.getStates(robotRelSpeeds);
         SwerveModulePosition[] positions = new SwerveModulePosition[modules.length];
         for (int i = 0; i < modules.length; i++) {
