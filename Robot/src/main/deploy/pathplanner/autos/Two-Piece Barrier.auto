@@ -8,7 +8,13 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Example Path"
+            "pathName": "To Barrier Cube"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Score From Center"
           }
         }
       ]

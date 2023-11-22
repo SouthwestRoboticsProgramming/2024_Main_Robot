@@ -1,6 +1,7 @@
 package com.swrobotics.robot;
 
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.auto.NamedCommands;
 import com.swrobotics.lib.field.FieldInfo;
 import com.swrobotics.lib.field.FieldSymmetry;
 import com.swrobotics.messenger.client.MessengerClient;
@@ -55,6 +56,9 @@ public class RobotContainer {
         drive = new SwerveDrive(FieldInfo.CHARGED_UP_2023);
         controlboard = new ControlBoard(this);
         drive.setDefaultCommand(new DefaultDriveCommand(drive, controlboard));
+
+        // Register Named Commands for Auto
+        NamedCommands.registerCommand("Example Named Command", new InstantCommand());
 
         // Create a chooser to select the autonomous
         autoSelector = new LoggedDashboardChooser<>("Auto Selection", AutoBuilder.buildAutoChooser());
