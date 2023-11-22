@@ -1,7 +1,6 @@
 package com.swrobotics.robot;
 
 import com.swrobotics.lib.field.FieldInfo;
-import com.swrobotics.lib.field.FieldSymmetry;
 import com.swrobotics.messenger.client.MessengerClient;
 import com.swrobotics.robot.commands.DefaultDriveCommand;
 import com.swrobotics.robot.control.ControlBoard;

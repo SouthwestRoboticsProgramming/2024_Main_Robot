@@ -57,6 +57,10 @@ public final class SwerveKinematics {
         return states;
     }
 
+    public ChassisSpeedsRateLimiter getLimiter() {
+        return rateLimiter;
+    }
+
     public Twist2d getTwistDelta(SwerveModulePosition[] startPositions, SwerveModulePosition[] endPositions) {
         SwerveModulePosition[] deltas = new SwerveModulePosition[startPositions.length];
         for (int i = 0; i < deltas.length; i++) {

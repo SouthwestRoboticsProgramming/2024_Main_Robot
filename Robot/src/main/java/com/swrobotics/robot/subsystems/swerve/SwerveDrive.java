@@ -60,7 +60,7 @@ public final class SwerveDrive extends SubsystemBase {
             minMax = Math.min(module.getMaxVelocity(), minMax);
         }
 
-        this.kinematics = new SwerveKinematics(positions, minMax, new ChassisSpeedsRateLimiter(1.0, Math.toRadians(540)));
+        this.kinematics = new SwerveKinematics(positions, minMax, new ChassisSpeedsRateLimiter(10.0, Math.toRadians(720)));
         this.estimator = new SwerveEstimator(fieldInfo);
 
         prevPositions = null;
@@ -127,12 +127,6 @@ public final class SwerveDrive extends SubsystemBase {
         Logger.recordOutput("Drive/Current Swerve Module States", getCurrentModuleStates());
         Logger.recordOutput("Drive/Target Swerve Module States", getTargetModuleStates());
 
+        
     }
-
-    // private SwerveModuleState optimizeSwerveModuleState(SwerveModuleState targetState, SwerveModuleState currentState) {
-    //     Rotation2d currentAngle = currentState.angle;
-    //     Rotation2d targetAngle = targetState.angle;
-    //     Rotation2d inverseAngle = targetAngle.plus(Rotation2d.fromDegrees(180));
-
-    // }
 }
