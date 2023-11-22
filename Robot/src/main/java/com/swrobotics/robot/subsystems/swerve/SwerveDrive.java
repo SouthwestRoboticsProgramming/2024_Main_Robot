@@ -3,6 +3,7 @@ package com.swrobotics.robot.subsystems.swerve;
 import org.littletonrobotics.junction.Logger;
 
 import com.kauailabs.navx.frc.AHRS;
+import com.pathplanner.lib.util.ChassisSpeedsRateLimiter;
 import com.swrobotics.lib.field.FieldInfo;
 import com.swrobotics.robot.NTData;
 import com.swrobotics.robot.config.CANAllocation;
@@ -59,7 +60,7 @@ public final class SwerveDrive extends SubsystemBase {
             minMax = Math.min(module.getMaxVelocity(), minMax);
         }
 
-        this.kinematics = new SwerveKinematics(positions, minMax);
+        this.kinematics = new SwerveKinematics(positions, minMax, new ChassisSpeedsRateLimiter(1.0, Math.toRadians(540)));
         this.estimator = new SwerveEstimator(fieldInfo);
 
         prevPositions = null;
@@ -91,8 +92,7 @@ public final class SwerveDrive extends SubsystemBase {
 
     // TODO: Better way of selecting between manual/auto input
     public void drive(ChassisSpeeds robotRelSpeeds) {
-        robotRelSpeeds = ChassisSpeeds.discretize(robotRelSpeeds, 0.020);
-        SwerveModuleState[] targetStates = kinematics.getStates(robotRelSpeeds);
+        SwerveModuleState[] targetStates = kinematics.getStates(robotRelSpeeds, getEstimatedPose().getRotation());
         SwerveModulePosition[] positions = new SwerveModulePosition[modules.length];
         for (int i = 0; i < modules.length; i++) {
             modules[i].setTargetState(targetStates[i]);
