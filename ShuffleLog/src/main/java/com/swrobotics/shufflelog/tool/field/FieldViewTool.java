@@ -10,6 +10,7 @@ import com.swrobotics.shufflelog.ShuffleLog;
 import com.swrobotics.shufflelog.json.JsonObj;
 import com.swrobotics.shufflelog.tool.ViewportTool;
 import com.swrobotics.shufflelog.tool.data.nt.NetworkTablesTool;
+import com.swrobotics.shufflelog.tool.field.path.PathfindingLayer;
 import com.swrobotics.shufflelog.tool.smartdashboard.SmartDashboard;
 import com.swrobotics.shufflelog.util.SmoothFloat;
 
@@ -105,6 +106,7 @@ public final class FieldViewTool extends ViewportTool {
         layers.add(new MeterGridLayer());
         // TODO-Kickoff: Field vector layer 2024
         layers.add(new Field2dLayer(smartDashboard));
+        layers.add(new PathfindingLayer(msg, this));
         TagTrackerLayer tagTrackerLayer = new TagTrackerLayer();
         layers.add(tagTrackerLayer);
         nt.addListener(tagTrackerLayer);
