@@ -1,5 +1,7 @@
 package com.swrobotics.robot.subsystems.swerve;
 
+import com.swrobotics.messenger.client.MessengerClient;
+import com.swrobotics.robot.logging.FieldView;
 import org.littletonrobotics.junction.Logger;
 
 import com.kauailabs.navx.frc.AHRS;
@@ -47,7 +49,7 @@ public final class SwerveDrive extends SubsystemBase {
     private SwerveModulePosition[] prevPositions;
     private Rotation2d prevGyroAngle;
 
-    public SwerveDrive(FieldInfo fieldInfo) {
+    public SwerveDrive(FieldInfo fieldInfo, MessengerClient msg) {
         gyro = new AHRS(SPI.Port.kMXP);
 
         modules = new SwerveModule[INFOS.length];
@@ -82,15 +84,18 @@ public final class SwerveDrive extends SubsystemBase {
                 new PIDConstants(8.0), new PIDConstants(4.0, 0.0), minMax, Math.hypot(HALF_SPACING, HALF_SPACING), new ReplanningConfig(), 0.020),
             this);
 
-        Pathfinding.setPathfinder(new LocalADStar()); // TODO: Theta*
+//        Pathfinding.setPathfinder(new LocalADStar()); // TODO: Theta*
+        Pathfinding.setPathfinder(new ThetaStarPathfinder(msg));
         PathPlannerLogging.setLogActivePathCallback(
             (activePath) -> {
               Logger.recordOutput(
-                  "Drive/Trajectory", activePath.toArray(new Pose2d[activePath.size()]));
+                  "Drive/Trajectory", activePath.toArray(new Pose2d[0]));
+                FieldView.pathPlannerPath.setPoses(activePath);
         });
         PathPlannerLogging.setLogTargetPoseCallback(
             (targetPose) -> {
                 Logger.recordOutput("Odometry/TrajectorySetpoint", targetPose);
+                FieldView.pathPlannerSetpoint.setPose(targetPose);
         });
     }
 
@@ -119,7 +124,9 @@ public final class SwerveDrive extends SubsystemBase {
     }
 
     // TODO: Better way of selecting between manual/auto input
+    // TODO: Split some of this into periodic(), since drive is not guaranteed to be called every time
     public void drive(ChassisSpeeds robotRelSpeeds) {
+        System.out.println("Driving: " + robotRelSpeeds);
         robotRelSpeeds = ChassisSpeeds.discretize(robotRelSpeeds, 0.020);
         SwerveModuleState[] targetStates = kinematics.getStates(robotRelSpeeds);
         SwerveModulePosition[] positions = new SwerveModulePosition[modules.length];

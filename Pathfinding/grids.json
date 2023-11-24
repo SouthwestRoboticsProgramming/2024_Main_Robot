@@ -12,6 +12,22 @@
       "shapes": [
         {
           "type": "RECTANGLE",
+          "x": 6.0,
+          "y": 3.0,
+          "width": 10.0,
+          "height": 1.0,
+          "rotation": 0.0,
+          "inverted": false
+        },
+        {
+          "inverted": false,
+          "type": "CIRCLE",
+          "x": 4.0,
+          "y": 4.0,
+          "radius": 2.5
+        },
+        {
+          "type": "RECTANGLE",
           "x": 8.2296,
           "y": 4.1148,
           "width": 16.4592,

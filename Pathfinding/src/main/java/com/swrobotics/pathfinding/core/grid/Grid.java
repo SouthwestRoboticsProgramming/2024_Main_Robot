@@ -185,6 +185,8 @@ public abstract class Grid {
 
     protected void invalidateLineOfSightCache() {
         if (sightCache != null) sightCache.invalidate();
+        if (parent != null)
+            parent.invalidateLineOfSightCache();
     }
 
     public boolean lineOfSight(Point a, Point b) {
