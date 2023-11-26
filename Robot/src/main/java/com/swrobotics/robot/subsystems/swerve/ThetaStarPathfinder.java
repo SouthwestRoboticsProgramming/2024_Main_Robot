@@ -13,6 +13,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 public final class ThetaStarPathfinder implements Pathfinder {
+    private enum PathStatus {
+        READY,
+        ALREADY_THERE,
+        // TODO-Pathfinding: Instead of reporting path as impossible, try
+        //  to move start/goal to make it possible
+        IMPOSSIBLE
+    }
+
     private static final String MSG_SET_POS = "Pathfinder:SetPos";
     private static final String MSG_SET_GOAL = "Pathfinder:SetGoal";
     private static final String MSG_PATH = "Pathfinder:Path";
@@ -29,6 +37,7 @@ public final class ThetaStarPathfinder implements Pathfinder {
 
     private boolean newPathAvail;
     private List<Translation2d> pathBezier;
+    private PathStatus status;
 
     public ThetaStarPathfinder(MessengerClient msg) {
         this.msg = msg;
@@ -38,19 +47,26 @@ public final class ThetaStarPathfinder implements Pathfinder {
         start = goal = new Translation2d();
     }
 
+    private void markNewPath(PathStatus status) {
+        newPathAvail = true;
+        this.status = status;
+    }
+
     private void onPath(String type, MessageReader reader) {
         System.out.println("Path received");
         boolean pathValid = reader.readBoolean();
         if (!pathValid) {
-            // FIXME: If this happens, the path following command never ends
-            //  this effectively disables the drive base until robot is disabled
             System.out.println("It was invalid :(");
+            markNewPath(PathStatus.IMPOSSIBLE);
             return;
         }
 
         int count = reader.readInt();
         if (count < 2) {
-            System.out.println("Not enough points???");
+            System.out.println("Not enough points - already at target");
+            // This only happens if start and end are the same point, in which
+            // case we can skip the path following since we're already there
+            markNewPath(PathStatus.ALREADY_THERE);
             return;
         }
 
@@ -75,9 +91,15 @@ public final class ThetaStarPathfinder implements Pathfinder {
         pathPoints.set(0, start);
         pathPoints.set(pathPoints.size() - 1, goal);
 
+        pathBezier = generateBezier(pathPoints);
+        markNewPath(PathStatus.READY);
+        System.out.println("Bezierified into " + pathBezier);
+    }
+
+    private List<Translation2d> generateBezier(List<Translation2d> pathPoints) {
         // Calculate Bezier points
         // Taken from PPLib LocalADStar#extractPath()
-        pathBezier = new ArrayList<>();
+        List<Translation2d> pathBezier = new ArrayList<>();
         pathBezier.add(pathPoints.get(0));
         pathBezier.add(pathPoints
                 .get(1)
@@ -117,9 +139,7 @@ public final class ThetaStarPathfinder implements Pathfinder {
                         .times(SMOOTHING_CONTROL_PCT)
                         .plus(pathPoints.get(pathPoints.size() - 1)));
         pathBezier.add(pathPoints.get(pathPoints.size() - 1));
-
-        newPathAvail = true;
-        System.out.println("Bezierified into " + pathBezier);
+        return pathBezier;
     }
 
     @Override
@@ -132,7 +152,12 @@ public final class ThetaStarPathfinder implements Pathfinder {
         if (!newPathAvail)
             return null;
         newPathAvail = false;
-        return new PathPlannerPath(pathBezier, constraints, goalEndState);
+
+        return switch (status) {
+            case READY -> new PathPlannerPath(pathBezier, constraints, goalEndState);
+            // Make a dummy path that goes straight from start to goal
+            case ALREADY_THERE, IMPOSSIBLE -> new PathPlannerPath(generateBezier(List.of(start, goal)), constraints, goalEndState);
+        };
     }
 
     @Override
