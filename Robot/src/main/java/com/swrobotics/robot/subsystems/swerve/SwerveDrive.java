@@ -84,7 +84,7 @@ public final class SwerveDrive extends SubsystemBase {
                 new PIDConstants(8.0), new PIDConstants(4.0, 0.0), minMax, Math.hypot(HALF_SPACING, HALF_SPACING), new ReplanningConfig(), 0.020),
             this);
 
-        Pathfinding.setPathfinder(new LocalADStar()); // TODO: Theta*
+//        Pathfinding.setPathfinder(new LocalADStar()); // TODO: Theta*
         Pathfinding.setPathfinder(new ThetaStarPathfinder(msg));
         PathPlannerLogging.setLogActivePathCallback(
             (activePath) -> {
