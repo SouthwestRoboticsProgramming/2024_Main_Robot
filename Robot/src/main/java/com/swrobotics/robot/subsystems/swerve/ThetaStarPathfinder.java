@@ -16,13 +16,10 @@ public final class ThetaStarPathfinder implements Pathfinder {
     private enum PathStatus {
         READY,
         ALREADY_THERE,
-        // TODO-Pathfinding: Instead of reporting path as impossible, try
-        //  to move start/goal to make it possible
         IMPOSSIBLE
     }
 
-    private static final String MSG_SET_POS = "Pathfinder:SetPos";
-    private static final String MSG_SET_GOAL = "Pathfinder:SetGoal";
+    private static final String MSG_SET_ENDPOINTS = "Pathfinder:SetEndpoints";
     private static final String MSG_PATH = "Pathfinder:Path";
 
     private static final double CORRECT_TARGET_TOL = 0.1524 + 0.1;
@@ -163,13 +160,15 @@ public final class ThetaStarPathfinder implements Pathfinder {
     @Override
     public void setStartPosition(Translation2d startPosition) {
         start = startPosition;
-        msg.prepare(MSG_SET_POS).addDouble(startPosition.getX()).addDouble(startPosition.getY()).send();
     }
 
     @Override
     public void setGoalPosition(Translation2d goalPosition) {
         goal = goalPosition;
-        msg.prepare(MSG_SET_GOAL).addDouble(goalPosition.getX()).addDouble(goalPosition.getY()).send();
+        msg.prepare(MSG_SET_ENDPOINTS)
+                .addDouble(start.getX()).addDouble(start.getY())
+                .addDouble(goalPosition.getX()).addDouble(goalPosition.getY())
+                .send();
     }
 
     @Override

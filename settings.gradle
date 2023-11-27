@@ -1,7 +1,6 @@
 rootProject.name = "2024_Main_Robot"
 
 include 'MathLib'
-include 'Pathfinding'
 include 'Messenger:MessengerClient'
 include 'Robot'
 include 'RobotLib'

@@ -1,19 +1,13 @@
-package com.swrobotics.shufflelog.tool.field.path.grid;
+package com.swrobotics.shufflelog.tool.field.path;
 
-import com.swrobotics.messenger.client.MessageBuilder;
 import com.swrobotics.messenger.client.MessageReader;
 
 import java.util.BitSet;
-import java.util.UUID;
 
-public final class BitfieldGrid extends Grid {
+public final class Grid2D {
     private int width;
     private int height;
     private BitSet data;
-
-    public BitfieldGrid(UUID id) {
-        super(id);
-    }
 
     public int getWidth() {
         return width;
@@ -27,7 +21,6 @@ public final class BitfieldGrid extends Grid {
         return data.get(x + y * width);
     }
 
-    @Override
     public void readContent(MessageReader reader) {
         width = reader.readInt();
         height = reader.readInt();
@@ -37,11 +30,5 @@ public final class BitfieldGrid extends Grid {
             l[i] = reader.readLong();
         }
         data = BitSet.valueOf(l);
-    }
-
-    @Override
-    public void write(MessageBuilder builder) {
-        super.write(builder);
-        builder.addByte(BITFIELD);
     }
 }

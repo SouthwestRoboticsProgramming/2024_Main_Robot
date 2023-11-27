@@ -5,11 +5,6 @@ import com.swrobotics.messenger.client.MessageReader;
 import com.swrobotics.messenger.client.MessengerClient;
 import com.swrobotics.shufflelog.tool.ToolConstants;
 import com.swrobotics.shufflelog.tool.field.FieldLayer;
-import com.swrobotics.shufflelog.tool.field.FieldViewTool;
-import com.swrobotics.shufflelog.tool.field.path.grid.BitfieldGrid;
-import com.swrobotics.shufflelog.tool.field.path.grid.Grid;
-import com.swrobotics.shufflelog.tool.field.path.grid.GridUnion;
-import com.swrobotics.shufflelog.tool.field.path.grid.ShapeGrid;
 import com.swrobotics.shufflelog.tool.field.path.shape.Circle;
 import com.swrobotics.shufflelog.tool.field.path.shape.Rectangle;
 import com.swrobotics.shufflelog.tool.field.path.shape.Shape;
@@ -19,7 +14,6 @@ import imgui.ImGui;
 import imgui.flag.ImGuiTableFlags;
 import imgui.flag.ImGuiTreeNodeFlags;
 import imgui.type.ImBoolean;
-import org.joml.Vector2f;
 import processing.core.PConstants;
 import processing.core.PGraphics;
 
@@ -33,70 +27,57 @@ public final class PathfindingLayer implements FieldLayer {
 
     // ShuffleLog API
     private static final String MSG_GET_FIELD_INFO = "Pathfinder:GetFieldInfo";
-    private static final String MSG_GET_GRIDS = "Pathfinder:GetGrids";
     private static final String MSG_GET_CELL_DATA = "Pathfinder:GetCellData";
-    private static final String MSG_GET_ROBOT_SHAPE = "Pathfinder:GetRobotShape";
-    private static final String MSG_ADD_GRID = "Pathfinder:AddGrid";
-    private static final String MSG_REMOVE_GRID = "Pathfinder:RemoveGrid";
-    private static final String MSG_ADD_SHAPE = "Pathfinder:AddShape";
-    private static final String MSG_ALTER_SHAPE = "Pathfinder:AlterShape";
+    private static final String MSG_GET_SHAPES = "Pathfinder:GetShapes";
+
+    private static final String MSG_SET_SHAPE = "Pathfinder:SetShape";
     private static final String MSG_REMOVE_SHAPE = "Pathfinder:RemoveShape";
 
     private static final String MSG_FIELD_INFO = "Pathfinder:FieldInfo";
-    private static final String MSG_GRIDS = "Pathfinder:Grids";
     private static final String MSG_CELL_DATA = "Pathfinder:CellData";
-    private static final String MSG_ROBOT_SHAPE = "Pathfinder:RobotShape";
+    private static final String MSG_SHAPES = "Pathfinder:Shapes";
 
     private final MessengerClient msg;
-    private final FieldViewTool tool;
     private final Cooldown reqFieldInfoCooldown;
     private final Cooldown reqGridsCooldown;
     private final Cooldown reqCellDataCooldown;
-    private final Cooldown reqRobotShapeCooldown;
 
     private final ImBoolean showGridLines;
     private final ImBoolean showGridCells;
     private final ImBoolean showShapes;
     private final ImBoolean showPath;
 
-    private final Map<UUID, Grid> idToGrid;
-    private final Map<UUID, Shape> idToShape;
     private FieldInfo fieldInfo;
     private List<Point> path;
-    private Grid grid;
-    private BitfieldGrid cellData;
+    private Grid2D cellData;
     private boolean needsRefreshCellData;
-    private Shape robotShape;
+    private List<Shape> shapes;
 
     private double startX, startY;
     private double goalX, goalY;
 
-    private FieldNode hoveredNode;
+    private Shape hoveredShape;
 
-    public PathfindingLayer(MessengerClient msg, FieldViewTool tool) {
+    public PathfindingLayer(MessengerClient msg) {
         this.msg = msg;
-        this.tool = tool;
         reqFieldInfoCooldown = new Cooldown(ToolConstants.MSG_QUERY_COOLDOWN_TIME);
         reqGridsCooldown = new Cooldown(ToolConstants.MSG_QUERY_COOLDOWN_TIME);
         reqCellDataCooldown = new Cooldown(ToolConstants.MSG_QUERY_COOLDOWN_TIME);
-        reqRobotShapeCooldown = new Cooldown(ToolConstants.MSG_QUERY_COOLDOWN_TIME);
 
         msg.addHandler(MSG_PATH, this::onPath);
         msg.addHandler(MSG_FIELD_INFO, this::onFieldInfo);
-        msg.addHandler(MSG_GRIDS, this::onGrids);
+        msg.addHandler(MSG_SHAPES, this::onShapes);
         msg.addHandler(MSG_CELL_DATA, this::onCellData);
         msg.addHandler(MSG_SET_POS, this::onSetPos);
         msg.addHandler(MSG_SET_GOAL, this::onSetGoal);
-        msg.addHandler(MSG_ROBOT_SHAPE, this::onRobotShape);
 
         msg.addDisconnectHandler(
                 () -> {
                     fieldInfo = null;
                     path = null;
-                    grid = null;
+                    shapes = null;
                     cellData = null;
                     needsRefreshCellData = true;
-                    robotShape = null;
                 });
 
         showGridLines = new ImBoolean(false);
@@ -104,14 +85,11 @@ public final class PathfindingLayer implements FieldLayer {
         showShapes = new ImBoolean(true);
         showPath = new ImBoolean(true);
 
-        idToGrid = new HashMap<>();
-        idToShape = new HashMap<>();
         fieldInfo = null;
         path = null;
-        grid = null;
+        shapes = null;
         cellData = null;
         needsRefreshCellData = true;
-        robotShape = null;
     }
 
     private void onPath(String type, MessageReader reader) {
@@ -135,15 +113,17 @@ public final class PathfindingLayer implements FieldLayer {
         fieldInfo = new FieldInfo(reader);
     }
 
-    private void onGrids(String type, MessageReader reader) {
-        grid = Grid.read(reader);
-        idToGrid.clear();
-        idToShape.clear();
-        grid.register(this);
+    private void onShapes(String type, MessageReader reader) {
+        int count = reader.readInt();
+        shapes = new ArrayList<>();
+        for (int i = 0; i < count; i++) {
+            Shape shape = Shape.read(reader);
+            shapes.add(shape);
+        }
     }
 
     private void onCellData(String type, MessageReader reader) {
-        cellData = new BitfieldGrid(null);
+        cellData = new Grid2D();
         cellData.readContent(reader);
         needsRefreshCellData = false;
     }
@@ -158,10 +138,6 @@ public final class PathfindingLayer implements FieldLayer {
         goalY = reader.readDouble();
     }
 
-    private void onRobotShape(String type, MessageReader reader) {
-        robotShape = Shape.read(reader);
-    }
-
     @Override
     public String getName() {
         return "Pathfinding";
@@ -171,32 +147,15 @@ public final class PathfindingLayer implements FieldLayer {
     public void draw(PGraphics g) {
         if (!msg.isConnected()) return;
 
-        if (grid == null && reqGridsCooldown.request()) {
-            msg.send(MSG_GET_GRIDS);
+        if (shapes == null && reqGridsCooldown.request()) {
+            msg.send(MSG_GET_SHAPES);
         }
         if (needsRefreshCellData && reqCellDataCooldown.request()) {
             msg.send(MSG_GET_CELL_DATA);
         }
-        if (robotShape == null && reqRobotShapeCooldown.request()) {
-            msg.send(MSG_GET_ROBOT_SHAPE);
-        }
         if (fieldInfo == null) {
             if (reqFieldInfoCooldown.request()) msg.send(MSG_GET_FIELD_INFO);
             return;
-        }
-
-        // Wavy ends go wheeeeeeee (for testing latency)
-        //        msg.prepare(MSG_SET_POS)
-        //                .addDouble(follower.getX())
-        //                .addDouble(follower.getY())
-        //                .send();
-
-        Vector2f cursor = tool.getCursorPos();
-        if (cursor != null) {
-            //            msg.prepare(MSG_SET_GOAL)
-            //                    .addDouble(cursor.x)
-            //                    .addDouble(cursor.y)
-            //                    .send();
         }
 
         boolean lines = showGridLines.get();
@@ -245,9 +204,12 @@ public final class PathfindingLayer implements FieldLayer {
         g.popMatrix();
 
         // Show shapes
-        if (shapes) {
-            drawShapes(g, grid, g.color(201, 101, 18), g.color(201, 101, 18, 128));
-            drawShapes(g, hoveredNode, g.color(46, 174, 217), g.color(46, 174, 217, 128));
+        if (shapes && this.shapes != null) {
+            for (Shape shape : this.shapes) {
+                drawShape(g, shape, g.color(201, 101, 18), g.color(201, 101, 18, 128));
+            }
+            if (hoveredShape != null)
+                drawShape(g, hoveredShape, g.color(46, 174, 217), g.color(46, 174, 217, 128));
         }
 
         // Show path
@@ -280,34 +242,15 @@ public final class PathfindingLayer implements FieldLayer {
             g.ellipse((float) goalX, (float) goalY, 0.10f, 0.10f);
             g.popMatrix();
         }
-
-        //        follower.setPath(this.path);
-        //        followerStatus = follower.go();
-        //
-        //        if (robotShape != null)
-        //            drawShape(
-        //                    g,
-        //                    robotShape,
-        //                    strokeMul,
-        //                    g.color(255, 0, 255),
-        //                    g.color(255, 0, 255, 128),
-        //                    (float) follower.getX(),
-        //                    (float) follower.getY()
-        //            );
     }
 
     private void drawShape(PGraphics g, Shape shape, int fg, int bg) {
-        drawShape(g, shape, fg, bg, 0, 0);
-    }
-
-    private void drawShape(PGraphics g, Shape shape, int fg, int bg, float ox, float oy) {
-        if (shape instanceof Circle) {
-            Circle c = (Circle) shape;
+        if (shape instanceof Circle c) {
             g.ellipseMode(PConstants.CENTER);
             g.noFill();
 
-            float x = (float) c.x.get() + ox;
-            float y = (float) c.y.get() + oy;
+            float x = (float) c.x.get();
+            float y = (float) c.y.get();
             float d = (float) (2 * c.radius.get());
 
             g.strokeWeight(4);
@@ -316,10 +259,9 @@ public final class PathfindingLayer implements FieldLayer {
             g.strokeWeight(2);
             g.stroke(fg);
             g.ellipse(x, y, d, d);
-        } else if (shape instanceof Rectangle) {
-            Rectangle r = (Rectangle) shape;
-            float x = (float) r.x.get() + ox;
-            float y = (float) r.y.get() + oy;
+        } else if (shape instanceof Rectangle r) {
+            float x = (float) r.x.get();
+            float y = (float) r.y.get();
             float w = (float) r.width.get();
             float h = (float) r.height.get();
             float rot = (float) r.rotation.get();
@@ -340,195 +282,11 @@ public final class PathfindingLayer implements FieldLayer {
         }
     }
 
-    private void drawShapes(PGraphics g, FieldNode node, int fg, int bg) {
-        if (node instanceof Shape) {
-            drawShape(g, (Shape) node, fg, bg);
-        } else if (node instanceof ShapeGrid) {
-            for (Shape shape : ((ShapeGrid) node).getShapes()) {
-                drawShape(g, shape, fg, bg);
-            }
-        } else if (node instanceof GridUnion) {
-            for (Grid grid : ((GridUnion) node).getChildren()) {
-                drawShapes(g, grid, fg, bg);
-            }
-        }
-    }
-
-    private void showGridUnion(GridUnion union, boolean isRoot) {
-        String id = "Grid Union##" + union.getId();
-        int flags = ImGuiTreeNodeFlags.SpanFullWidth;
-        if (isRoot) {
-            flags |= ImGuiTreeNodeFlags.DefaultOpen;
-        }
-
-        ImGui.tableNextColumn();
-        boolean open = ImGui.treeNodeEx(id, flags);
-        if (ImGui.isItemHovered()) hoveredNode = union;
-        if (ImGui.beginPopupContextItem()) {
-            Grid addedGrid = null;
-
-            if (ImGui.selectable("Add Bitfield Grid")) {
-                BitfieldGrid b = new BitfieldGrid(UUID.randomUUID());
-                b.register(this);
-                addedGrid = b;
-            }
-
-            if (ImGui.selectable("Add Shape Grid")) {
-                ShapeGrid s = new ShapeGrid(UUID.randomUUID());
-                s.register(this);
-                addedGrid = s;
-            }
-
-            if (ImGui.selectable("Add Grid Union")) {
-                GridUnion u = new GridUnion(UUID.randomUUID());
-                u.register(this);
-                addedGrid = u;
-            }
-
-            if (union != this.grid) {
-                ImGui.separator();
-
-                if (ImGui.selectable("Delete")) {
-                    removeGrid(union);
-                }
-            }
-
-            if (addedGrid != null) {
-                union.addGrid(addedGrid);
-                MessageBuilder builder = msg.prepare(MSG_ADD_GRID);
-                builder.addLong(union.getId().getMostSignificantBits());
-                builder.addLong(union.getId().getLeastSignificantBits());
-                addedGrid.write(builder);
-                builder.send();
-                needsRefreshCellData = true;
-            }
-
-            ImGui.endPopup();
-        }
-        ImGui.tableNextColumn();
-        ImGui.textDisabled(union.getId().toString());
-
-        if (open) {
-            for (Grid grid : new ArrayList<>(union.getChildren())) {
-                showGrid(grid, false);
-            }
-            ImGui.treePop();
-        }
-    }
-
-    private void showBitfieldGrid(BitfieldGrid grid) {
-        String id = "Bitfield Grid##" + grid.getId();
-        ImGui.tableNextColumn();
-        ImGui.treeNodeEx(
-                id,
-                ImGuiTreeNodeFlags.SpanFullWidth
-                        | ImGuiTreeNodeFlags.Leaf
-                        | ImGuiTreeNodeFlags.NoTreePushOnOpen);
-        if (ImGui.isItemHovered()) hoveredNode = grid;
-        if (this.grid != grid && ImGui.beginPopupContextItem()) {
-            if (ImGui.selectable("Delete")) {
-                removeGrid(grid);
-            }
-            ImGui.endPopup();
-        }
-        ImGui.tableNextColumn();
-        ImGui.textDisabled(grid.getId().toString());
-    }
-
-    private void showShapeGrid(ShapeGrid grid, boolean isRoot) {
-        String id = "Shape Grid##" + grid.getId();
-        int flags = ImGuiTreeNodeFlags.SpanFullWidth;
-        if (isRoot) {
-            flags |= ImGuiTreeNodeFlags.DefaultOpen;
-        }
-
-        ImGui.tableNextColumn();
-        boolean open = ImGui.treeNodeEx(id, flags);
-        if (ImGui.isItemHovered()) hoveredNode = grid;
-        if (ImGui.beginPopupContextItem()) {
-            Shape addedShape = null;
-            if (ImGui.selectable("Add Circle")) {
-                Circle c = new Circle(UUID.randomUUID(), false);
-                c.register(this);
-                c.x.set(0);
-                c.y.set(0);
-                c.radius.set(1);
-                addedShape = c;
-            }
-            if (ImGui.selectable("Add Rectangle")) {
-                Rectangle r = new Rectangle(UUID.randomUUID(), false);
-                r.register(this);
-                r.x.set(0);
-                r.y.set(0);
-                r.width.set(1);
-                r.height.set(1);
-                r.rotation.set(0);
-                addedShape = r;
-            }
-
-            if (this.grid != grid) {
-                ImGui.separator();
-                if (ImGui.selectable("Delete")) {
-                    removeGrid(grid);
-                }
-            }
-
-            if (addedShape != null) {
-                grid.getShapes().add(addedShape);
-                MessageBuilder builder = msg.prepare(MSG_ADD_SHAPE);
-                builder.addLong(grid.getId().getMostSignificantBits());
-                builder.addLong(grid.getId().getLeastSignificantBits());
-                addedShape.write(builder);
-                builder.send();
-                needsRefreshCellData = true;
-            }
-
-            ImGui.endPopup();
-        }
-        ImGui.tableNextColumn();
-        ImGui.textDisabled(grid.getId().toString());
-
-        if (open) {
-            for (Shape shape : new ArrayList<>(grid.getShapes())) {
-                showShape(grid, shape);
-            }
-            ImGui.treePop();
-        }
-    }
-
-    private void showGrid(Grid grid, boolean isRoot) {
-        if (grid instanceof GridUnion) showGridUnion((GridUnion) grid, isRoot);
-        else if (grid instanceof BitfieldGrid) showBitfieldGrid((BitfieldGrid) grid);
-        else if (grid instanceof ShapeGrid) showShapeGrid((ShapeGrid) grid, isRoot);
-    }
-
-    private void removeShape(ShapeGrid grid, Shape shape) {
-        grid.getShapes().remove(shape);
-        idToShape.remove(shape.getId());
+    private void removeShape(Shape shape) {
+        shapes.remove(shape);
         msg.prepare(MSG_REMOVE_SHAPE)
                 .addLong(shape.getId().getMostSignificantBits())
                 .addLong(shape.getId().getLeastSignificantBits())
-                .send();
-        needsRefreshCellData = true;
-    }
-
-    private void removeGrid(Grid grid) {
-        // Depth-first remove children
-        if (grid instanceof GridUnion) {
-            for (Grid child : new ArrayList<>(((GridUnion) grid).getChildren())) {
-                removeGrid(child);
-            }
-        } else if (grid instanceof ShapeGrid) {
-            for (Shape shape : new ArrayList<>(((ShapeGrid) grid).getShapes())) {
-                removeShape((ShapeGrid) grid, shape);
-            }
-        }
-
-        idToGrid.remove(grid.getId());
-        grid.getParent().removeGrid(grid);
-        msg.prepare(MSG_REMOVE_GRID)
-                .addLong(grid.getId().getMostSignificantBits())
-                .addLong(grid.getId().getLeastSignificantBits())
                 .send();
         needsRefreshCellData = true;
     }
@@ -545,15 +303,15 @@ public final class PathfindingLayer implements FieldLayer {
         ImGui.setNextItemWidth(-1);
     }
 
-    private void showCircle(ShapeGrid grid, Circle circle) {
+    private void showCircle(Circle circle) {
         String id = "Circle##" + circle.getId();
 
         ImGui.tableNextColumn();
         boolean open = ImGui.treeNodeEx(id, ImGuiTreeNodeFlags.SpanFullWidth);
-        if (ImGui.isItemHovered()) hoveredNode = circle;
+        if (ImGui.isItemHovered()) hoveredShape = circle;
         if (ImGui.beginPopupContextItem()) {
             if (ImGui.selectable("Delete")) {
-                removeShape(grid, circle);
+                removeShape(circle);
             }
             ImGui.endPopup();
         }
@@ -569,11 +327,9 @@ public final class PathfindingLayer implements FieldLayer {
             changed |= ExpressionInput.inputDouble("##y", circle.y);
             fieldHeader("Radius");
             changed |= ExpressionInput.inputDouble("##radius", circle.radius);
-            fieldHeader("Inverted");
-            changed |= ImGui.checkbox("##inverted", circle.inverted);
 
             if (changed) {
-                MessageBuilder builder = msg.prepare(MSG_ALTER_SHAPE);
+                MessageBuilder builder = msg.prepare(MSG_SET_SHAPE);
                 circle.write(builder);
                 builder.send();
                 needsRefreshCellData = true;
@@ -583,15 +339,15 @@ public final class PathfindingLayer implements FieldLayer {
         }
     }
 
-    private void showRectangle(ShapeGrid grid, Rectangle rect) {
+    private void showRectangle(Rectangle rect) {
         String id = "Rectangle##" + rect.getId();
 
         ImGui.tableNextColumn();
         boolean open = ImGui.treeNodeEx(id, ImGuiTreeNodeFlags.SpanFullWidth);
-        if (ImGui.isItemHovered()) hoveredNode = rect;
+        if (ImGui.isItemHovered()) hoveredShape = rect;
         if (ImGui.beginPopupContextItem()) {
             if (ImGui.selectable("Delete")) {
-                removeShape(grid, rect);
+                removeShape(rect);
             }
             ImGui.endPopup();
         }
@@ -614,7 +370,7 @@ public final class PathfindingLayer implements FieldLayer {
             changed |= ImGui.checkbox("##inverted", rect.inverted);
 
             if (changed) {
-                MessageBuilder builder = msg.prepare(MSG_ALTER_SHAPE);
+                MessageBuilder builder = msg.prepare(MSG_SET_SHAPE);
                 rect.write(builder);
                 builder.send();
                 needsRefreshCellData = true;
@@ -624,9 +380,9 @@ public final class PathfindingLayer implements FieldLayer {
         }
     }
 
-    private void showShape(ShapeGrid grid, Shape shape) {
-        if (shape instanceof Circle) showCircle(grid, (Circle) shape);
-        else if (shape instanceof Rectangle) showRectangle(grid, (Rectangle) shape);
+    private void showShape(Shape shape) {
+        if (shape instanceof Circle) showCircle((Circle) shape);
+        else if (shape instanceof Rectangle) showRectangle((Rectangle) shape);
     }
 
     @Override
@@ -640,20 +396,52 @@ public final class PathfindingLayer implements FieldLayer {
             ImGui.textDisabled("Not connected");
             return;
         }
-        if (grid != null) {
-            if (ImGui.beginTable("grids", 2, ImGuiTableFlags.Borders | ImGuiTableFlags.Resizable)) {
-                hoveredNode = null;
-                showGrid(grid, true);
+        if (shapes != null) {
+            if (ImGui.beginTable("shapes", 2, ImGuiTableFlags.Borders | ImGuiTableFlags.Resizable)) {
+                hoveredShape = null;
+
+                ImGui.tableNextColumn();
+                boolean open = ImGui.treeNodeEx("Shapes", ImGuiTreeNodeFlags.DefaultOpen);
+                if (ImGui.beginPopupContextItem()) {
+                    Shape addedShape = null;
+                    if (ImGui.selectable("Add Circle")) {
+                        Circle c = new Circle(UUID.randomUUID());
+                        c.x.set(0);
+                        c.y.set(0);
+                        c.radius.set(1);
+                        addedShape = c;
+                    }
+                    if (ImGui.selectable("Add Rectangle")) {
+                        Rectangle r = new Rectangle(UUID.randomUUID());
+                        r.x.set(0);
+                        r.y.set(0);
+                        r.width.set(1);
+                        r.height.set(1);
+                        r.rotation.set(0);
+                        r.inverted.set(false);
+                        addedShape = r;
+                    }
+
+                    if (addedShape != null) {
+                        shapes.add(addedShape);
+                        MessageBuilder builder = msg.prepare(MSG_SET_SHAPE);
+                        addedShape.write(builder);
+                        builder.send();
+                        needsRefreshCellData = true;
+                    }
+
+                    ImGui.endPopup();
+                }
+                ImGui.tableNextColumn();
+                if (open) {
+                    for (Shape shape : new ArrayList<>(shapes)) {
+                        showShape(shape);
+                    }
+                    ImGui.treePop();
+                }
+
                 ImGui.endTable();
             }
         }
-    }
-
-    public void registerGrid(Grid grid) {
-        idToGrid.put(grid.getId(), grid);
-    }
-
-    public void registerShape(Shape shape) {
-        idToShape.put(shape.getId(), shape);
     }
 }

@@ -11,8 +11,8 @@ public final class Circle extends Shape {
     public final ImDouble y;
     public final ImDouble radius;
 
-    public Circle(UUID id, boolean inverted) {
-        super(id, inverted);
+    public Circle(UUID id) {
+        super(id);
 
         x = new ImDouble();
         y = new ImDouble();
