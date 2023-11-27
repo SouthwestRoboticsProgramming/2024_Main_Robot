@@ -185,7 +185,7 @@ public final class FieldViewTool extends ViewportTool {
 
             float halfW = (float) g.width / scale / 2;
             float halfH = (float) g.height / scale / 2;
-            projection.set(new Matrix4f().ortho(-halfW, halfW, -halfH, halfH, 50, -50));
+            projection.set(new Matrix4f().ortho(-halfW, halfW, -halfH, halfH, -50, 50));
         }
         view =
                 new Matrix4f()
