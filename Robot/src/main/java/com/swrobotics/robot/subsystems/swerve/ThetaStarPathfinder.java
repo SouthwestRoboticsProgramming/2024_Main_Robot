@@ -8,6 +8,7 @@ import com.swrobotics.messenger.client.MessageReader;
 import com.swrobotics.messenger.client.MessengerClient;
 import edu.wpi.first.math.Pair;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.wpilibj.Timer;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,6 +24,7 @@ public final class ThetaStarPathfinder implements Pathfinder {
     private static final String MSG_PATH = "Pathfinder:Path";
 
     private static final double CORRECT_TARGET_TOL = 0.1524 + 0.1;
+    private static final double TIMEOUT = 1; // Seconds
 
     // Directly taken from PPLib
     private static final double SMOOTHING_ANCHOR_PCT = 0.8;
@@ -31,6 +33,8 @@ public final class ThetaStarPathfinder implements Pathfinder {
     private final MessengerClient msg;
 
     private Translation2d start, goal;
+    private boolean pathRequestPending;
+    private double pathRequestTimestamp;
 
     private boolean newPathAvail;
     private List<Translation2d> pathBezier;
@@ -42,10 +46,12 @@ public final class ThetaStarPathfinder implements Pathfinder {
 
         newPathAvail = false;
         start = goal = new Translation2d();
+        pathRequestPending = false;
     }
 
     private void markNewPath(PathStatus status) {
         newPathAvail = true;
+        pathRequestPending = false;
         this.status = status;
     }
 
@@ -141,6 +147,13 @@ public final class ThetaStarPathfinder implements Pathfinder {
 
     @Override
     public boolean isNewPathAvailable() {
+        // If pathfinder isn't responding, give up after timeout elapses
+        if (pathRequestPending && Timer.getFPGATimestamp() - pathRequestTimestamp > TIMEOUT) {
+            newPathAvail = true;
+            pathRequestPending = false;
+            status = PathStatus.IMPOSSIBLE;
+        }
+
         return newPathAvail;
     }
 
@@ -169,6 +182,8 @@ public final class ThetaStarPathfinder implements Pathfinder {
                 .addDouble(start.getX()).addDouble(start.getY())
                 .addDouble(goalPosition.getX()).addDouble(goalPosition.getY())
                 .send();
+        pathRequestPending = true;
+        pathRequestTimestamp = Timer.getFPGATimestamp();
     }
 
     @Override
