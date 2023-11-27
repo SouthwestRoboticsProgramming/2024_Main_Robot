@@ -105,7 +105,7 @@ public final class FieldViewTool extends ViewportTool {
         layers = new ArrayList<>();
         layers.add(new MeterGridLayer());
         // TODO-Kickoff: Field vector layer 2024
-//        layers.add(new Field2dLayer(smartDashboard)); // FIXME: For some reason this causes ClassNotFoundException
+        layers.add(new Field2dLayer(smartDashboard));
         layers.add(new PathfindingLayer(msg));
         TagTrackerLayer tagTrackerLayer = new TagTrackerLayer();
         layers.add(tagTrackerLayer);

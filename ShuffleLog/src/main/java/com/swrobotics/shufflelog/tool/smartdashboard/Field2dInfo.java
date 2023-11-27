@@ -1,5 +1,7 @@
 package com.swrobotics.shufflelog.tool.smartdashboard;
 
+import java.util.Set;
+
 public final class Field2dInfo {
     private final String name;
     private final Field2dSettings settings;
@@ -9,6 +11,9 @@ public final class Field2dInfo {
         this.name = name;
         this.settings = settings;
         this.view = view;
+
+        Set<String> published = view.poseSets.keySet();
+        settings.update(published);
     }
 
     public String getName() {
