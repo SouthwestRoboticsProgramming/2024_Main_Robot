@@ -4,9 +4,12 @@ import com.swrobotics.lib.ThreadUtils;
 import com.swrobotics.robot.config.Settings;
 import com.swrobotics.robot.config.Settings.Mode;
 import com.swrobotics.robot.config.Settings.RobotType;
+import com.swrobotics.robot.control.Conductor;
+import com.swrobotics.robot.control.Conductor.MusicTrack;
 
 import edu.wpi.first.hal.AllianceStationID;
 import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Threads;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.simulation.DriverStationSim;
@@ -122,6 +125,14 @@ public class Robot extends LoggedRobot {
                 DriverStationSim.setAllianceStationId(AllianceStationID.Blue1);
             }
         }
+
+        // Play the startup music
+        Conductor.playTrack(MusicTrack.STARTUP_JINGLE);
+    }
+    
+    @Override
+    public void driverStationConnected() {
+        Conductor.playTrack(MusicTrack.DS_CONNECTED_JINGLE);
     }
 
     @Override
@@ -158,6 +169,13 @@ public class Robot extends LoggedRobot {
     public void autonomousExit() {
         if (autonomousCommand != null) {
             autonomousCommand.cancel();
+        }
+    }
+
+    @Override
+    public void teleopExit() {
+        if (DriverStation.getMatchTime() <= 2) { // TODO: Only at comp?
+            Conductor.playTrack(MusicTrack.VICTORY_TRACK);
         }
     }
 }
