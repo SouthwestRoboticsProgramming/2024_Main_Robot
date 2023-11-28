@@ -4,6 +4,7 @@ import com.swrobotics.lib.field.FieldInfo;
 import com.swrobotics.lib.field.FieldSymmetry;
 import com.swrobotics.messenger.client.MessengerClient;
 import com.swrobotics.robot.commands.DefaultDriveCommand;
+import com.swrobotics.robot.commands.DriftDriveCommand;
 import com.swrobotics.robot.control.ControlBoard;
 import com.swrobotics.robot.subsystems.swerve.SwerveDrive;
 import com.swrobotics.taskmanager.filesystem.FileSystemAPI;
@@ -50,7 +51,9 @@ public class RobotContainer {
 
         // FIXME: Update at kickoff
         drive = new SwerveDrive(FieldInfo.CHARGED_UP_2023);
-        drive.setDefaultCommand(new DefaultDriveCommand(drive, controlboard));
+        // drive.setDefaultCommand(new DefaultDriveCommand(drive, controlboard));\
+        drive.setDefaultCommand(new DriftDriveCommand(drive, controlboard));
+
 
         // Autos that don't do anything
         Command blankAuto = new InstantCommand();

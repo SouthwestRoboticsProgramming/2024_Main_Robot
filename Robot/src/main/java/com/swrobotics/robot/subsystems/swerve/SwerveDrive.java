@@ -1,5 +1,6 @@
 package com.swrobotics.robot.subsystems.swerve;
 
+import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
 import com.kauailabs.navx.frc.AHRS;
@@ -113,19 +114,29 @@ public final class SwerveDrive extends SubsystemBase {
         prevGyroAngle = gyroAngle;
     }
 
+    @AutoLogOutput(key="Drive/Estimated Pose")
     public Pose2d getEstimatedPose() {
         return estimator.getEstimatedPose();
     }
 
+    public ChassisSpeeds getCurrentRobotRelativeVelocity() {
+        return kinematics.toChassisSpeeds(getCurrentModuleStates());
+    }
+
+    public ChassisSpeeds getCurrentFieldRelativeVelocity() {
+        return ChassisSpeeds.fromRobotRelativeSpeeds(getCurrentRobotRelativeVelocity(), getEstimatedPose().getRotation());
+    }
+
     @Override
     public void periodic() {
-        Logger.recordOutput("Pose estimate", getEstimatedPose());
         for (SwerveModule module: modules) {
             module.update();
         }
 
         Logger.recordOutput("Drive/Current Swerve Module States", getCurrentModuleStates());
         Logger.recordOutput("Drive/Target Swerve Module States", getTargetModuleStates());
+        Logger.recordOutput("Drive/Current Velocity X", getCurrentFieldRelativeVelocity().vxMetersPerSecond);
+        Logger.recordOutput("Drive/Current Velocity Y", getCurrentFieldRelativeVelocity().vyMetersPerSecond);
 
     }
 
