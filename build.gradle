@@ -131,7 +131,7 @@ task simEverything {
             process.descendants()
             .forEach({it.destroy()})
             process.destroy()
-            println "Stopped background process: " + name
+            println "Stopped background process: " + subprocess.name
         }
     }
 }
