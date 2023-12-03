@@ -2,6 +2,7 @@ use bit_vec::BitVec;
 
 use crate::vectors::Vec2i;
 
+#[derive(Clone)]
 pub struct Grid2D {
     passable: BitVec,
     size: Vec2i,

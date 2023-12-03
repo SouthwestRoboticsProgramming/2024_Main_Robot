@@ -1,3 +1,7 @@
+// Potential future optimizations:
+// Cache line-of-sight checks
+// Only regenerate the affected region of grid when shapes change
+
 use std::{collections::HashMap, error::Error, time::Instant};
 
 use bytes::{Buf, BufMut, Bytes, BytesMut};
@@ -37,6 +41,7 @@ struct PathfinderTask {
     dyn_shapes: Vec<CollisionShape>,
     robot_radius: f64,
     grid: grid::Grid2D,
+    static_grid: grid::Grid2D,
 
     cell_size: f64,
     origin_pos_cell: Vec2f,
@@ -77,6 +82,7 @@ impl PathfinderTask {
                 x: grid.cell_size().x as f64 * conf.field.origin_x,
                 y: grid.cell_size().y as f64 * conf.field.origin_y,
             },
+            static_grid: grid.clone(),
             grid,
             field_size: Vec2f {
                 x: env.width,
@@ -84,7 +90,7 @@ impl PathfinderTask {
             },
             env_file_name: conf.env_file,
         };
-        task.update_grid();
+        task.update_grid(true);
 
         Ok(task)
     }
@@ -107,25 +113,52 @@ impl PathfinderTask {
         self.cell_to_meters(&(Vec2f::from(cell) + Vec2f { x: 0.5, y: 0.5 }))
     }
 
-    fn update_grid(&mut self) {
+    fn update_grid(&mut self, update_static: bool) {
         let start_time = Instant::now();
+
         let size = self.grid.cell_size();
+        if update_static {
+            for y in 0..size.y {
+                for x in 0..size.x {
+                    let cell_pos = Vec2i { x, y };
+                    let robot_pos = self.cell_center(&cell_pos);
+
+                    let robot = Circle {
+                        position: robot_pos,
+                        radius: self.robot_radius,
+                    };
+
+                    let mut passable = true;
+                    for (_, shape) in &self.shapes {
+                        if shape.collides_with_circle(&robot) {
+                            passable = false;
+                        }
+                    }
+
+                    self.static_grid.set_cell_passable(&cell_pos, passable);
+                }
+            }
+        }
+
         for y in 0..size.y {
             for x in 0..size.x {
                 let cell_pos = Vec2i { x, y };
-                let robot_pos = self.cell_center(&cell_pos);
 
+                // Optimization: If static grid already not passable, we can skip check
+                if !self.static_grid.can_cell_pass(x, y) {
+                    self.grid.set_cell_passable(&cell_pos, false);
+                    continue;
+                }
+
+                let robot_pos = self.cell_center(&cell_pos);
                 let robot = Circle {
                     position: robot_pos,
                     radius: self.robot_radius,
                 };
 
                 let mut passable = true;
-                for (_, shape) in &self.shapes {
-                    if shape.collides_with_circle(&robot) {
-                        passable = false;
-                    }
-                }
+                // Only need to check dynamic shapes here since we already know
+                // no static shapes collide at this position
                 for shape in &self.dyn_shapes {
                     if shape.collides_with_circle(&robot) {
                         passable = false;
@@ -135,11 +168,13 @@ impl PathfinderTask {
                 self.grid.set_cell_passable(&cell_pos, passable);
             }
         }
+
         let end_time = Instant::now();
 
         println!(
-            "Regenerating grid took {} secs",
+            "Regenerating grid took {} secs, static included? {}",
             end_time.duration_since(start_time).as_secs_f64(),
+            update_static
         );
     }
 
@@ -156,7 +191,7 @@ impl PathfinderTask {
     }
 
     async fn update_shapes(&mut self) {
-        self.update_grid();
+        self.update_grid(true);
         match self.save_env_file().await {
             Ok(_) => {}
             Err(e) => {
@@ -398,11 +433,11 @@ impl PathfinderTask {
             if let Some(shape) = Self::read_shape(data) {
                 self.dyn_shapes.push(shape);
             } else {
-                self.update_grid();
+                self.update_grid(false);
                 return;
             }
         }
-        self.update_grid();
+        self.update_grid(false);
     }
 }
 
