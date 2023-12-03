@@ -188,7 +188,10 @@ impl PathfinderTask {
                     MSG_GET_SHAPES => self.on_get_shapes(),
                     MSG_SET_SHAPE => self.on_set_shape(data).await,
                     MSG_REMOVE_SHAPE => self.on_remove_shape(data).await,
-                    MSG_SET_DYN_SHAPES => self.on_set_dyn_shapes(data),
+                    MSG_SET_DYN_SHAPES => {
+                        self.on_set_dyn_shapes(data);
+                        needs_recalc = true;
+                    }
                     _ => {}
                 }
             }

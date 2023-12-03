@@ -32,6 +32,7 @@ public final class PathfindingLayer implements FieldLayer {
 
     private static final String MSG_SET_SHAPE = "Pathfinder:SetShape";
     private static final String MSG_REMOVE_SHAPE = "Pathfinder:RemoveShape";
+    private static final String MSG_SET_DYN_SHAPES = "Pathfinder:SetDynamicShapes";
 
     private static final String MSG_FIELD_INFO = "Pathfinder:FieldInfo";
     private static final String MSG_CELL_DATA = "Pathfinder:CellData";
@@ -45,13 +46,14 @@ public final class PathfindingLayer implements FieldLayer {
     private final ImBoolean showGridLines;
     private final ImBoolean showGridCells;
     private final ImBoolean showShapes;
+    private final ImBoolean showDynShapes;
     private final ImBoolean showPath;
 
     private FieldInfo fieldInfo;
     private List<Point> path;
     private Grid2D cellData;
     private boolean needsRefreshCellData;
-    private List<Shape> shapes;
+    private List<Shape> shapes, dynShapes;
 
     private double startX, startY;
     private double goalX, goalY;
@@ -70,6 +72,7 @@ public final class PathfindingLayer implements FieldLayer {
         msg.addHandler(MSG_CELL_DATA, this::onCellData);
         msg.addHandler(MSG_SET_POS, this::onSetPos);
         msg.addHandler(MSG_SET_GOAL, this::onSetGoal);
+        msg.addHandler(MSG_SET_DYN_SHAPES, this::onSetDynShapes);
 
         msg.addDisconnectHandler(
                 () -> {
@@ -83,6 +86,7 @@ public final class PathfindingLayer implements FieldLayer {
         showGridLines = new ImBoolean(false);
         showGridCells = new ImBoolean(true);
         showShapes = new ImBoolean(true);
+        showDynShapes = new ImBoolean(true);
         showPath = new ImBoolean(true);
 
         fieldInfo = null;
@@ -90,6 +94,7 @@ public final class PathfindingLayer implements FieldLayer {
         shapes = null;
         cellData = null;
         needsRefreshCellData = true;
+        dynShapes = new ArrayList<>();
     }
 
     private void onPath(String type, MessageReader reader) {
@@ -120,6 +125,8 @@ public final class PathfindingLayer implements FieldLayer {
             Shape shape = Shape.read(reader);
             shapes.add(shape);
         }
+
+        onSetDynShapes(null, reader);
     }
 
     private void onCellData(String type, MessageReader reader) {
@@ -136,6 +143,15 @@ public final class PathfindingLayer implements FieldLayer {
     private void onSetGoal(String type, MessageReader reader) {
         goalX = reader.readDouble();
         goalY = reader.readDouble();
+    }
+
+    private void onSetDynShapes(String type, MessageReader reader) {
+        dynShapes.clear();
+        int count = reader.readInt();
+        for (int i = 0; i < count; i++) {
+            Shape shape = Shape.read(reader);
+            dynShapes.add(shape);
+        }
     }
 
     @Override
@@ -161,6 +177,7 @@ public final class PathfindingLayer implements FieldLayer {
         boolean lines = showGridLines.get();
         boolean cells = showGridCells.get();
         boolean shapes = showShapes.get();
+        boolean dynShapes = showDynShapes.get();
         boolean path = showPath.get();
 
         g.pushMatrix();
@@ -210,6 +227,12 @@ public final class PathfindingLayer implements FieldLayer {
             }
             if (hoveredShape != null)
                 drawShape(g, hoveredShape, g.color(46, 174, 217), g.color(46, 174, 217, 128));
+        }
+
+        if (dynShapes && this.shapes != null) {
+            for (Shape shape : this.dynShapes) {
+                drawShape(g, shape, g.color(191, 66, 245), g.color(191, 66, 245, 128));
+            }
         }
 
         // Show path
@@ -390,6 +413,7 @@ public final class PathfindingLayer implements FieldLayer {
         ImGui.checkbox("Show grid lines", showGridLines);
         ImGui.checkbox("Show grid cells", showGridCells);
         ImGui.checkbox("Show shapes", showShapes);
+        ImGui.checkbox("Show dynamic shapes", showDynShapes);
         ImGui.checkbox("Show path", showPath);
         ImGui.separator();
         if (!msg.isConnected()) {
