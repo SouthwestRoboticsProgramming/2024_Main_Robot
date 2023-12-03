@@ -2,12 +2,11 @@ package com.swrobotics.robot.subsystems.swerve;
 
 import com.swrobotics.messenger.client.MessengerClient;
 import com.swrobotics.robot.logging.FieldView;
+import com.swrobotics.robot.subsystems.swerve.pathfinding.ThetaStarPathfinder;
 import org.littletonrobotics.junction.Logger;
 
 import com.kauailabs.navx.frc.AHRS;
 import com.pathplanner.lib.auto.AutoBuilder;
-import com.pathplanner.lib.pathfinding.LocalADStar;
-import com.pathplanner.lib.pathfinding.Pathfinder;
 import com.pathplanner.lib.pathfinding.Pathfinding;
 import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
 import com.pathplanner.lib.util.PIDConstants;

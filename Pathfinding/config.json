@@ -6,7 +6,7 @@
   },
   "robot_radius": 0.5,
   "field": {
-    "cell_size": 0.1524,
+    "cell_size": 0.0762,
     "origin_x": 0.0,
     "origin_y": 1.0
   },

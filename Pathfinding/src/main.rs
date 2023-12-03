@@ -108,6 +108,7 @@ impl PathfinderTask {
     }
 
     fn update_grid(&mut self) {
+        let start_time = Instant::now();
         let size = self.grid.cell_size();
         for y in 0..size.y {
             for x in 0..size.x {
@@ -134,6 +135,12 @@ impl PathfinderTask {
                 self.grid.set_cell_passable(&cell_pos, passable);
             }
         }
+        let end_time = Instant::now();
+
+        println!(
+            "Regenerating grid took {} secs",
+            end_time.duration_since(start_time).as_secs_f64(),
+        );
     }
 
     async fn save_env_file(&self) -> Result<(), Box<dyn Error>> {

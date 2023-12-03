@@ -1,4 +1,4 @@
-package com.swrobotics.robot.subsystems.swerve;
+package com.swrobotics.robot.subsystems.swerve.pathfinding;
 
 import com.pathplanner.lib.path.GoalEndState;
 import com.pathplanner.lib.path.PathConstraints;
@@ -8,6 +8,7 @@ import com.swrobotics.messenger.client.MessageBuilder;
 import com.swrobotics.messenger.client.MessageReader;
 import com.swrobotics.messenger.client.MessengerClient;
 import edu.wpi.first.math.Pair;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.Timer;
 
@@ -15,6 +16,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 public final class ThetaStarPathfinder implements Pathfinder {
+    private static ThetaStarPathfinder INSTANCE;
+
+    public static ThetaStarPathfinder getInstance() {
+        return INSTANCE;
+    }
+
     private enum PathStatus {
         READY,
         ALREADY_THERE,
@@ -43,6 +50,10 @@ public final class ThetaStarPathfinder implements Pathfinder {
     private PathStatus status;
 
     public ThetaStarPathfinder(MessengerClient msg) {
+        if (INSTANCE != null)
+            throw new IllegalStateException("ThetaStarPathfinder already initialized");
+        INSTANCE = this;
+
         this.msg = msg;
         msg.addHandler(MSG_PATH, this::onPath);
 
@@ -188,10 +199,21 @@ public final class ThetaStarPathfinder implements Pathfinder {
         pathRequestTimestamp = Timer.getFPGATimestamp();
     }
 
+    public void setDynamicShapes(List<Shape> shapes, Translation2d currentRobotPos) {
+        MessageBuilder builder = msg.prepare(MSG_SET_DYN_SHAPES);
+        builder.addInt(shapes.size());
+        for (Shape obs : shapes) {
+            obs.write(builder);
+        }
+
+        builder.addDouble(currentRobotPos.getX());
+        builder.addDouble(currentRobotPos.getY());
+        builder.send();
+    }
+
     @Override
     public void setDynamicObstacles(List<Pair<Translation2d, Translation2d>> obs, Translation2d currentRobotPos) {
-        MessageBuilder builder = msg.prepare(MSG_SET_DYN_SHAPES);
-        builder.addInt(obs.size());
+        List<Shape> shapes = new ArrayList<>();
         for (Pair<Translation2d, Translation2d> axisAlignedBB : obs) {
             Translation2d to = axisAlignedBB.getFirst();
             Translation2d from = axisAlignedBB.getSecond();
@@ -200,19 +222,14 @@ public final class ThetaStarPathfinder implements Pathfinder {
             double width = Math.abs(from.getX() - to.getX());
             double height = Math.abs(from.getY() - to.getY());
 
-            builder.addByte((byte) 1); // Is rectangle
-            builder.addDouble(center.getX());
-            builder.addDouble(center.getY());
-            builder.addDouble(width);
-            builder.addDouble(height);
-            builder.addDouble(0); // Rotation
-            builder.addBoolean(false); // Inverted
+            shapes.add(new RectangleShape(
+                    center.getX(), center.getY(),
+                    width, height,
+                    new Rotation2d(0),
+                    false
+            ));
         }
 
-        // Also send current position for recalculation
-        builder.addDouble(currentRobotPos.getX());
-        builder.addDouble(currentRobotPos.getY());
-
-        builder.send();
+        setDynamicShapes(shapes, currentRobotPos);
     }
 }
