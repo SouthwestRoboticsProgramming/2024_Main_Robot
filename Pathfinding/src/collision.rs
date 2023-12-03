@@ -66,11 +66,15 @@ impl CollisionShape {
                 },
             },
             Self::Rectangle(r) => {
-                let sin = r.rotation.sin().abs();
-                let cos = r.rotation.cos().abs();
-                let half_sz = Vec2f {
-                    x: (r.size.y * sin + r.size.x * cos) / 2.0,
-                    y: (r.size.x * sin + r.size.y * cos) / 2.0,
+                let half_sz = if r.rotation == 0.0 {
+                    r.size / 2.0
+                } else {
+                    let sin = r.rotation.sin().abs();
+                    let cos = r.rotation.cos().abs();
+                    Vec2f {
+                        x: (r.size.y * sin + r.size.x * cos) / 2.0,
+                        y: (r.size.x * sin + r.size.y * cos) / 2.0,
+                    }
                 };
 
                 AABB {
@@ -89,7 +93,11 @@ fn circle_circle_collides(a: &Circle, b: &Circle) -> bool {
 
 fn circle_rect_collides(circle: &Circle, rect: &Rectangle) -> bool {
     let global_rel = circle.position - rect.position;
-    let rel = global_rel.rotated(-rect.rotation);
+    let rel = if rect.rotation == 0.0 {
+        global_rel
+    } else {
+        global_rel.rotated(-rect.rotation)
+    };
     let half_sz = rect.size / 2.0;
 
     if rect.inverted {

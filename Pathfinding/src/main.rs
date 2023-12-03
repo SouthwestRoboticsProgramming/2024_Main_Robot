@@ -1,5 +1,6 @@
 // Potential future optimizations:
 // Cache line-of-sight checks
+// Don't use line-of-sight for neighbor queries
 
 use std::{collections::HashMap, error::Error, time::Instant};
 
@@ -34,6 +35,7 @@ const MSG_FIELD_INFO: &str = "Pathfinder:FieldInfo";
 const MSG_CELL_DATA: &str = "Pathfinder:CellData";
 const MSG_SHAPES: &str = "Pathfinder:Shapes";
 
+// TODO: This should almost certainly be split up at some point
 struct PathfinderTask {
     messenger: MessengerClient,
     static_shapes: HashMap<Uuid, CollisionShape>,
