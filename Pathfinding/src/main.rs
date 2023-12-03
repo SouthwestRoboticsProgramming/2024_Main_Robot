@@ -1,6 +1,5 @@
 // Potential future optimizations:
 // Cache line-of-sight checks
-// Only regenerate the affected region of grid when shapes change
 
 use std::{collections::HashMap, error::Error, time::Instant};
 
@@ -37,10 +36,10 @@ const MSG_SHAPES: &str = "Pathfinder:Shapes";
 
 struct PathfinderTask {
     messenger: MessengerClient,
-    shapes: HashMap<Uuid, CollisionShape>,
+    static_shapes: HashMap<Uuid, CollisionShape>,
     dyn_shapes: Vec<CollisionShape>,
     robot_radius: f64,
-    grid: grid::Grid2D,
+    dyn_grid: grid::Grid2D,
     static_grid: grid::Grid2D,
 
     cell_size: f64,
@@ -74,7 +73,7 @@ impl PathfinderTask {
 
         let mut task = PathfinderTask {
             messenger,
-            shapes,
+            static_shapes: shapes,
             dyn_shapes: Vec::new(),
             robot_radius: conf.robot_radius,
             cell_size: conf.field.cell_size,
@@ -83,14 +82,17 @@ impl PathfinderTask {
                 y: grid.cell_size().y as f64 * conf.field.origin_y,
             },
             static_grid: grid.clone(),
-            grid,
+            dyn_grid: grid,
             field_size: Vec2f {
                 x: env.width,
                 y: env.height,
             },
             env_file_name: conf.env_file,
         };
-        task.update_grid(true);
+
+        for (_, shape) in &task.static_shapes.clone() {
+            task.update_add_static_shape(shape);
+        }
 
         Ok(task)
     }
@@ -113,76 +115,11 @@ impl PathfinderTask {
         self.cell_to_meters(&(Vec2f::from(cell) + Vec2f { x: 0.5, y: 0.5 }))
     }
 
-    fn update_grid(&mut self, update_static: bool) {
-        let start_time = Instant::now();
-
-        let size = self.grid.cell_size();
-        if update_static {
-            for y in 0..size.y {
-                for x in 0..size.x {
-                    let cell_pos = Vec2i { x, y };
-                    let robot_pos = self.cell_center(&cell_pos);
-
-                    let robot = Circle {
-                        position: robot_pos,
-                        radius: self.robot_radius,
-                    };
-
-                    let mut passable = true;
-                    for (_, shape) in &self.shapes {
-                        if shape.collides_with_circle(&robot) {
-                            passable = false;
-                        }
-                    }
-
-                    self.static_grid.set_cell_passable(&cell_pos, passable);
-                }
-            }
-        }
-
-        for y in 0..size.y {
-            for x in 0..size.x {
-                let cell_pos = Vec2i { x, y };
-
-                // Optimization: If static grid already not passable, we can skip check
-                if !self.static_grid.can_cell_pass(x, y) {
-                    self.grid.set_cell_passable(&cell_pos, false);
-                    continue;
-                }
-
-                let robot_pos = self.cell_center(&cell_pos);
-                let robot = Circle {
-                    position: robot_pos,
-                    radius: self.robot_radius,
-                };
-
-                let mut passable = true;
-                // Only need to check dynamic shapes here since we already know
-                // no static shapes collide at this position
-                for shape in &self.dyn_shapes {
-                    if shape.collides_with_circle(&robot) {
-                        passable = false;
-                    }
-                }
-
-                self.grid.set_cell_passable(&cell_pos, passable);
-            }
-        }
-
-        let end_time = Instant::now();
-
-        println!(
-            "Regenerating grid took {} secs, static included? {}",
-            end_time.duration_since(start_time).as_secs_f64(),
-            update_static
-        );
-    }
-
     async fn save_env_file(&self) -> Result<(), Box<dyn Error>> {
         let new_env = config::Environment {
             width: self.field_size.x,
             height: self.field_size.y,
-            shapes: self.shapes.clone(),
+            shapes: self.static_shapes.clone(),
         };
         let env_str = serde_json::to_string_pretty(&new_env)?;
         fs::write(&self.env_file_name, &env_str).await?;
@@ -190,8 +127,122 @@ impl PathfinderTask {
         Ok(())
     }
 
-    async fn update_shapes(&mut self) {
-        self.update_grid(true);
+    fn get_robot_circle(&self, cell_pos: &Vec2i) -> Circle {
+        let robot_pos = self.cell_center(cell_pos);
+        Circle {
+            position: robot_pos,
+            radius: self.robot_radius,
+        }
+    }
+
+    fn constrain_to_grid(&self, cell: Vec2i) -> Vec2i {
+        let sz = self.dyn_grid.cell_size();
+        return Vec2i {
+            x: cell.x.clamp(0, sz.x - 1),
+            y: cell.y.clamp(0, sz.y - 1),
+        };
+    }
+
+    fn get_shape_region(&self, shape: &CollisionShape) -> (Vec2i, Vec2i) {
+        let aabb = shape.get_bounding_box().inflate(self.robot_radius);
+        let min = self.meters_to_cell(&aabb.min).floor();
+        let max = self.meters_to_cell(&aabb.max).ceil();
+        (
+            self.constrain_to_grid(Vec2i { x: min.x, y: max.y }),
+            self.constrain_to_grid(Vec2i { x: max.x, y: min.y }),
+        )
+    }
+
+    // When adding static shape:
+    //   In shape's bounding box, if currently passable and shape collides, set not passable
+    //   Also set not passable in dynamic grid
+    fn update_add_static_shape(&mut self, shape: &CollisionShape) {
+        let (min, max) = self.get_shape_region(shape);
+
+        for y in min.y..max.y {
+            for x in min.x..max.x {
+                // Don't bother checking, we already can't go here
+                if !self.static_grid.can_cell_pass(x, y) {
+                    continue;
+                }
+
+                let cell_pos = Vec2i { x, y };
+                let robot = self.get_robot_circle(&cell_pos);
+
+                if shape.collides_with_circle(&robot) {
+                    self.static_grid.set_cell_passable(&cell_pos, false);
+                    self.dyn_grid.set_cell_passable(&cell_pos, false);
+                }
+            }
+        }
+    }
+
+    // When removing static shape:
+    //   In shape's bounding box, if did collide with removed shape, recalculate with all others
+    //   If it got cleared, recalculate dynamic cell as well
+    fn update_remove_static_shape(&mut self, shape: &CollisionShape) {
+        let (min, max) = self.get_shape_region(shape);
+
+        for y in min.y..max.y {
+            'cell_loop: for x in min.x..max.x {
+                let cell_pos = Vec2i { x, y };
+                let robot = self.get_robot_circle(&cell_pos);
+
+                if shape.collides_with_circle(&robot) {
+                    for (_, shape) in &self.static_shapes {
+                        if shape.collides_with_circle(&robot) {
+                            continue 'cell_loop;
+                        }
+                    }
+                    self.static_grid.set_cell_passable(&cell_pos, true);
+
+                    for shape in &self.dyn_shapes {
+                        if shape.collides_with_circle(&robot) {
+                            continue 'cell_loop;
+                        }
+                    }
+                    self.dyn_grid.set_cell_passable(&cell_pos, true);
+                }
+            }
+        }
+    }
+
+    // When setting dynamic shapes:
+    //   Copy all cell data from static grid into dynamic grid
+    //   For each new dynamic shape, do same as adding static shape
+    fn update_set_dyn_shapes(&mut self) {
+        let start_time = Instant::now();
+        // Copy in all the datas
+        self.dyn_grid = self.static_grid.clone();
+
+        for shape in &self.dyn_shapes {
+            let (min, max) = self.get_shape_region(shape);
+
+            for y in min.y..max.y {
+                for x in min.x..max.x {
+                    // Don't bother checking, we already can't go here
+                    if !self.dyn_grid.can_cell_pass(x, y) {
+                        continue;
+                    }
+
+                    let cell_pos = Vec2i { x, y };
+                    let robot = self.get_robot_circle(&cell_pos);
+
+                    if shape.collides_with_circle(&robot) {
+                        self.dyn_grid.set_cell_passable(&cell_pos, false);
+                    }
+                }
+            }
+        }
+        let end_time = Instant::now();
+
+        println!(
+            "Regenerating dynamic grid took {} secs",
+            end_time.duration_since(start_time).as_secs_f64(),
+        );
+    }
+
+    async fn save_static_shapes(&mut self) {
         match self.save_env_file().await {
             Ok(_) => {}
             Err(e) => {
@@ -250,11 +301,11 @@ impl PathfinderTask {
                 let start_time = Instant::now();
 
                 let real_start_cell = self.find_nearest_cell(start_pos);
-                let start_cell = dijkstra::find_nearest_passable(&self.grid, real_start_cell)
+                let start_cell = dijkstra::find_nearest_passable(&self.dyn_grid, real_start_cell)
                     .unwrap_or(real_start_cell);
                 let goal_cell = self.find_nearest_cell(goal_pos);
 
-                let mut result = theta_star::find_path(&self.grid, start_cell, goal_cell);
+                let mut result = theta_star::find_path(&self.dyn_grid, start_cell, goal_cell);
                 let end_time = Instant::now();
 
                 let data = match &mut result {
@@ -295,7 +346,7 @@ impl PathfinderTask {
 
     fn find_nearest_cell(&self, pos_meters: Vec2f) -> Vec2i {
         let cell_f = self.meters_to_cell(&pos_meters);
-        let size = self.grid.cell_size();
+        let size = self.dyn_grid.cell_size();
         Vec2i {
             x: (cell_f.x.round() as i32).clamp(0, size.x),
             y: (cell_f.y.round() as i32).clamp(0, size.y),
@@ -311,7 +362,7 @@ impl PathfinderTask {
         data.put_f64(self.field_size.y);
         data.put_f64(self.origin_pos_cell.x);
         data.put_f64(self.origin_pos_cell.y);
-        let grid_sz = self.grid.cell_size();
+        let grid_sz = self.dyn_grid.cell_size();
         data.put_i32(grid_sz.x);
         data.put_i32(grid_sz.y);
 
@@ -322,8 +373,8 @@ impl PathfinderTask {
     }
 
     fn on_get_cell_data(&mut self) {
-        let size = self.grid.cell_size();
-        let bit_data = self.grid.get_as_java_bitset();
+        let size = self.dyn_grid.cell_size();
+        let bit_data = self.dyn_grid.get_as_java_bitset();
 
         let mut data = BytesMut::with_capacity(bit_data.len() * 8 + 12);
         data.put_i32(size.x);
@@ -363,8 +414,8 @@ impl PathfinderTask {
 
     fn on_get_shapes(&mut self) {
         let mut data = BytesMut::with_capacity(4);
-        data.put_i32(self.shapes.len() as i32);
-        for (id, shape) in &self.shapes {
+        data.put_i32(self.static_shapes.len() as i32);
+        for (id, shape) in &self.static_shapes {
             data.reserve(17);
             data.put_u128(id.as_u128());
             Self::write_shape(&mut data, shape);
@@ -415,15 +466,20 @@ impl PathfinderTask {
         let id = Uuid::from_u128(data.get_u128());
 
         if let Some(shape) = Self::read_shape(&mut data) {
-            self.shapes.insert(id, shape);
-            self.update_shapes().await;
+            self.update_add_static_shape(&shape);
+            if let Some(old_shape) = self.static_shapes.insert(id, shape) {
+                self.update_remove_static_shape(&old_shape);
+            }
+            self.save_static_shapes().await;
         }
     }
 
     async fn on_remove_shape(&mut self, mut data: Bytes) {
         let id = Uuid::from_u128(data.get_u128());
-        self.shapes.remove(&id);
-        self.update_shapes().await;
+        if let Some(removed_shape) = self.static_shapes.remove(&id) {
+            self.update_remove_static_shape(&removed_shape);
+            self.save_static_shapes().await;
+        }
     }
 
     fn on_set_dyn_shapes(&mut self, data: &mut Bytes) {
@@ -433,11 +489,11 @@ impl PathfinderTask {
             if let Some(shape) = Self::read_shape(data) {
                 self.dyn_shapes.push(shape);
             } else {
-                self.update_grid(false);
+                self.update_set_dyn_shapes();
                 return;
             }
         }
-        self.update_grid(false);
+        self.update_set_dyn_shapes();
     }
 }
 

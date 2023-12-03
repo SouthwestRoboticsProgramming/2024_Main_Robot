@@ -4,13 +4,13 @@ use serde::{Deserialize, Serialize};
 
 use crate::vectors::Vec2f;
 
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct Circle {
     pub position: Vec2f,
     pub radius: f64,
 }
 
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct Rectangle {
     pub position: Vec2f,
     pub size: Vec2f,
@@ -18,11 +18,31 @@ pub struct Rectangle {
     pub inverted: bool,
 }
 
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 #[serde(tag = "type")]
 pub enum CollisionShape {
     Circle(Circle),
     Rectangle(Rectangle),
+}
+
+pub struct AABB {
+    pub min: Vec2f,
+    pub max: Vec2f,
+}
+
+impl AABB {
+    pub fn inflate(&self, radius: f64) -> AABB {
+        AABB {
+            min: Vec2f {
+                x: self.min.x - radius,
+                y: self.min.y - radius,
+            },
+            max: Vec2f {
+                x: self.max.x + radius,
+                y: self.max.y + radius,
+            },
+        }
+    }
 }
 
 impl CollisionShape {
@@ -30,6 +50,34 @@ impl CollisionShape {
         match self {
             Self::Circle(c) => circle_circle_collides(circle, c),
             Self::Rectangle(r) => circle_rect_collides(circle, r),
+        }
+    }
+
+    pub fn get_bounding_box(&self) -> AABB {
+        match self {
+            Self::Circle(c) => AABB {
+                min: Vec2f {
+                    x: c.position.x - c.radius,
+                    y: c.position.y - c.radius,
+                },
+                max: Vec2f {
+                    x: c.position.x + c.radius,
+                    y: c.position.y + c.radius,
+                },
+            },
+            Self::Rectangle(r) => {
+                let sin = r.rotation.sin().abs();
+                let cos = r.rotation.cos().abs();
+                let half_sz = Vec2f {
+                    x: (r.size.y * sin + r.size.x * cos) / 2.0,
+                    y: (r.size.x * sin + r.size.y * cos) / 2.0,
+                };
+
+                AABB {
+                    min: r.position - half_sz,
+                    max: r.position + half_sz,
+                }
+            }
         }
     }
 }

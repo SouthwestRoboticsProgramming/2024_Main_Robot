@@ -52,6 +52,20 @@ impl Vec2f {
     pub fn mag_sq(&self) -> f64 {
         return self.x * self.x + self.y * self.y;
     }
+
+    pub fn floor(&self) -> Vec2i {
+        return Vec2i {
+            x: self.x.floor() as i32,
+            y: self.y.floor() as i32,
+        };
+    }
+
+    pub fn ceil(&self) -> Vec2i {
+        return Vec2i {
+            x: self.x.ceil() as i32,
+            y: self.y.ceil() as i32,
+        };
+    }
 }
 
 impl Add for Vec2f {
