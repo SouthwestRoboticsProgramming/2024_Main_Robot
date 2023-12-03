@@ -25,6 +25,7 @@ const MSG_GET_SHAPES: &str = "Pathfinder:GetShapes";
 
 const MSG_SET_SHAPE: &str = "Pathfinder:SetShape";
 const MSG_REMOVE_SHAPE: &str = "Pathfinder:RemoveShape";
+const MSG_SET_DYN_SHAPES: &str = "Pathfinder:SetDynamicShapes";
 
 const MSG_FIELD_INFO: &str = "Pathfinder:FieldInfo";
 const MSG_CELL_DATA: &str = "Pathfinder:CellData";
@@ -33,6 +34,7 @@ const MSG_SHAPES: &str = "Pathfinder:Shapes";
 struct PathfinderTask {
     messenger: MessengerClient,
     shapes: HashMap<Uuid, CollisionShape>,
+    dyn_shapes: Vec<CollisionShape>,
     robot_radius: f64,
     grid: grid::Grid2D,
 
@@ -67,6 +69,7 @@ impl PathfinderTask {
         let mut task = PathfinderTask {
             messenger,
             shapes,
+            dyn_shapes: Vec::new(),
             robot_radius: conf.robot_radius,
             cell_size: conf.field.cell_size,
             origin_pos_cell: Vec2f {
@@ -117,6 +120,11 @@ impl PathfinderTask {
 
                 let mut passable = true;
                 for (_, shape) in &self.shapes {
+                    if shape.collides_with_circle(&robot) {
+                        passable = false;
+                    }
+                }
+                for shape in &self.dyn_shapes {
                     if shape.collides_with_circle(&robot) {
                         passable = false;
                     }
@@ -180,6 +188,7 @@ impl PathfinderTask {
                     MSG_GET_SHAPES => self.on_get_shapes(),
                     MSG_SET_SHAPE => self.on_set_shape(data).await,
                     MSG_REMOVE_SHAPE => self.on_remove_shape(data).await,
+                    MSG_SET_DYN_SHAPES => self.on_set_dyn_shapes(data),
                     _ => {}
                 }
             }
@@ -277,32 +286,41 @@ impl PathfinderTask {
         });
     }
 
+    fn write_shape(data: &mut BytesMut, shape: &CollisionShape) {
+        match shape {
+            CollisionShape::Circle(c) => {
+                data.reserve(25);
+                data.put_u8(0);
+                data.put_f64(c.position.x);
+                data.put_f64(c.position.y);
+                data.put_f64(c.radius);
+            }
+            CollisionShape::Rectangle(r) => {
+                data.reserve(42);
+                data.put_u8(1);
+                data.put_f64(r.position.x);
+                data.put_f64(r.position.y);
+                data.put_f64(r.size.x);
+                data.put_f64(r.size.y);
+                data.put_f64(r.rotation);
+                data.put_u8(if r.inverted { 1 } else { 0 });
+            }
+        }
+    }
+
     fn on_get_shapes(&mut self) {
         let mut data = BytesMut::with_capacity(4);
         data.put_i32(self.shapes.len() as i32);
-
         for (id, shape) in &self.shapes {
             data.reserve(17);
             data.put_u128(id.as_u128());
-            match shape {
-                CollisionShape::Circle(c) => {
-                    data.reserve(25);
-                    data.put_u8(0);
-                    data.put_f64(c.position.x);
-                    data.put_f64(c.position.y);
-                    data.put_f64(c.radius);
-                }
-                CollisionShape::Rectangle(r) => {
-                    data.reserve(42);
-                    data.put_u8(1);
-                    data.put_f64(r.position.x);
-                    data.put_f64(r.position.y);
-                    data.put_f64(r.size.x);
-                    data.put_f64(r.size.y);
-                    data.put_f64(r.rotation);
-                    data.put_u8(if r.inverted { 1 } else { 0 });
-                }
-            }
+            Self::write_shape(&mut data, shape);
+        }
+
+        data.reserve(4);
+        data.put_i32(self.dyn_shapes.len() as i32);
+        for shape in &self.dyn_shapes {
+            Self::write_shape(&mut data, shape);
         }
 
         self.messenger.send_message(Message {
@@ -311,17 +329,16 @@ impl PathfinderTask {
         });
     }
 
-    async fn on_set_shape(&mut self, mut data: Bytes) {
-        let id = Uuid::from_u128(data.get_u128());
-        let shape = match data.get_u8() {
+    fn read_shape(data: &mut Bytes) -> Option<CollisionShape> {
+        match data.get_u8() {
             0 => {
                 let x = data.get_f64();
                 let y = data.get_f64();
                 let rad = data.get_f64();
-                CollisionShape::Circle(Circle {
+                Some(CollisionShape::Circle(Circle {
                     position: Vec2f { x, y },
                     radius: rad,
-                })
+                }))
             }
             1 => {
                 let x = data.get_f64();
@@ -330,24 +347,44 @@ impl PathfinderTask {
                 let h = data.get_f64();
                 let rot = data.get_f64();
                 let inv = data.get_u8() != 0;
-                CollisionShape::Rectangle(Rectangle {
+                Some(CollisionShape::Rectangle(Rectangle {
                     position: Vec2f { x, y },
                     size: Vec2f { x: w, y: h },
                     rotation: rot,
                     inverted: inv,
-                })
+                }))
             }
-            _ => return,
-        };
+            _ => None,
+        }
+    }
 
-        self.shapes.insert(id, shape);
-        self.update_shapes().await;
+    async fn on_set_shape(&mut self, mut data: Bytes) {
+        let id = Uuid::from_u128(data.get_u128());
+
+        if let Some(shape) = Self::read_shape(&mut data) {
+            self.shapes.insert(id, shape);
+            self.update_shapes().await;
+        }
     }
 
     async fn on_remove_shape(&mut self, mut data: Bytes) {
         let id = Uuid::from_u128(data.get_u128());
         self.shapes.remove(&id);
         self.update_shapes().await;
+    }
+
+    fn on_set_dyn_shapes(&mut self, mut data: Bytes) {
+        let count = data.get_i32();
+        self.dyn_shapes.clear();
+        for _ in 0..count {
+            if let Some(shape) = Self::read_shape(&mut data) {
+                self.dyn_shapes.push(shape);
+            } else {
+                self.update_grid();
+                return;
+            }
+        }
+        self.update_grid();
     }
 }
 
