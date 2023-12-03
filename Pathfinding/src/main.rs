@@ -58,6 +58,7 @@ impl PathfinderTask {
             MSG_GET_SHAPES,
             MSG_SET_SHAPE,
             MSG_REMOVE_SHAPE,
+            MSG_SET_DYN_SHAPES,
         ]);
 
         let shapes = env.shapes;
@@ -189,7 +190,14 @@ impl PathfinderTask {
                     MSG_SET_SHAPE => self.on_set_shape(data).await,
                     MSG_REMOVE_SHAPE => self.on_remove_shape(data).await,
                     MSG_SET_DYN_SHAPES => {
-                        self.on_set_dyn_shapes(data);
+                        self.on_set_dyn_shapes(&mut data);
+
+                        let start_x = data.get_f64();
+                        let start_y = data.get_f64();
+                        start_pos = Vec2f {
+                            x: start_x,
+                            y: start_y,
+                        };
                         needs_recalc = true;
                     }
                     _ => {}
@@ -376,11 +384,11 @@ impl PathfinderTask {
         self.update_shapes().await;
     }
 
-    fn on_set_dyn_shapes(&mut self, mut data: Bytes) {
+    fn on_set_dyn_shapes(&mut self, data: &mut Bytes) {
         let count = data.get_i32();
         self.dyn_shapes.clear();
         for _ in 0..count {
-            if let Some(shape) = Self::read_shape(&mut data) {
+            if let Some(shape) = Self::read_shape(data) {
                 self.dyn_shapes.push(shape);
             } else {
                 self.update_grid();

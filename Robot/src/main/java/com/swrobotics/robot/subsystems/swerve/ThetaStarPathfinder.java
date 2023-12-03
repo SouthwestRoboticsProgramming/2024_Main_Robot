@@ -4,6 +4,7 @@ import com.pathplanner.lib.path.GoalEndState;
 import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.path.PathPlannerPath;
 import com.pathplanner.lib.pathfinding.Pathfinder;
+import com.swrobotics.messenger.client.MessageBuilder;
 import com.swrobotics.messenger.client.MessageReader;
 import com.swrobotics.messenger.client.MessengerClient;
 import edu.wpi.first.math.Pair;
@@ -22,6 +23,7 @@ public final class ThetaStarPathfinder implements Pathfinder {
 
     private static final String MSG_SET_ENDPOINTS = "Pathfinder:SetEndpoints";
     private static final String MSG_PATH = "Pathfinder:Path";
+    private static final String MSG_SET_DYN_SHAPES = "Pathfinder:SetDynamicShapes";
 
     private static final double CORRECT_TARGET_TOL = 0.1524 + 0.1;
     private static final double TIMEOUT = 1; // Seconds
@@ -188,6 +190,29 @@ public final class ThetaStarPathfinder implements Pathfinder {
 
     @Override
     public void setDynamicObstacles(List<Pair<Translation2d, Translation2d>> obs, Translation2d currentRobotPos) {
-        // Not supported (yet)
+        MessageBuilder builder = msg.prepare(MSG_SET_DYN_SHAPES);
+        builder.addInt(obs.size());
+        for (Pair<Translation2d, Translation2d> axisAlignedBB : obs) {
+            Translation2d to = axisAlignedBB.getFirst();
+            Translation2d from = axisAlignedBB.getSecond();
+
+            Translation2d center = to.plus(from.minus(to).times(0.5));
+            double width = Math.abs(from.getX() - to.getX());
+            double height = Math.abs(from.getY() - to.getY());
+
+            builder.addByte((byte) 1); // Is rectangle
+            builder.addDouble(center.getX());
+            builder.addDouble(center.getY());
+            builder.addDouble(width);
+            builder.addDouble(height);
+            builder.addDouble(0); // Rotation
+            builder.addBoolean(false); // Inverted
+        }
+
+        // Also send current position for recalculation
+        builder.addDouble(currentRobotPos.getX());
+        builder.addDouble(currentRobotPos.getY());
+
+        builder.send();
     }
 }

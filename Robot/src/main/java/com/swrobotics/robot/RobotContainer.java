@@ -41,7 +41,7 @@ public class RobotContainer {
     public final MessengerClient messenger;
 
     private final ControlBoard controlboard;
-    private final SwerveDrive drive;
+    public final SwerveDrive drive;
 
     public RobotContainer() {
         // Turn off joystick warnings in sim

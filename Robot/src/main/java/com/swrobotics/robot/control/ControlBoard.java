@@ -2,17 +2,23 @@ package com.swrobotics.robot.control;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.path.PathConstraints;
+import com.pathplanner.lib.pathfinding.Pathfinding;
 import com.swrobotics.lib.input.XboxController;
 import com.swrobotics.mathlib.MathUtil;
 import com.swrobotics.mathlib.Vec2d;
 import com.swrobotics.robot.RobotContainer;
 
+import edu.wpi.first.math.Pair;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class ControlBoard {
     private static final double DEADBAND = 0.15;
@@ -47,6 +53,23 @@ public class ControlBoard {
         operator = new XboxController(1, DEADBAND);
 
         driver.a.onFalling(pathfindingCommand);
+        driver.b.onFalling(() -> {
+            List<Pair<Translation2d, Translation2d>> rects = new ArrayList<>();
+
+            // Generate some random rectangles
+            for (int i = 0; i < 3; i++) {
+                double cx = Math.random() * 16;
+                double cy = Math.random() * 8;
+                double w = Math.random() * 4;
+                double h = Math.random() * 4;
+
+                rects.add(new Pair<>(
+                        new Translation2d(cx - w/2, cy - h/2),
+                        new Translation2d(cx + w/2, cy + h/2)));
+            }
+
+            Pathfinding.setDynamicObstacles(rects, robot.drive.getEstimatedPose().getTranslation());
+        });
 
         // Congigure triggers
 //        driver.start.onFalling(robot.drive::resetGyro);

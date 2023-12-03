@@ -122,7 +122,7 @@ public final class PathfindingLayer implements FieldLayer {
         int count = reader.readInt();
         shapes = new ArrayList<>();
         for (int i = 0; i < count; i++) {
-            Shape shape = Shape.read(reader);
+            Shape shape = Shape.read(reader, true);
             shapes.add(shape);
         }
 
@@ -149,9 +149,10 @@ public final class PathfindingLayer implements FieldLayer {
         dynShapes.clear();
         int count = reader.readInt();
         for (int i = 0; i < count; i++) {
-            Shape shape = Shape.read(reader);
+            Shape shape = Shape.read(reader, false);
             dynShapes.add(shape);
         }
+        needsRefreshCellData = true;
     }
 
     @Override
@@ -465,6 +466,31 @@ public final class PathfindingLayer implements FieldLayer {
                 }
 
                 ImGui.endTable();
+
+                if (ImGui.treeNodeEx("Dynamic Shapes", ImGuiTreeNodeFlags.DefaultOpen)) {
+                    int i = 0;
+                    for (Shape shape : dynShapes) {
+                        if (shape instanceof Rectangle r) {
+                            if (ImGui.treeNodeEx("Rectangle##" + i++)) {
+                                ImGui.text("X: " + r.x.get());
+                                ImGui.text("Y: " + r.y.get());
+                                ImGui.text("Width: " + r.width.get());
+                                ImGui.text("Height: " + r.height.get());
+                                ImGui.text("Rotation: " + r.rotation.get());
+                                ImGui.text("Inverted: " + r.inverted.get());
+                                ImGui.treePop();
+                            }
+                        } else if (shape instanceof Circle c) {
+                            if (ImGui.treeNodeEx("Circle##" + i++)) {
+                                ImGui.text("X: " + c.x.get());
+                                ImGui.text("Y: " + c.y.get());
+                                ImGui.text("Radius: " + c.radius.get());
+                                ImGui.treePop();
+                            }
+                        }
+                    }
+                    ImGui.treePop();
+                }
             }
         }
     }

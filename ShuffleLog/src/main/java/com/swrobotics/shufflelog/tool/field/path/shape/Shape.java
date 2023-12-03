@@ -21,10 +21,13 @@ public abstract class Shape {
 
     protected abstract void readContent(MessageReader reader);
 
-    public static Shape read(MessageReader reader) {
-        long idMsb = reader.readLong();
-        long idLsb = reader.readLong();
-        UUID id = new UUID(idMsb, idLsb);
+    public static Shape read(MessageReader reader, boolean hasUuid) {
+        UUID id = null;
+        if (hasUuid) {
+            long idMsb = reader.readLong();
+            long idLsb = reader.readLong();
+            id = new UUID(idMsb, idLsb);
+        }
 
         byte type = reader.readByte();
         Shape shape;
