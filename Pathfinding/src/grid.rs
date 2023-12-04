@@ -63,8 +63,8 @@ impl Grid2D {
         (dx * dx + dy * dy).sqrt()
     }
 
-    pub fn get_all_neighbors(&self, current: &Vec2i) -> Vec<Vec2i> {
-        let mut out = Vec::with_capacity(8);
+    pub fn get_all_neighbors(&self, current: &Vec2i, out: &mut Vec<Vec2i>) {
+        out.clear();
 
         let Vec2i { x: w, y: h } = self.point_size();
         for x in (-1)..=1 {
@@ -82,14 +82,64 @@ impl Grid2D {
                 }
             }
         }
-
-        out
     }
 
-    pub fn get_visible_neighbors(&self, current: &Vec2i) -> Vec<Vec2i> {
-        let mut neighbors = self.get_all_neighbors(current);
-        neighbors.retain(|p| self.line_of_sight(current, p));
-        neighbors
+    pub fn get_visible_neighbors(&self, current: &Vec2i, out: &mut Vec<Vec2i>) {
+        let ul = self.can_cell_pass(current.x - 1, current.y - 1);
+        let ur = self.can_cell_pass(current.x, current.y - 1);
+        let bl = self.can_cell_pass(current.x - 1, current.y);
+        let br = self.can_cell_pass(current.x, current.y);
+
+        out.clear();
+        if ul {
+            out.push(Vec2i {
+                x: current.x - 1,
+                y: current.y - 1,
+            });
+        }
+        if ur {
+            out.push(Vec2i {
+                x: current.x + 1,
+                y: current.y - 1,
+            });
+        }
+        if bl {
+            out.push(Vec2i {
+                x: current.x - 1,
+                y: current.y + 1,
+            });
+        }
+        if br {
+            out.push(Vec2i {
+                x: current.x + 1,
+                y: current.y + 1,
+            });
+        }
+
+        if ul || ur {
+            out.push(Vec2i {
+                x: current.x,
+                y: current.y - 1,
+            });
+        }
+        if bl || br {
+            out.push(Vec2i {
+                x: current.x,
+                y: current.y + 1,
+            });
+        }
+        if ul || bl {
+            out.push(Vec2i {
+                x: current.x - 1,
+                y: current.y,
+            });
+        }
+        if ur || br {
+            out.push(Vec2i {
+                x: current.x + 1,
+                y: current.y,
+            });
+        }
     }
 
     // This implementation was taken from somewhere

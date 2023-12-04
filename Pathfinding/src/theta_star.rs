@@ -110,6 +110,7 @@ pub fn find_path(grid: &Grid2D, start_pos: Vec2i, goal_pos: Vec2i) -> Option<Vec
         OrderedFloat(-grid.heuristic(&start_pos, &goal_pos)),
     );
 
+    let mut neighbor_points = Vec::with_capacity(8);
     while !open.is_empty() {
         // Should always be present since open is not empty
         let (current_pos, _) = open.pop().unwrap();
@@ -120,11 +121,11 @@ pub fn find_path(grid: &Grid2D, start_pos: Vec2i, goal_pos: Vec2i) -> Option<Vec
 
         current_node.closed.set(true);
 
-        let neighbor_points = grid.get_visible_neighbors(&current_pos);
-        for neighbor_pos in neighbor_points {
-            let neighbor_node = nodes.get(&neighbor_pos);
+        grid.get_visible_neighbors(&current_pos, &mut neighbor_points);
+        for neighbor_pos in &neighbor_points {
+            let neighbor_node = nodes.get(neighbor_pos);
             if !neighbor_node.closed.get() {
-                match open.get(&neighbor_pos) {
+                match open.get(neighbor_pos) {
                     None => {
                         neighbor_node.cost.set(f64::INFINITY);
                         neighbor_node.parent.replace(None);
