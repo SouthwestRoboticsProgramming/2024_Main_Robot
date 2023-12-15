@@ -293,7 +293,7 @@ impl PathfinderTask {
                             x: start_x,
                             y: start_y,
                         };
-                        needs_recalc = true;
+                        // needs_recalc = true; 
                     }
                     _ => {}
                 }

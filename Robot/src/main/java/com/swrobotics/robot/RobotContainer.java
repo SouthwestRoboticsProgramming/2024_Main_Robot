@@ -1,12 +1,17 @@
 package com.swrobotics.robot;
 
+import com.choreo.lib.Choreo;
+import com.choreo.lib.ChoreoControlFunction;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
+import com.pathplanner.lib.path.PathConstraints;
+import com.pathplanner.lib.path.PathPlannerPath;
 import com.swrobotics.lib.field.FieldInfo;
 import com.swrobotics.lib.field.FieldSymmetry;
 import com.swrobotics.messenger.client.MessengerClient;
 import com.swrobotics.robot.commands.DefaultDriveCommand;
 import com.swrobotics.robot.control.ControlBoard;
+import com.swrobotics.robot.control.DynamicObstacleBot;
 import com.swrobotics.robot.logging.FieldView;
 import com.swrobotics.robot.subsystems.swerve.SwerveDrive;
 import com.swrobotics.taskmanager.filesystem.FileSystemAPI;
@@ -15,6 +20,7 @@ import edu.wpi.first.wpilibj.*;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.PrintCommand;
 
@@ -42,6 +48,7 @@ public class RobotContainer {
 
     private final ControlBoard controlboard;
     public final SwerveDrive drive;
+    public final DynamicObstacleBot dynamicObstacleBot = new DynamicObstacleBot(this);
 
     public RobotContainer() {
         // Turn off joystick warnings in sim
@@ -56,7 +63,10 @@ public class RobotContainer {
         // FIXME: Update at kickoff
         drive = new SwerveDrive(FieldInfo.CHARGED_UP_2023, messenger);
         controlboard = new ControlBoard(this);
-        drive.setDefaultCommand(new DefaultDriveCommand(drive, controlboard));
+        // drive.setDefaultCommand(new DefaultDriveCommand(drive, controlboard));
+        final PathConstraints constraints = new PathConstraints(4.11, 2.0, 30, 70);
+        drive.setDefaultCommand(Commands.repeatingSequence(AutoBuilder.pathfindThenFollowPath(PathPlannerPath.fromPathFile("Pickup"), constraints), AutoBuilder.pathfindThenFollowPath(PathPlannerPath.fromPathFile("Dropoff"), constraints)));
+        // drive.setDefaultCommand(AutoBuilder.pathfindThenFollowPath(PathPlannerPath.fromPathFile("Pickup"), constraints));
 
         // Register Named Commands for Auto
         NamedCommands.registerCommand("Example Named Command", new InstantCommand());

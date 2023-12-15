@@ -7,6 +7,8 @@ import org.littletonrobotics.junction.Logger;
 
 import com.kauailabs.navx.frc.AHRS;
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.auto.NamedCommands;
+import com.pathplanner.lib.pathfinding.LocalADStar;
 import com.pathplanner.lib.pathfinding.Pathfinding;
 import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
 import com.pathplanner.lib.util.PIDConstants;
@@ -14,11 +16,17 @@ import com.pathplanner.lib.util.PathPlannerLogging;
 import com.pathplanner.lib.util.ReplanningConfig;
 import com.swrobotics.lib.field.FieldInfo;
 import com.swrobotics.robot.NTData;
+import com.swrobotics.robot.RobotContainer;
 import com.swrobotics.robot.config.CANAllocation;
+import com.swrobotics.robot.control.ChoreoBuilder;
 import com.swrobotics.robot.subsystems.swerve.modules.SwerveModule;
 import com.swrobotics.robot.subsystems.swerve.modules.SwerveModuleIORealisticSim;
 import com.swrobotics.robot.subsystems.swerve.modules.SwerveModuleIOTalonFX;
+import com.choreo.lib.Choreo;
+import com.choreo.lib.ChoreoControlFunction;
+import com.choreo.lib.Choreo.*;
 
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -44,7 +52,7 @@ public final class SwerveDrive extends SubsystemBase {
     private final SwerveModule[] modules;
     private final SwerveKinematics kinematics;
     private final SwerveEstimator estimator;
-
+    
     private SwerveModulePosition[] prevPositions;
     private Rotation2d prevGyroAngle;
 
@@ -70,8 +78,12 @@ public final class SwerveDrive extends SubsystemBase {
 
         this.kinematics = new SwerveKinematics(positions, minMax);
         this.estimator = new SwerveEstimator(fieldInfo);
+        estimator.resetPose(new Pose2d(0.5, 0.5, new Rotation2d()));
 
         prevPositions = null;
+
+        PIDConstants drivePID = new PIDConstants(8.0);
+        PIDConstants turnPID = new PIDConstants(4.0, 0.0);
 
         // Configure pathing
         AutoBuilder.configureHolonomic(
@@ -80,11 +92,11 @@ public final class SwerveDrive extends SubsystemBase {
             this::getRobotRelativeSpeeds,
             this::drive,
             new HolonomicPathFollowerConfig(
-                new PIDConstants(8.0), new PIDConstants(4.0, 0.0), minMax, Math.hypot(HALF_SPACING, HALF_SPACING), new ReplanningConfig(), 0.020),
+                drivePID, turnPID, minMax, Math.hypot(HALF_SPACING, HALF_SPACING), new ReplanningConfig(), 0.020),
             this);
 
-//        Pathfinding.setPathfinder(new LocalADStar()); // TODO: Theta*
-        Pathfinding.setPathfinder(new ThetaStarPathfinder(msg));
+       Pathfinding.setPathfinder(new LocalADStar()); // TODO: Theta*
+        // Pathfinding.setPathfinder(new ThetaStarPathfinder(msg));
         PathPlannerLogging.setLogActivePathCallback(
             (activePath) -> {
               Logger.recordOutput(
@@ -96,6 +108,10 @@ public final class SwerveDrive extends SubsystemBase {
                 Logger.recordOutput("Odometry/TrajectorySetpoint", targetPose);
                 FieldView.pathPlannerSetpoint.setPose(targetPose);
         });
+
+        // Configure Choreo
+        ChoreoBuilder.configure(drivePID, turnPID, this::getEstimatedPose, this::drive, true, this);
+        NamedCommands.registerCommand("Choreo Test", ChoreoBuilder.getPath("Path A"));
     }
 
     public SwerveModuleState[] getCurrentModuleStates() {
