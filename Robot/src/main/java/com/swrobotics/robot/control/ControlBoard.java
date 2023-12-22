@@ -2,7 +2,6 @@ package com.swrobotics.robot.control;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.path.PathConstraints;
-import com.pathplanner.lib.pathfinding.Pathfinding;
 import com.swrobotics.lib.input.XboxController;
 import com.swrobotics.mathlib.MathUtil;
 import com.swrobotics.mathlib.Vec2d;
