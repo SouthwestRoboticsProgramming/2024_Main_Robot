@@ -69,7 +69,7 @@ public class SwerveModule {
 
     public void update() {
         hardwareIO.updateInputs(inputs);
-        Logger.getInstance().processInputs("Drive/" + info.name() + " Module", inputs);
+        Logger.processInputs("Drive/" + info.name() + " Module", inputs);
     }
     
 
