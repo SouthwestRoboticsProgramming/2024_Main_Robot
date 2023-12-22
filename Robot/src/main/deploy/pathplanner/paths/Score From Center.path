@@ -1,0 +1,95 @@
+{
+  "version": 1.0,
+  "waypoints": [
+    {
+      "anchor": {
+        "x": 5.129985302705649,
+        "y": 4.78463144960478
+      },
+      "prevControl": null,
+      "nextControl": {
+        "x": 4.627541904656459,
+        "y": 4.773212281467298
+      },
+      "isLocked": false
+    },
+    {
+      "anchor": {
+        "x": 3.5655592678706727,
+        "y": 4.7046972726424094
+      },
+      "prevControl": {
+        "x": 3.988068488957491,
+        "y": 4.693278104504927
+      },
+      "nextControl": {
+        "x": 2.5604557336470877,
+        "y": 4.731862233026833
+      },
+      "isLocked": false
+    },
+    {
+      "anchor": {
+        "x": 2.1610015869604386,
+        "y": 3.345816264282101
+      },
+      "prevControl": {
+        "x": 2.1952590913728836,
+        "y": 4.659020600092482
+      },
+      "nextControl": {
+        "x": 2.1504646999842554,
+        "y": 2.941902263528413
+      },
+      "isLocked": false
+    },
+    {
+      "anchor": {
+        "x": 1.8983607197983627,
+        "y": 2.8319536980954307
+      },
+      "prevControl": {
+        "x": 2.3094507727476996,
+        "y": 2.8091153618204676
+      },
+      "nextControl": null,
+      "isLocked": false
+    }
+  ],
+  "rotationTargets": [
+    {
+      "waypointRelativePos": 1.0999999999999999,
+      "rotationDegrees": 180.0
+    }
+  ],
+  "constraintZones": [
+    {
+      "name": "Community",
+      "minWaypointRelativePos": 1.1500000000000001,
+      "maxWaypointRelativePos": 3.0,
+      "constraints": {
+        "maxVelocity": 2.0,
+        "maxAcceleration": 2.0,
+        "maxAngularVelocity": 540.0,
+        "maxAngularAcceleration": 720.0
+      }
+    }
+  ],
+  "eventMarkers": [],
+  "globalConstraints": {
+    "maxVelocity": 4.0,
+    "maxAcceleration": 3.0,
+    "maxAngularVelocity": 540.0,
+    "maxAngularAcceleration": 720.0
+  },
+  "goalEndState": {
+    "velocity": 0,
+    "rotation": 180.0
+  },
+  "reversed": false,
+  "folder": null,
+  "previewStartingState": {
+    "rotation": 180.0,
+    "velocity": 1.0
+  }
+}

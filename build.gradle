@@ -1,3 +1,12 @@
+import org.zeroturnaround.exec.ProcessExecutor
+import org.zeroturnaround.exec.stream.LogOutputStream
+import com.jcraft.jsch.ChannelExec
+import com.jcraft.jsch.ChannelSftp
+import com.jcraft.jsch.JSch
+import com.jcraft.jsch.JSchException
+import com.jcraft.jsch.Session
+import com.jcraft.jsch.SftpException
+
 allprojects {
     repositories {
         mavenCentral()
@@ -15,4 +24,228 @@ allprojects {
             }
         }
     }
+}
+
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+
+    dependencies {
+        classpath 'org.zeroturnaround:zt-exec:1.12'
+        classpath 'com.jcraft:jsch:0.1.55'
+    }
+}
+
+class Subprocess {
+    Process process;
+    String name;
+
+    public Subprocess(Process process, String name) {
+        this.process = process;
+        this.name = name;
+    }
+}
+
+// The subprocess fails to be terminated if Gradle is killed or build is
+// terminated before the sim window is closed
+// See https://github.com/gradle/gradle/issues/7603
+// This is currently an unavoidable problem
+Subprocess execSubprocess(String name, String workingDir, String... command) {
+    new Subprocess(new ProcessExecutor()
+        .command(command)
+        .directory(new File(workingDir))
+        .redirectOutput(new LogOutputStream() {
+            @Override
+            protected void processLine(String line) {
+                println name + "/OUT: " + line
+            }
+        })
+        .redirectError(new LogOutputStream() {
+            @Override
+            protected void processLine(String line) {
+                println name + "/ERR: " + line
+            }
+        })
+        .start()
+        .getProcess(),
+            name)
+}
+
+// -------------------------------------------------------------------
+// Simulation
+
+void buildRust(String name, String dir) {
+    int exit = execSubprocess(name, dir, "cargo", "build", "--release").process.waitFor()
+    if (exit != 0)
+        throw new GradleScriptException(name + ": build failed", null);
+}
+
+Subprocess execRust(String name, String dir) {
+    execSubprocess(name, dir, "cargo", "run", "--release")
+}
+
+Subprocess execJava(String name, String dir, String pathToJar, String... args) {
+    String s = System.getProperty("file.separator");
+    String javaCmd = System.getProperty("java.home") + s + "bin" + s + "java";
+
+    String[] command = new String[args.length + 3];
+    command[0] = javaCmd;
+    command[1] = "-jar";
+    command[2] = pathToJar;
+    System.arraycopy(args, 0, command, 3, args.length);
+
+    execSubprocess(name, dir, command)
+}
+
+// Simulation process:
+// Ensure ShuffleLog and TaskManager are built
+// Build messenger-server and pathfinding (blocking)
+// Run messenger-server and pathfinding in background
+// Start the robot code simulation
+// After sim closed, stop background tasks
+
+List<Subprocess> parallelProcesses = new ArrayList<>()
+
+task simEverything_begin {
+    dependsOn ":ShuffleLog:build"
+
+    // Ensure robot compiles before starting processes
+    // This prevents build from failing after processes are launched
+    dependsOn ":Robot:build"
+
+    doLast {
+        // Run Rust build in separate phase so sim waits for build to finish before launching
+        // Also allows failing the build if cargo fails to compile
+        buildRust("Messenger", "Messenger/messenger-server")
+        buildRust("Pathfinding", "Pathfinding")
+
+        // Launch the parallel processes
+        // This must happen after all build stages that could fail!
+        parallelProcesses.add(execRust("Messenger", "Messenger/messenger-server"))
+        parallelProcesses.add(execRust("Pathfinding", "Pathfinding"))
+        parallelProcesses.add(execJava("ShuffleLog", "ShuffleLog", "build/libs/ShuffleLog-2024.jar", "sim"))
+    }
+}
+
+task simEverything {
+    dependsOn ":simEverything_begin"
+    dependsOn ":Robot:simulateJava"
+
+    doLast {
+        // This will be run after the sim gui is closed
+
+        // Stop the background processes
+        for (subprocess in parallelProcesses) {
+            Process process = subprocess.process;
+            process.descendants()
+            .forEach({it.destroy()})
+            process.destroy()
+            println "Stopped background process: " + subprocess.name
+        }
+    }
+}
+
+// -----------------------------------------------------------------
+// Deploy
+
+def ORANGEPI_IP = "10.21.29.6"
+def ORANGEPI_USER = "orangepi"
+def ORANGEPI_PASS = "orangepi"
+
+void buildRustAarch64(String name, String dir) {
+    int exit = execSubprocess(
+            name, dir,
+            "cross", "build", "--release", "--target", "aarch64-unknown-linux-gnu").process.waitFor()
+    if (exit != 0)
+        throw new GradleScriptException(name + ": build failed", null);
+}
+
+void execRemoteCommand(Session session, String command) {
+    println "Remote> " + command
+    ChannelExec exec = (ChannelExec) session.openChannel("exec");
+    exec.setCommand(command)
+    exec.setPty(false)
+    exec.setAgentForwarding(false)
+
+    InputStream is = exec.getInputStream();
+    exec.connect()
+    exec.run()
+    String result = null;
+    try {
+        result = is.getText("UTF-8");
+    } finally {
+        exec.disconnect()
+    }
+
+    print result
+}
+
+Session openRemoteSession(String host, String user, String pass) {
+    JSch jsch = new JSch();
+    Session session = jsch.getSession(user, host)
+    session.setPassword(pass)
+    Properties sshConfig = new Properties()
+    sshConfig.put("StrictHostKeyChecking", "no")
+    sshConfig.put("PreferredAuthentications", "password")
+    session.setConfig(sshConfig)
+
+    try {
+        session.setTimeout(3000)
+        session.connect(3000)
+    } catch (JSchException e) {
+        throw new GradleScriptException("Failed to connect to " + host, e)
+    }
+
+    session
+}
+
+void deployDir(ChannelSftp channel, String path) {
+    try {
+        channel.mkdir(path)
+        println "Created remote directory " + path
+    } catch (SftpException ignored) {
+        println("Remote directory " + path + " already exists")
+    }
+}
+
+void deployFile(ChannelSftp channel, String localPath, String remotePath) {
+    println "Deploying " + remotePath
+    channel.put(localPath.replace('/' as char, File.separatorChar), remotePath)
+}
+
+task deployOrangePi {
+    dependsOn ":TaskManager:TaskManager-Core:build"
+    doLast {
+        buildRustAarch64("Messenger", "Messenger/messenger-server")
+        buildRustAarch64("Pathfinding", "Pathfinding")
+
+        Session session = openRemoteSession(ORANGEPI_IP, ORANGEPI_USER, ORANGEPI_PASS)
+
+        execRemoteCommand(session, "sudo systemctl stop taskmanager.service")
+        execRemoteCommand(session, "sudo systemctl stop messenger.service")
+
+        String projectHome = project.projectDir.toString() + "/"
+        String remoteHome = "/home/" + ORANGEPI_USER + "/"
+        ChannelSftp sftp = (ChannelSftp) session.openChannel("sftp")
+        sftp.connect()
+        deployDir(sftp, remoteHome + "Messenger")
+        deployFile(sftp, projectHome + "Messenger/messenger-server/target/aarch64-unknown-linux-gnu/release/messenger-server", remoteHome + "Messenger/messenger-server")
+        deployDir(sftp, remoteHome + "TaskManager")
+        deployFile(sftp, projectHome + "TaskManager/TaskManager-Core/build/libs/TaskManager-Core-2024.jar", remoteHome + "TaskManager/TaskManager.jar")
+        deployDir(sftp, remoteHome + "TaskManager/tasks")
+        deployDir(sftp, remoteHome + "TaskManager/tasks/Pathfinding")
+        deployFile(sftp, projectHome + "Pathfinding/target/aarch64-unknown-linux-gnu/release/pathfinding", remoteHome + "TaskManager/tasks/Pathfinding/pathfinding")
+        sftp.disconnect()
+
+        execRemoteCommand(session, "sudo systemctl start messenger.service")
+        execRemoteCommand(session, "sudo systemctl start taskmanager.service")
+
+        session.disconnect()
+    }
+}
+
+task deployEverything {
+    dependsOn ":deployOrangePi"
+    dependsOn ":Robot:deploy"
 }

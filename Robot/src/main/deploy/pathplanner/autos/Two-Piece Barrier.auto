@@ -1,0 +1,24 @@
+{
+  "version": 1.0,
+  "startingPose": null,
+  "command": {
+    "type": "sequential",
+    "data": {
+      "commands": [
+        {
+          "type": "path",
+          "data": {
+            "pathName": "To Barrier Cube"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Score From Center"
+          }
+        }
+      ]
+    }
+  },
+  "folder": null
+}

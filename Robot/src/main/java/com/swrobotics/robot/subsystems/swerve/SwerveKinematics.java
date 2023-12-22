@@ -50,4 +50,8 @@ public final class SwerveKinematics {
 
         return kinematics.toTwist2d(deltas);
     }
+
+    public ChassisSpeeds toChassisSpeeds(SwerveModuleState[] moduleStates) {
+        return kinematics.toChassisSpeeds(moduleStates);
+    }
 }

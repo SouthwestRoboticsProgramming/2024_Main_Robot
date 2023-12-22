@@ -2,6 +2,7 @@ package com.swrobotics.robot.subsystems.swerve;
 
 import com.swrobotics.lib.field.FieldInfo;
 import com.swrobotics.mathlib.MathUtil;
+import com.swrobotics.robot.logging.FieldView;
 import com.swrobotics.robot.subsystems.tagtracker.TagTrackerInput;
 import com.swrobotics.robot.utils.GeometryUtil;
 import edu.wpi.first.math.Matrix;
@@ -11,9 +12,6 @@ import edu.wpi.first.math.geometry.*;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.Timer;
-import edu.wpi.first.wpilibj.smartdashboard.Field2d;
-import edu.wpi.first.wpilibj.smartdashboard.FieldObject2d;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,10 +28,6 @@ public final class SwerveEstimator {
     private final TreeMap<Double, PoseUpdate> updates = new TreeMap<>();
     private final Matrix<N3, N1> q;
 
-    private final FieldObject2d robotPoseObj;
-    private final FieldObject2d visionPosesObj;
-    private final FieldObject2d tagPosesObj;
-
     public SwerveEstimator(FieldInfo field) {
         tagTracker = new TagTrackerInput(
                 field,
@@ -48,12 +42,6 @@ public final class SwerveEstimator {
         for (int i = 0; i < 3; i++) {
             q.set(i, 0, MathUtil.square(STATE_STD_DEVS[i]));
         }
-
-        Field2d debugField = new Field2d();
-        robotPoseObj = debugField.getObject("Robot");
-        visionPosesObj = debugField.getObject("Vision estimates");
-        tagPosesObj = debugField.getObject("AprilTag poses");
-        SmartDashboard.putData("Localization", debugField);
     }
 
     public Pose2d getEstimatedPose() {
@@ -76,7 +64,7 @@ public final class SwerveEstimator {
         for (Pose3d tagPose3d : tagTracker.getEnvironment().getAllPoses()) {
             tagPoses.add(tagPose3d.toPose2d());
         }
-        tagPosesObj.setPoses(tagPoses);
+        FieldView.aprilTagPoses.setPoses(tagPoses);
 
         for (TagTrackerInput.VisionUpdate visionUpdate : visionData) {
             double timestamp = visionUpdate.timestamp;
@@ -125,14 +113,14 @@ public final class SwerveEstimator {
         }
 
         // Debug field stuffs
-        robotPoseObj.setPose(latestPose);
+        FieldView.robotPose.setPose(latestPose);
         List<Pose2d> visionPoses = new ArrayList<>();
         for (PoseUpdate update : updates.values()) {
             for (TagTrackerInput.VisionUpdate visionUpdate : update.visionUpdates) {
                 visionPoses.add(visionUpdate.estPose);
             }
         }
-        visionPosesObj.setPoses(visionPoses);
+        FieldView.visionEstimates.setPoses(visionPoses);
     }
 
     private int compareStdDevs(TagTrackerInput.VisionUpdate u1, TagTrackerInput.VisionUpdate u2) {
