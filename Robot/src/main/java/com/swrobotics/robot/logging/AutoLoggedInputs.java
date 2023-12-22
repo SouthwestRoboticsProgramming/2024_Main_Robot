@@ -158,37 +158,37 @@ public abstract class AutoLoggedInputs implements LoggableInputs {
             Object val, def = entry.defVal;
             switch (entry.type) {
                 case Raw:
-                    val = table.getRaw(name, (byte[]) def);
+                    val = table.get(name, (byte[]) def);
                     break;
                 case Boolean:
-                    val = table.getBoolean(name, (Boolean) def);
+                    val = table.get(name, (Boolean) def);
                     break;
                 case Integer:
-                    val = (int) table.getInteger(name, (Integer) def);
+                    val = (int) table.get(name, (Integer) def);
                     break;
                 case Long:
-                    val = table.getInteger(name, (Long) def);
+                    val = table.get(name, (Long) def);
                     break;
                 case Double:
-                    val = table.getDouble(name, (Double) def);
+                    val = table.get(name, (Double) def);
                     break;
                 case String:
-                    val = table.getString(name, (String) def);
+                    val = table.get(name, (String) def);
                     break;
                 case BooleanArray:
-                    val = table.getBooleanArray(name, (boolean[]) def);
+                    val = table.get(name, (boolean[]) def);
                     break;
                 case IntegerArray:
-                    val = toInts(table.getIntegerArray(name, toLongs((int[]) def)));
+                    val = toInts(table.get(name, toLongs((int[]) def)));
                     break;
                 case LongArray:
-                    val = table.getIntegerArray(name, (long[]) def);
+                    val = table.get(name, (long[]) def);
                     break;
                 case DoubleArray:
-                    val = table.getDoubleArray(name, (double[]) def);
+                    val = table.get(name, (double[]) def);
                     break;
                 case StringArray:
-                    val = table.getStringArray(name, (String[]) def);
+                    val = table.get(name, (String[]) def);
                     break;
                 default:
                     return;
