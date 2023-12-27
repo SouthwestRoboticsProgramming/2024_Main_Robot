@@ -1,5 +1,7 @@
 package com.swrobotics.mathlib;
 
+import edu.wpi.first.math.geometry.Translation2d;
+
 /** Contains various mathematical utilities not provided by Java's built-in libraries. */
 public final class MathUtil {
     /** The mathematical constant tau. This is defined as exactly twice the value of pi. */
@@ -107,6 +109,23 @@ public final class MathUtil {
         double abs = Math.abs(val);
         if (abs < band) return 0;
         return Math.copySign(map(abs, band, 1, 0, 1), val);
+    }
+
+    public static Translation2d deadband2d(double x, double y, double band) {
+        return deadband2d(new Translation2d(x, y), band);
+    }
+
+    public static Translation2d deadband2d(Translation2d val, double band) {
+        double rawNorm = val.getNorm();
+        if (rawNorm == 0) {
+            return new Translation2d(0, 0);
+        }
+
+        double mag = deadband(rawNorm, band);
+        double outX = val.getX() / rawNorm * mag;
+        double outY = val.getY() / rawNorm * mag;
+
+        return new Translation2d(outX, outY);
     }
 
     // Checks if a given range is valid (i.e. max > min)

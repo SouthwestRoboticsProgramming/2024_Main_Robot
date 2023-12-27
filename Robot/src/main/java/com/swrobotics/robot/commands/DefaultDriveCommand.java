@@ -1,11 +1,11 @@
 package com.swrobotics.robot.commands;
 
-import com.swrobotics.mathlib.Angle;
-import com.swrobotics.mathlib.CWAngle;
-import com.swrobotics.mathlib.Vec2d;
+import com.swrobotics.mathlib.MathUtil;
 import com.swrobotics.robot.control.ControlBoard;
 
 import com.swrobotics.robot.subsystems.swerve.SwerveDrive;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj2.command.Command;
 
@@ -22,21 +22,18 @@ public class DefaultDriveCommand extends Command {
 
     @Override
     public void execute() {
-        Vec2d rawTranslation = input.getDriveTranslation();
+        Translation2d rawTranslation = input.getDriveTranslation();
         double rawRotation = input.getDriveRotation();
 
-//        System.out.println("Running");
-
         // Scale inputs
-        Vec2d translation = rawTranslation.mul(4.11);
-        Angle rotation =
-                CWAngle.rad(2 * Math.PI).mul(rawRotation);
+        Translation2d translation = rawTranslation.times(4.11);
+        Rotation2d rotation = new Rotation2d(MathUtil.TAU * rawRotation);
 
         drive.drive(
                 ChassisSpeeds.fromFieldRelativeSpeeds(
-                        translation.x,
-                        translation.y,
-                        rotation.ccw().rad(),
+                        translation.getX(),
+                        translation.getY(),
+                        rotation.getRadians(),
                         drive.getEstimatedPose().getRotation()));
     }
 }

@@ -3,8 +3,6 @@ package com.swrobotics.robot.control;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.path.PathConstraints;
 import com.swrobotics.lib.input.XboxController;
-import com.swrobotics.mathlib.MathUtil;
-import com.swrobotics.mathlib.Vec2d;
 import com.swrobotics.robot.RobotContainer;
 
 import com.swrobotics.robot.subsystems.swerve.pathfinding.CircleShape;
@@ -13,6 +11,7 @@ import com.swrobotics.robot.subsystems.swerve.pathfinding.Shape;
 import com.swrobotics.robot.subsystems.swerve.pathfinding.ThetaStarPathfinder;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj2.command.Command;
 
@@ -47,7 +46,8 @@ public class ControlBoard {
             Units.degreesToRadians(540), Units.degreesToRadians(720));
 
         Command pathfindingCommand = AutoBuilder.pathfindToPose(new Pose2d(7.5, 4.5, new Rotation2d()), constraints);
-        
+
+        // Passing DEADBAND here means we don't have to deadband anywhere else
         driver = new XboxController(0, DEADBAND);
         operator = new XboxController(1, DEADBAND);
 
@@ -84,24 +84,13 @@ public class ControlBoard {
 //        new Trigger(() -> driver.dpad.up.isPressed()).whileTrue(new InstantCommand());
     }
 
-    public Vec2d getDriveTranslation() {
+    public Translation2d getDriveTranslation() {
         double x = -driver.getLeftStick().y;
         double y = -driver.getLeftStick().x;
-
-        return new Vec2d(x, y).deadband(DEADBAND);
+        return new Translation2d(x, y);
     }
 
     public double getDriveRotation() {
-        return deadband(driver.rightStickX.get());
-    }
-
-    /**
-     * Pre-process inputs from joysticks
-     *
-     * @param val Joystick axis input
-     * @return Deadbanded output
-     */
-    private double deadband(double val) {
-        return MathUtil.deadband(val, DEADBAND);
+        return -driver.rightStickX.get();
     }
 }

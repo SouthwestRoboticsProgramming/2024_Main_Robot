@@ -2,22 +2,27 @@ package com.swrobotics.lib.field;
 
 import com.swrobotics.mathlib.Angle;
 import com.swrobotics.mathlib.CCWAngle;
-import com.swrobotics.mathlib.Vec2d;
 
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.DriverStation;
 
 /** Represents the information related to the layout of the game field. */
 public final class FieldInfo {
+    public static DriverStation.Alliance getAlliance() {
+        return DriverStation.getAlliance().orElse(null);
+    }
+
     /** Information for the 2023 Charged Up field */
     public static final FieldInfo CHARGED_UP_2023 =
             new FieldInfo(16.4846, 8.02, FieldSymmetry.LATERAL);
 
-    private final Vec2d size;
+    private final Translation2d size;
     private final FieldSymmetry symmetry;
 
     public FieldInfo(double width, double height, FieldSymmetry symmetry) {
-        size = new Vec2d(width, height);
+        size = new Translation2d(width, height);
         this.symmetry = symmetry;
     }
 
@@ -26,8 +31,8 @@ public final class FieldInfo {
      *
      * @return size in meters
      */
-    public Vec2d getSize() {
-        return new Vec2d(size);
+    public Translation2d getSize() {
+        return size;
     }
 
     /**
@@ -37,7 +42,7 @@ public final class FieldInfo {
      * @return width in meters
      */
     public double getWidth() {
-        return size.x;
+        return size.getX();
     }
 
     /**
@@ -47,7 +52,7 @@ public final class FieldInfo {
      * @return height in meters
      */
     public double getHeight() {
-        return size.y;
+        return size.getY();
     }
 
     /**
@@ -55,8 +60,8 @@ public final class FieldInfo {
      *
      * @return center position in meters
      */
-    public Vec2d getCenter() {
-        return new Vec2d(size).div(2);
+    public Translation2d getCenter() {
+        return size.div(2);
     }
 
     /**
@@ -84,10 +89,10 @@ public final class FieldInfo {
      *
      * @return alliance forward vector
      */
-    public Vec2d getAllianceForward() {
-        return DriverStation.getAlliance().get() == DriverStation.Alliance.Blue
-                ? new Vec2d(1, 0)
-                : new Vec2d(-1, 0);
+    public Translation2d getAllianceForward() {
+        return getAlliance() == DriverStation.Alliance.Blue
+                ? new Translation2d(1, 0)
+                : new Translation2d(-1, 0);
     }
 
     /**
@@ -95,10 +100,10 @@ public final class FieldInfo {
      *
      * @return alliance forward angle
      */
-    public Angle getAllianceForwardAngle() {
-        return DriverStation.getAlliance().get() == DriverStation.Alliance.Blue
-                ? Angle.ZERO
-                : CCWAngle.deg(180);
+    public Rotation2d getAllianceForwardAngle() {
+        return getAlliance() == DriverStation.Alliance.Blue
+                ? new Rotation2d(0)
+                : new Rotation2d(Math.PI);
     }
 
     /**
@@ -106,10 +111,8 @@ public final class FieldInfo {
      *
      * @return alliance reverse vector
      */
-    public Vec2d getAllianceReverse() {
-        return DriverStation.getAlliance().get() == DriverStation.Alliance.Blue
-                ? new Vec2d(-1, 0)
-                : new Vec2d(1, 0);
+    public Translation2d getAllianceReverse() {
+        return getAllianceForward().unaryMinus();
     }
 
     /**
@@ -117,10 +120,10 @@ public final class FieldInfo {
      *
      * @return alliance reverse angle
      */
-    public Angle getAllianceReverseAngle() {
-        return DriverStation.getAlliance().get() == DriverStation.Alliance.Blue
-                ? CCWAngle.deg(180)
-                : Angle.ZERO;
+    public Rotation2d getAllianceReverseAngle() {
+        return getAlliance() == DriverStation.Alliance.Blue
+                ? new Rotation2d(Math.PI)
+                : new Rotation2d(0);
     }
 
     @Override

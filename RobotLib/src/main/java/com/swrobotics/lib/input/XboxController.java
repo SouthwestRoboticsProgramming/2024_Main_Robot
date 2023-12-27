@@ -1,7 +1,7 @@
 package com.swrobotics.lib.input;
 
-import com.swrobotics.mathlib.Vec2d;
-
+import com.swrobotics.mathlib.MathUtil;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.GenericHID;
 
 import java.util.Arrays;
@@ -83,12 +83,12 @@ public final class XboxController extends InputSource {
         xbox.setRumble(GenericHID.RumbleType.kRightRumble, amount);
     }
 
-    public Vec2d getLeftStick() {
-        return new Vec2d(leftStickX.getRaw(), leftStickY.getRaw()).deadband(deadband);
+    public Translation2d getLeftStick() {
+        return MathUtil.deadband2d(leftStickX.getRaw(), leftStickY.getRaw(), deadband);
     }
 
-    public Vec2d getRightStick() {
-        return new Vec2d(leftStickX.getRaw(), leftStickY.getRaw()).deadband(deadband);
+    public Translation2d getRightStick() {
+        return MathUtil.deadband2d(rightStickX.getRaw(), rightStickY.getRaw(), deadband);
     }
 
     @Override
