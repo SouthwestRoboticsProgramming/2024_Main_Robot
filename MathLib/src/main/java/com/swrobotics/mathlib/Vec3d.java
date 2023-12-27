@@ -4,7 +4,12 @@ import edu.wpi.first.math.geometry.Translation3d;
 
 import java.util.Objects;
 
-/** Represents a three-dimensional vector of {@code double}s. */
+/**
+ * Represents a three-dimensional vector of {@code double}s.
+ *
+ * @deprecated Use {@link edu.wpi.first.math.geometry.Translation3d} instead.
+ */
+@Deprecated
 public final class Vec3d {
     public double x;
     public double y;

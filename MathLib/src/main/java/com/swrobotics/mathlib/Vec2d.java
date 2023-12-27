@@ -5,7 +5,12 @@ import edu.wpi.first.math.geometry.Translation2d;
 import java.util.Objects;
 import java.util.function.Function;
 
-/** Represents a two-dimensional vector of {@code double}s. */
+/**
+ * Represents a two-dimensional vector of {@code double}s.
+ *
+ * @deprecated Use {@link edu.wpi.first.math.geometry.Translation2d} instead.
+ */
+@Deprecated
 public final class Vec2d {
     public double x;
     public double y;
