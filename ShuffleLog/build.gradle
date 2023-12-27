@@ -22,7 +22,7 @@ compileJava {
 
 // ALL of these should be updated when updating WPILib version
 // They are found in https://github.com/wpilibsuite/GradleRIO/blob/main/src/main/java/edu/wpi/first/gradlerio/wpi/WPIVersionsExtension.java
-def WPILIB_VERSION = '2024.1.1-beta-3'
+def WPILIB_VERSION = '2024.1.1-beta-4'
 def JACKSON_VERSION = '2.15.2'
 def EJML_VERSION = '0.43.1'
 def QUICKBUF_VERSION = '1.3.2'

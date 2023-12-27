@@ -15,8 +15,9 @@ group 'com.swrobotics'
 version '2024'
 
 dependencies {
-    api 'edu.wpi.first.wpimath:wpimath-java:2024.1.1-beta-3'
-    api 'edu.wpi.first.wpiutil:wpiutil-java:2024.1.1-beta-3'
+    api 'edu.wpi.first.wpimath:wpimath-java:2024.1.1-beta-4'
+    api 'edu.wpi.first.wpiunits:wpiunits-java:2024.1.1-beta-4'
+    api 'edu.wpi.first.wpiutil:wpiutil-java:2024.1.1-beta-4'
     api 'org.ejml:ejml-simple:0.41'
 
     testImplementation 'junit:junit:4.13'
