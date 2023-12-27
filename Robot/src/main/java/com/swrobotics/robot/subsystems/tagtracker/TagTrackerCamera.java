@@ -1,10 +1,10 @@
 package com.swrobotics.robot.subsystems.tagtracker;
 
+import com.swrobotics.robot.subsystems.tagtracker.io.NTCameraIO;
+import com.swrobotics.robot.subsystems.tagtracker.io.TagTrackerCameraIO;
 import edu.wpi.first.math.geometry.*;
-import edu.wpi.first.networktables.DoubleArraySubscriber;
 import edu.wpi.first.networktables.NetworkTable;
-import edu.wpi.first.networktables.PubSubOption;
-import edu.wpi.first.networktables.TimestampedDoubleArray;
+import org.littletonrobotics.junction.Logger;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -47,9 +47,8 @@ public final class TagTrackerCamera {
         public final PoseEstimate poseB;
         public final int[] visibleTagIds;
 
-        public static EstimateInput decode(TimestampedDoubleArray dataEntry) {
-            double timestamp = dataEntry.timestamp / 1_000_000.0;
-            double[] data = dataEntry.value;
+        public static EstimateInput decode(long ntTimestamp, double[] data) {
+            double timestamp = ntTimestamp / 1_000_000.0;
 
             int count = (int) data[0];
             if (count == 0)
@@ -86,26 +85,39 @@ public final class TagTrackerCamera {
         }
     }
 
+    private final String name;
     private final Transform3d toRobotTransform;
-    private final DoubleArraySubscriber sub;
 
-    public TagTrackerCamera(NetworkTable table, Transform3d toRobotTransform) {
+    private final TagTrackerCameraIO io;
+    private final TagTrackerCameraIO.Inputs inputs;
+
+    public TagTrackerCamera(String name, NetworkTable table, Transform3d toRobotTransform) {
+        this.name = name;
         this.toRobotTransform = toRobotTransform;
-        sub = table.getDoubleArrayTopic("poses").subscribe(new double[] {0}, PubSubOption.sendAll(true), PubSubOption.keepDuplicates(true));
+
+        io = new NTCameraIO(table);
+        inputs = new TagTrackerCameraIO.Inputs();
     }
 
     public Transform3d getToRobotTransform() {
         return toRobotTransform;
     }
 
-    public List<EstimateInput> getInputs() {
-        TimestampedDoubleArray[] data = sub.readQueue();
-        List<EstimateInput> inputs = new ArrayList<>();
-        for (TimestampedDoubleArray arr : data) {
-            EstimateInput input = EstimateInput.decode(arr);
+    public List<EstimateInput> getEstimates() {
+        io.updateInputs(inputs);
+        Logger.processInputs("TagTracker/Camera/" + name, inputs);
+
+        List<EstimateInput> estimates = new ArrayList<>();
+
+        for (int i = 0; i < inputs.timestamps.length; i++) {
+            long timestamp = inputs.timestamps[i];
+            double[] data = inputs.framePackedData[i];
+
+            EstimateInput input = EstimateInput.decode(timestamp, data);
             if (input != null)
-                inputs.add(input);
+                estimates.add(input);
         }
-        return inputs;
+
+        return estimates;
     }
 }

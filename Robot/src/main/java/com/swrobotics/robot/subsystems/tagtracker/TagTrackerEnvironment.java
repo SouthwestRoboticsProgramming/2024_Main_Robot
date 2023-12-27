@@ -1,25 +1,30 @@
 package com.swrobotics.robot.subsystems.tagtracker;
 
+import com.swrobotics.robot.subsystems.tagtracker.io.NTEnvironmentIO;
+import com.swrobotics.robot.subsystems.tagtracker.io.TagTrackerEnvironmentIO;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Quaternion;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.networktables.DoubleArraySubscriber;
 import edu.wpi.first.networktables.DoubleArrayTopic;
+import org.littletonrobotics.junction.Logger;
 
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
 public final class TagTrackerEnvironment {
-    private final DoubleArraySubscriber sub;
+    private final TagTrackerEnvironmentIO io;
+    private final TagTrackerEnvironmentIO.Inputs inputs;
+
     private final Map<Integer, Pose3d> poses;
-    private long lastChange;
 
     public TagTrackerEnvironment(DoubleArrayTopic topic) {
-        sub = topic.subscribe(new double[0]);
+        io = new NTEnvironmentIO(topic);
+        inputs = new TagTrackerEnvironmentIO.Inputs();
+
         poses = new HashMap<>();
-        lastChange = Long.MAX_VALUE;
     }
 
     // Returns pose if tag exists, else null
@@ -32,12 +37,13 @@ public final class TagTrackerEnvironment {
     }
 
     public void update() {
-        long timestamp = sub.getLastChange();
-        if (timestamp == lastChange)
-            return;
-        lastChange = timestamp;
+        io.updateInputs(inputs);
+        Logger.processInputs("TagTracker/Environment", inputs);
 
-        double[] data = sub.get();
+        if (!inputs.dataChanged)
+            return;
+        double[] data = inputs.packedData;
+
         poses.clear();
         for (int i = 0; i < data.length; i += 8) {
             int tagId = (int) data[i];

@@ -58,6 +58,7 @@ public final class TagTrackerInput {
         for (int i = 0; i < infos.length; i++) {
             CameraInfo info = infos[i];
             cameras[i] = new TagTrackerCamera(
+                    info.name,
                     camerasTable.getSubTable(info.name),
                     GeometryUtil.toTransform(info.robotRelPose).inverse());
         }
@@ -72,7 +73,7 @@ public final class TagTrackerInput {
 
         List<VisionUpdate> updates = new ArrayList<>();
         for (TagTrackerCamera camera : cameras) {
-            for (TagTrackerCamera.EstimateInput input : camera.getInputs()) {
+            for (TagTrackerCamera.EstimateInput input : camera.getEstimates()) {
                 Pose3d cameraPose = null;
                 Pose3d robotPose3d = null;
                 if (input.poseB == null) {
