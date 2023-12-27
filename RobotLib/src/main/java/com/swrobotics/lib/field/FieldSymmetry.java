@@ -37,7 +37,7 @@ public enum FieldSymmetry {
         @Override
         protected Pose2d flipRed(Pose2d bluePose, FieldInfo field) {
             return new Pose2d(
-                    field.getSize().translation2d().minus(bluePose.getTranslation()),
+                    field.getSize().minus(bluePose.getTranslation()),
                     new Rotation2d(
                             MathUtil.wrap(
                                     bluePose.getRotation().getRadians() + Math.PI,
@@ -62,7 +62,7 @@ public enum FieldSymmetry {
      * @return pose relative to the current alliance
      */
     public Pose2d flipForAlliance(Pose2d bluePose, FieldInfo field) {
-        if (DriverStation.getAlliance().get() == DriverStation.Alliance.Blue) {
+        if (FieldInfo.getAlliance() == DriverStation.Alliance.Blue) {
             return bluePose;
         }
 

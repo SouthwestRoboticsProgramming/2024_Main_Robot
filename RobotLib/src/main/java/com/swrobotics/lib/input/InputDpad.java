@@ -1,7 +1,6 @@
 package com.swrobotics.lib.input;
 
-import com.swrobotics.mathlib.Angle;
-import com.swrobotics.mathlib.CWAngle;
+import edu.wpi.first.math.geometry.Rotation2d;
 
 import java.util.function.Supplier;
 
@@ -15,7 +14,7 @@ public final class InputDpad implements InputElement {
     public final InputAxis vertical, horizontal;
 
     private int angleDeg;
-    private Angle angle;
+    private Rotation2d angle;
 
     /**
      * Creates a new D-pad input that reads its value from a provided getter function. The getter
@@ -52,15 +51,15 @@ public final class InputDpad implements InputElement {
     /**
      * Gets the angle that the D-pad is currently pressed. Zero represents up.
      *
-     * @return angle
+     * @return angle, ccw positive
      */
-    public Angle getAngle() {
+    public Rotation2d getAngle() {
         return angle;
     }
 
     // Calculates the angle based on the POV measurement
-    private Angle calcAngle() {
-        return isPressed() ? CWAngle.deg(angleDeg) : Angle.ZERO;
+    private Rotation2d calcAngle() {
+        return isPressed() ? Rotation2d.fromDegrees(-angleDeg) : new Rotation2d(0);
     }
 
     @Override

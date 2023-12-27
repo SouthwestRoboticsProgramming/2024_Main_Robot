@@ -85,8 +85,9 @@ public class ControlBoard {
     }
 
     public Translation2d getDriveTranslation() {
-        double x = -driver.getLeftStick().y;
-        double y = -driver.getLeftStick().x;
+        Translation2d leftStick = driver.getLeftStick();
+        double x = -leftStick.getY();
+        double y = -leftStick.getX();
         return new Translation2d(x, y);
     }
 
