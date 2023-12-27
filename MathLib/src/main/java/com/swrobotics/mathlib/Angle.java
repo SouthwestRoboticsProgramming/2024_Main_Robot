@@ -5,7 +5,10 @@ import edu.wpi.first.math.geometry.Rotation2d;
 /**
  * Represents an angle measurement. All instances of this interface should be immutable (they cannot
  * change value).
+ *
+ * @deprecated Use {@link edu.wpi.first.units.Measure} instead
  */
+@Deprecated
 public interface Angle {
     /** An angle with measure zero. */
     Angle ZERO = CCWAngle.rad(0);

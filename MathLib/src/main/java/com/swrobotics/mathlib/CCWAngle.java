@@ -1,6 +1,11 @@
 package com.swrobotics.mathlib;
 
-/** Represents a counterclockwise angle. */
+/**
+ * Represents a counterclockwise angle.
+ *
+ * @deprecated Use {@link edu.wpi.first.units.Measure} instead
+ */
+@Deprecated
 public final class CCWAngle extends AbstractAngle<CCWAngle> {
     /**
      * Creates a new counterclockwise angle from a radian measurement.

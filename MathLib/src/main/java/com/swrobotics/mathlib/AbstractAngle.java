@@ -10,7 +10,10 @@ import java.util.Objects;
  * type of angle you are working with.
  *
  * @param <T> the type of the implementing class
+ *
+ * @deprecated Use {@link edu.wpi.first.units.Measure} instead
  */
+@Deprecated
 public abstract class AbstractAngle<T extends AbstractAngle<T>> implements Angle {
     private final double rad;
 
