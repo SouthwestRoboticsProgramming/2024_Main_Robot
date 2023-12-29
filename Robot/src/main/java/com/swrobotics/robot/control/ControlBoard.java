@@ -14,6 +14,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -45,19 +46,13 @@ public class ControlBoard {
             3.0, 4.0, 
             Units.degreesToRadians(540), Units.degreesToRadians(720));
 
-        Command pathfindingCommand = AutoBuilder.pathfindToPose(new Pose2d(7.5, 4.5, new Rotation2d()), constraints);
-
         // Passing DEADBAND here means we don't have to deadband anywhere else
         driver = new XboxController(0, DEADBAND);
         operator = new XboxController(1, DEADBAND);
 
         // Congigure triggers
-//        driver.start.onFalling(robot.drive::resetGyro);
-//        driver.back.onFalling(
-//                robot.drive
-//                        ::resetGyro); // Two buttons to reset gyro so the driver can't get confused
-
-//        new Trigger(() -> driver.dpad.up.isPressed()).whileTrue(new InstantCommand());
+       driver.start.onFalling(() -> robot.drive.setRotation(new Rotation2d()));
+       driver.back.onFalling(() -> robot.drive.setRotation(new Rotation2d())); // Two buttons to reset gyro so the driver can't get confused
     }
 
     public Translation2d getDriveTranslation() {

@@ -160,6 +160,10 @@ public final class SwerveDrive extends SubsystemBase {
         estimator.resetPose(newPose);
     }
 
+    public void setRotation(Rotation2d newRotation) {
+        estimator.resetPose(new Pose2d(getEstimatedPose().getTranslation(), newRotation));
+    }
+
     @AutoLogOutput(key = "Drive/Robot Rel Velocity")
     public ChassisSpeeds getRobotRelativeSpeeds() {
         return kinematics.toChassisSpeeds(getCurrentModuleStates());
