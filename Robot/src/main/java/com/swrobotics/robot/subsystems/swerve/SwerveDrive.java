@@ -3,6 +3,8 @@ package com.swrobotics.robot.subsystems.swerve;
 import com.swrobotics.messenger.client.MessengerClient;
 import com.swrobotics.robot.logging.FieldView;
 import com.swrobotics.robot.subsystems.swerve.pathfinding.ThetaStarPathfinder;
+
+import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
 import com.kauailabs.navx.frc.AHRS;
@@ -83,7 +85,7 @@ public final class SwerveDrive extends SubsystemBase {
                 new PIDConstants(8.0), new PIDConstants(4.0, 0.0), minMax, Math.hypot(HALF_SPACING, HALF_SPACING), new ReplanningConfig(), 0.020),
             this);
 
-//        Pathfinding.setPathfinder(new LocalADStar()); // TODO: Theta*
+//        Pathfinding.setPathfinder(new LocalADStar());
         Pathfinding.setPathfinder(new ThetaStarPathfinder(msg));
         PathPlannerLogging.setLogActivePathCallback(
             (activePath) -> {
@@ -98,6 +100,7 @@ public final class SwerveDrive extends SubsystemBase {
         });
     }
 
+    @AutoLogOutput(key = "Drive/Current Swerve Module States")
     public SwerveModuleState[] getCurrentModuleStates() {
         SwerveModuleState[] states = new SwerveModuleState[INFOS.length];
         for (int i = 0; i < states.length; i++) {
@@ -106,6 +109,7 @@ public final class SwerveDrive extends SubsystemBase {
         return states;
     }
 
+    @AutoLogOutput(key = "Drive/Target Swerve Module States")
     public SwerveModuleState[] getTargetModuleStates() {
         SwerveModuleState[] states = new SwerveModuleState[INFOS.length];
         for (int i = 0; i < states.length; i++) {
@@ -114,6 +118,7 @@ public final class SwerveDrive extends SubsystemBase {
         return states;
     }
 
+    @AutoLogOutput(key = "Drive/Current Swerve Module Positions")
     public SwerveModulePosition[] getCurrentModulePositions() {
         SwerveModulePosition[] positions = new SwerveModulePosition[INFOS.length];
         for (int i = 0; i < positions.length; i++) {
@@ -146,6 +151,7 @@ public final class SwerveDrive extends SubsystemBase {
         prevGyroAngle = gyroAngle;
     }
 
+    @AutoLogOutput(key = "Pose Estimate")
     public Pose2d getEstimatedPose() {
         return estimator.getEstimatedPose();
     }
@@ -154,26 +160,15 @@ public final class SwerveDrive extends SubsystemBase {
         estimator.resetPose(newPose);
     }
 
+    @AutoLogOutput(key = "Drive/Robot Rel Velocity")
     public ChassisSpeeds getRobotRelativeSpeeds() {
         return kinematics.toChassisSpeeds(getCurrentModuleStates());
     }
 
     @Override
     public void periodic() {
-        Logger.recordOutput("Pose estimate", getEstimatedPose());
         for (SwerveModule module: modules) {
             module.update();
         }
-
-        Logger.recordOutput("Drive/Current Swerve Module States", getCurrentModuleStates());
-        Logger.recordOutput("Drive/Target Swerve Module States", getTargetModuleStates());
-
     }
-
-    // private SwerveModuleState optimizeSwerveModuleState(SwerveModuleState targetState, SwerveModuleState currentState) {
-    //     Rotation2d currentAngle = currentState.angle;
-    //     Rotation2d targetAngle = targetState.angle;
-    //     Rotation2d inverseAngle = targetAngle.plus(Rotation2d.fromDegrees(180));
-
-    // }
 }

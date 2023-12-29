@@ -18,7 +18,7 @@ public class SwerveModuleIORealisticSim implements SwerveModuleIO {
     /**
      * Simulated drive motor using the accurate gearing ratios and moment of inertia
      */
-    private final FlywheelSim driveSim = new FlywheelSim(DCMotor.getFalcon500(1), 6.75, 0.025);
+    private final FlywheelSim driveSim = new FlywheelSim(DCMotor.getKrakenX60Foc(1), 8.14 /* L1 */, 0.025);
     /**
      * Simulated steer motor using the accurate gearing ratios and moment of inertia
      */
@@ -26,7 +26,7 @@ public class SwerveModuleIORealisticSim implements SwerveModuleIO {
     /**
      * PID Controller for drive motor. Will do our target drive velocity to voltage calculation
      */
-    private final PIDController driveFeedback = new PIDController(10, 0, 0);
+    private final PIDController driveFeedback = new PIDController(5, 0, 0);
     /**
      * PID Controller for steer motor. Will do our target angular position to voltage calculation
      */

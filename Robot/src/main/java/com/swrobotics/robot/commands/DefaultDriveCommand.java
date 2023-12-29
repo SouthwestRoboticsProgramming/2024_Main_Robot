@@ -26,7 +26,7 @@ public class DefaultDriveCommand extends Command {
         double rawRotation = input.getDriveRotation();
 
         // Scale inputs
-        Translation2d translation = rawTranslation.times(4.11);
+        Translation2d translation = rawTranslation.times(3.77); // FIXME: Make this a constant
         Rotation2d rotation = new Rotation2d(MathUtil.TAU * rawRotation);
 
         drive.drive(
