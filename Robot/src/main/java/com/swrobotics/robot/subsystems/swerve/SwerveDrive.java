@@ -127,10 +127,9 @@ public final class SwerveDrive extends SubsystemBase {
     public void drive(ChassisSpeeds robotRelSpeeds) {
         robotRelSpeeds = ChassisSpeeds.discretize(robotRelSpeeds, 0.020);
         SwerveModuleState[] targetStates = kinematics.getStates(robotRelSpeeds);
-        SwerveModulePosition[] positions = new SwerveModulePosition[modules.length];
+        SwerveModulePosition[] positions = getCurrentModulePositions();
         for (int i = 0; i < modules.length; i++) {
             modules[i].setTargetState(targetStates[i]);
-            positions[i] = modules[i].getCurrentPosition();
         }
 
         Rotation2d gyroAngle = gyro.getRotation2d();
@@ -138,7 +137,7 @@ public final class SwerveDrive extends SubsystemBase {
             Twist2d twist = kinematics.getTwistDelta(prevPositions, positions);
 
             // We trust the gyro more than the kinematics estimate
-            if (RobotBase.isReal())
+            if (RobotBase.isReal() && gyro.isConnected())
                 twist.dtheta = gyroAngle.getRadians() - prevGyroAngle.getRadians();
 
             estimator.update(twist);
