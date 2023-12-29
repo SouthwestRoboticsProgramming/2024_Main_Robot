@@ -51,30 +51,6 @@ public class ControlBoard {
         driver = new XboxController(0, DEADBAND);
         operator = new XboxController(1, DEADBAND);
 
-        driver.a.onFalling(pathfindingCommand);
-        driver.b.onFalling(() -> {
-            List<Shape> shapes = new ArrayList<>();
-
-            // Generate some random shapes
-            for (int i = 0; i < 5; i++) {
-                double cx = Math.random() * 16;
-                double cy = Math.random() * 8;
-
-                if (Math.random() > 0.5) {
-                    double w = Math.random() * 3;
-                    double h = Math.random() * 3;
-
-                    shapes.add(new RectangleShape(cx, cy, w, h, new Rotation2d(Math.random() * Math.PI), false));
-                } else {
-                    double rad = Math.random() * 2;
-                    shapes.add(new CircleShape(cx, cy, rad));
-                }
-            }
-
-//            Pathfinding.setDynamicObstacles(rects, robot.drive.getEstimatedPose().getTranslation());
-            ThetaStarPathfinder.getInstance().setDynamicShapes(shapes, robot.drive.getEstimatedPose().getTranslation());
-        });
-
         // Congigure triggers
 //        driver.start.onFalling(robot.drive::resetGyro);
 //        driver.back.onFalling(
