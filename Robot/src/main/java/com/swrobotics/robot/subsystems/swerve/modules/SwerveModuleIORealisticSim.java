@@ -87,9 +87,4 @@ public class SwerveModuleIORealisticSim implements SwerveModuleIO {
 
         inputs.steerAbsolutePosition = steerAbsolutePositionRad;
     }
-
-    @Override
-    public double getMaxVelocity() {
-        return 5.0;
-    }
 }

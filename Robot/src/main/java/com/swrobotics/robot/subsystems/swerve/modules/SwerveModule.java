@@ -63,9 +63,6 @@ public class SwerveModule {
     public SwerveModulePosition getCurrentPosition() {
         return new SwerveModulePosition(inputs.drivePositionMeters, new Rotation2d(inputs.steerPositionRad));
     }
-    public double getMaxVelocity() {
-        return hardwareIO.getMaxVelocity();
-    }
 
     public void update() {
         hardwareIO.updateInputs(inputs);
@@ -122,10 +119,3 @@ public class SwerveModule {
     }
     
 }
-
-
-    // TODO
-    // /** CTRE-Specific signals directly from the motor controllers and encoders */
-    // public BaseStatusSignal[] getSignals() {
-    //     return new BaseStatusSignal[0];
-    // }

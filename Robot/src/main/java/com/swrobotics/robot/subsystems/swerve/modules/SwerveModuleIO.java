@@ -2,8 +2,6 @@ package com.swrobotics.robot.subsystems.swerve.modules;
 
 import com.swrobotics.robot.logging.AutoLoggedInputs;
 
-import com.ctre.phoenix6.BaseStatusSignal;
-
 /**
  * Connects the software to the hardware and directly receives data and/or sends control data to the swerve drive module.
  */
@@ -15,18 +13,9 @@ public interface SwerveModuleIO {
      */
     public void updateInputs(SwerveModuleIOInputs swerveModuleIOInputs);
 
-    default void resetToAbsoluteAngle() {}
-
-    public double getMaxVelocity();
-
-    default BaseStatusSignal[] getCTRESignals() {
-        return new BaseStatusSignal[0];
-    }
-
     /**
      * Holds data that can be read from the corresponding swerve drive module IO implementation.
      */
-//    @AutoLog
     class SwerveModuleIOInputs extends AutoLoggedInputs {
         // Drive Inputs
         public double drivePositionRad = 0;
