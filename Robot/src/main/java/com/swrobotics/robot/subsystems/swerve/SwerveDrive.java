@@ -7,11 +7,7 @@ import com.swrobotics.robot.subsystems.swerve.pathfinding.ThetaStarPathfinder;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
-import com.ctre.phoenix6.hardware.Pigeon2;
-import com.ctre.phoenix6.mechanisms.swerve.SimSwerveDrivetrain;
-import com.ctre.phoenix6.mechanisms.swerve.SwerveDrivetrainConstants;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveModuleConstants;
-import com.ctre.phoenix6.mechanisms.swerve.SwerveModuleConstantsFactory;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveModule.DriveRequestType;
 import com.kauailabs.navx.frc.AHRS;
 import com.pathplanner.lib.auto.AutoBuilder;
@@ -31,7 +27,6 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
-import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.util.Units;
@@ -61,6 +56,7 @@ public final class SwerveDrive extends SubsystemBase {
     private final SwerveEstimator estimator;
     
     private SwerveModulePosition[] prevPositions;
+    private SwerveModulePosition[] doublePrevPositions;
     private Rotation2d prevGyroAngle;
     
     public SwerveDrive(FieldInfo fieldInfo, MessengerClient msg) {
@@ -148,20 +144,26 @@ public final class SwerveDrive extends SubsystemBase {
 
         Rotation2d gyroAngle = gyro.getRotation2d();
         if (prevPositions != null) {
+            if (doublePrevPositions != null) {
 
-            // System.out.println(getCurrentModulePositions()[0] == prevPositions[0]);
-            System.out.println(getCurrentModulePositions()[0]);
-
-            Twist2d twist = kinematics.getTwistDelta(prevPositions, positions);
-            System.out.println(Arrays.toString(positions) + " prev: " + Arrays.toString(prevPositions));
-            Logger.recordOutput("Drive/Estimated Twist", twist);
-
-            // We trust the gyro more than the kinematics estimate
-            if (RobotBase.isReal() && gyro.isConnected()) {
-                twist.dtheta = gyroAngle.getRadians() - prevGyroAngle.getRadians();
+                // System.out.println(getCurrentModulePositions()[0] == prevPositions[0]);
+    
+                Twist2d twist = kinematics.getTwistDelta(prevPositions, positions);
+                // System.out.println(positions[0] == prevPositions[0]);
+                System.out.println(Arrays.toString(positions));
+                System.out.println("\n");
+                System.out.println(Arrays.toString(prevPositions));
+                System.out.println("\n \n \n");
+                Logger.recordOutput("Drive/Estimated Twist", twist);
+    
+                // We trust the gyro more than the kinematics estimate
+                if (RobotBase.isReal() && gyro.isConnected()) {
+                    twist.dtheta = gyroAngle.getRadians() - prevGyroAngle.getRadians();
+                }
+    
+                estimator.update(twist);
             }
-
-            estimator.update(twist);
+            doublePrevPositions = prevPositions;
         }
         prevPositions = positions;
         prevGyroAngle = gyroAngle;

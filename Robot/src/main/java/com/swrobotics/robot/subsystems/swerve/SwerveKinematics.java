@@ -54,4 +54,8 @@ public final class SwerveKinematics {
     public ChassisSpeeds toChassisSpeeds(SwerveModuleState[] moduleStates) {
         return kinematics.toChassisSpeeds(moduleStates);
     }
+
+    public SwerveDriveKinematics toSwerveDriveKinematics() {
+        return kinematics;
+    }
 }

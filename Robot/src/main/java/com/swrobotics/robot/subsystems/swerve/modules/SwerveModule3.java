@@ -1,5 +1,7 @@
 package com.swrobotics.robot.subsystems.swerve.modules;
 
+import com.ctre.phoenix6.BaseStatusSignal;
+import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveModuleConstants;
 import com.ctre.phoenix6.sim.CANcoderSimState;
 import com.ctre.phoenix6.sim.ChassisReference;
@@ -18,6 +20,8 @@ public class SwerveModule3 extends com.ctre.phoenix6.mechanisms.swerve.SwerveMod
     private final DCMotorSim steerSim;
     private final DCMotorSim driveSim;
 
+    private final BaseStatusSignal[] allSignals;
+
     private SwerveModuleState targetState = new SwerveModuleState();
     private SwerveModulePosition pos = new SwerveModulePosition();
 
@@ -25,6 +29,17 @@ public class SwerveModule3 extends com.ctre.phoenix6.mechanisms.swerve.SwerveMod
         super(constants, canbusName);
 
         this.constants = constants;
+
+        var drivePosition = getDriveMotor().getPosition().clone();
+        var driveVelocity = getDriveMotor().getVelocity().clone();
+        var steerPosition = getSteerMotor().getPosition().clone();
+        var steerVelocity = getSteerMotor().getVelocity().clone();
+
+        allSignals = new BaseStatusSignal[4];
+        allSignals[0] = drivePosition;
+        allSignals[1] = driveVelocity;
+        allSignals[2] = steerPosition;
+        allSignals[3] = steerVelocity;
 
         if (RobotBase.isSimulation()) {
             steerSim = new DCMotorSim(DCMotor.getFalcon500Foc(1), constants.SteerMotorGearRatio, constants.SteerInertia);
@@ -48,6 +63,10 @@ public class SwerveModule3 extends com.ctre.phoenix6.mechanisms.swerve.SwerveMod
 
     public SwerveModuleState getTargetState() {
         return targetState;
+    }
+
+    public BaseStatusSignal[] getSignals() {
+        return allSignals;
     }
 
     @Override
