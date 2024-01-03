@@ -151,11 +151,6 @@ public final class SwerveDrive extends SubsystemBase {
     
                 Twist2d twist = kinematics.getTwistDelta(prevPositions, positions);
                 // System.out.println(positions[0] == prevPositions[0]);
-                System.out.println(Arrays.toString(positions));
-                System.out.println("\n");
-                System.out.println(Arrays.toString(prevPositions));
-                System.out.println("\n \n \n");
-                Logger.recordOutput("Drive/Estimated Twist", twist);
     
                 // We trust the gyro more than the kinematics estimate
                 if (RobotBase.isReal() && gyro.isConnected()) {

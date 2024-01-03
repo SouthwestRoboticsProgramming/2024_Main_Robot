@@ -7,9 +7,11 @@ import com.ctre.phoenix6.sim.CANcoderSimState;
 import com.ctre.phoenix6.sim.ChassisReference;
 import com.ctre.phoenix6.sim.TalonFXSimState;
 
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.system.plant.DCMotor;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.simulation.DCMotorSim;
 
@@ -19,6 +21,9 @@ public class SwerveModule3 extends com.ctre.phoenix6.mechanisms.swerve.SwerveMod
     
     private final DCMotorSim steerSim;
     private final DCMotorSim driveSim;
+
+    private final StatusSignal<Double> drivePosition, driveVelocity, steerPosition, steerVelocity;
+    private final double driveRotationsPerMeter;
 
     private final BaseStatusSignal[] allSignals;
 
@@ -30,10 +35,14 @@ public class SwerveModule3 extends com.ctre.phoenix6.mechanisms.swerve.SwerveMod
 
         this.constants = constants;
 
-        var drivePosition = getDriveMotor().getPosition().clone();
-        var driveVelocity = getDriveMotor().getVelocity().clone();
-        var steerPosition = getSteerMotor().getPosition().clone();
-        var steerVelocity = getSteerMotor().getVelocity().clone();
+        double rotationsPerWheelRotation = constants.DriveMotorGearRatio;
+        double metersPerWheelRotation = 2 * Math.PI * Units.inchesToMeters(constants.WheelRadius);
+        driveRotationsPerMeter = rotationsPerWheelRotation / metersPerWheelRotation;
+
+        drivePosition = getDriveMotor().getPosition();
+        driveVelocity = getDriveMotor().getVelocity();
+        steerPosition = getSteerMotor().getPosition();
+        steerVelocity = getSteerMotor().getVelocity();
 
         allSignals = new BaseStatusSignal[4];
         allSignals[0] = drivePosition;
@@ -78,8 +87,16 @@ public class SwerveModule3 extends com.ctre.phoenix6.mechanisms.swerve.SwerveMod
 
     @Override
     public SwerveModuleState getCurrentState() {
-        return getTargetState();
+        driveVelocity.refresh();
+        steerPosition.refresh();
+        return new SwerveModuleState(driveVelocity.getValue() / driveRotationsPerMeter, Rotation2d.fromRotations(steerPosition.getValue()));
+
     }
+
+    // @Override
+    // public SwerveModuleState getCurrentState() {
+    //     return getTargetState();
+    // }
 
     /**
      * Updates the simulated version of the module.
@@ -106,12 +123,16 @@ public class SwerveModule3 extends com.ctre.phoenix6.mechanisms.swerve.SwerveMod
         driveSimState.setSupplyVoltage(supplyVoltage);
         encoderSimState.setSupplyVoltage(supplyVoltage);
 
+        System.out.println(steerSim.getAngularVelocityRPM());
 
-        steerSimState.setRawRotorPosition(steerSim.getAngularPositionRotations() * constants.SteerMotorGearRatio);
+
+        // steerSimState.setRawRotorPosition(steerSim.getAngularPositionRotations() * constants.SteerMotorGearRatio);
+        steerSimState.setRawRotorPosition(targetState.angle.getRotations() * constants.SteerMotorGearRatio);
         steerSimState.setRotorVelocity(steerSim.getAngularVelocityRPM() / 60.0 * constants.SteerMotorGearRatio);
 
         /* CANcoders see the mechanism, so don't account for the steer gearing */
-        encoderSimState.setRawPosition(steerSim.getAngularPositionRotations());
+        // encoderSimState.setRawPosition(steerSim.getAngularPositionRotations());
+        encoderSimState.setRawPosition(targetState.angle.getRotations());
         encoderSimState.setVelocity(steerSim.getAngularVelocityRPM() / 60.0);
 
         driveSimState.setRawRotorPosition(driveSim.getAngularPositionRotations() * constants.DriveMotorGearRatio);
