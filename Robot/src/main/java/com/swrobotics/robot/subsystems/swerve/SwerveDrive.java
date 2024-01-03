@@ -80,6 +80,7 @@ public final class SwerveDrive extends SubsystemBase {
 
         prevPositions = null;
 
+
         // Configure pathing
         AutoBuilder.configureHolonomic(
             this::getEstimatedPose,
@@ -137,14 +138,14 @@ public final class SwerveDrive extends SubsystemBase {
     public void drive(ChassisSpeeds robotRelSpeeds) {
         robotRelSpeeds = ChassisSpeeds.discretize(robotRelSpeeds, 0.020);
         SwerveModuleState[] targetStates = kinematics.getStates(robotRelSpeeds);
-        SwerveModulePosition[] positions = getCurrentModulePositions();
         for (int i = 0; i < modules.length; i++) {
             modules[i].apply(targetStates[i], DriveRequestType.OpenLoopVoltage);
         }
+        SwerveModulePosition[] positions = getCurrentModulePositions();
 
         Rotation2d gyroAngle = gyro.getRotation2d();
         if (prevPositions != null) {
-            if (doublePrevPositions != null) {
+            // if (doublePrevPositions != null) {
 
                 // System.out.println(getCurrentModulePositions()[0] == prevPositions[0]);
     
@@ -162,8 +163,8 @@ public final class SwerveDrive extends SubsystemBase {
                 }
     
                 estimator.update(twist);
-            }
-            doublePrevPositions = prevPositions;
+            // }
+            // doublePrevPositions = prevPositions;
         }
         prevPositions = positions;
         prevGyroAngle = gyroAngle;
