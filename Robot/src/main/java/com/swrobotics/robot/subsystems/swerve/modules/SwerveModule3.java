@@ -76,6 +76,11 @@ public class SwerveModule3 extends com.ctre.phoenix6.mechanisms.swerve.SwerveMod
         return pos;
     }
 
+    @Override
+    public SwerveModuleState getCurrentState() {
+        return getTargetState();
+    }
+
     /**
      * Updates the simulated version of the module.
      * <p>
