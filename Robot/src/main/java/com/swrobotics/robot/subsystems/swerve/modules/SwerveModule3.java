@@ -5,32 +5,55 @@ import com.ctre.phoenix6.sim.CANcoderSimState;
 import com.ctre.phoenix6.sim.ChassisReference;
 import com.ctre.phoenix6.sim.TalonFXSimState;
 
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.system.plant.DCMotor;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.simulation.DCMotorSim;
 
 public class SwerveModule3 extends com.ctre.phoenix6.mechanisms.swerve.SwerveModule {
 
+    private final String name; // For debugging
     private final SwerveModuleConstants constants;
+    private final double driveRotationsPerMeter;
     
     private final DCMotorSim steerSim;
     private final DCMotorSim driveSim;
+    private final TalonFXSimState steerSimState;
+    private final TalonFXSimState driveSimState;
+    private final CANcoderSimState encoderSimState;
 
     private SwerveModuleState targetState = new SwerveModuleState();
 
-    public SwerveModule3(SwerveModuleConstants constants, String canbusName) {
+    public SwerveModule3(SwerveModuleConstants constants, String name, String canbusName) {
         super(constants, canbusName);
 
+        this.name = name;
         this.constants = constants;
+
+        /* Calculate the ratio of drive motor rotation to meter on ground */
+        double rotationsPerWheelRotation = constants.DriveMotorGearRatio;
+        double metersPerWheelRotation = 2 * Math.PI * Units.inchesToMeters(constants.WheelRadius);
+        driveRotationsPerMeter = rotationsPerWheelRotation / metersPerWheelRotation;
 
         if (RobotBase.isSimulation()) {
             steerSim = new DCMotorSim(DCMotor.getFalcon500Foc(1), constants.SteerMotorGearRatio, constants.SteerInertia);
             driveSim = new DCMotorSim(DCMotor.getKrakenX60Foc(1), constants.DriveMotorGearRatio, constants.DriveInertia);
+
+            driveSimState = getDriveMotor().getSimState();
+            steerSimState = getSteerMotor().getSimState();
+            encoderSimState = getCANcoder().getSimState();
+
+            steerSimState.Orientation = constants.SteerMotorInverted ? ChassisReference.Clockwise_Positive : ChassisReference.CounterClockwise_Positive;
+            driveSimState.Orientation = constants.DriveMotorInverted ? ChassisReference.Clockwise_Positive : ChassisReference.CounterClockwise_Positive;
         } else {
             steerSim = null;
             driveSim = null;
+            steerSimState = null;
+            driveSimState = null;
+            encoderSimState = null;
         }
     }
 
@@ -61,6 +84,10 @@ public class SwerveModule3 extends com.ctre.phoenix6.mechanisms.swerve.SwerveMod
         );
     }
 
+    public SwerveModuleState getCurrentState() {
+        return new SwerveModuleState(getDriveMotor().getVelocity().getValue() / driveRotationsPerMeter, Rotation2d.fromRotations(getSteerMotor().getPosition().getValue()));
+    }
+
     /**
      * Updates the simulated version of the module.
      * <p>
@@ -69,12 +96,6 @@ public class SwerveModule3 extends com.ctre.phoenix6.mechanisms.swerve.SwerveMod
      *  @param supplyVoltage How much voltage the module is recieving from the battery
      */
     public void updateSim(double dtSeconds, double supplyVoltage) {
-        TalonFXSimState steerSimState = getSteerMotor().getSimState();
-        TalonFXSimState driveSimState = getDriveMotor().getSimState();
-        CANcoderSimState encoderSimState = getCANcoder().getSimState();
-
-        steerSimState.Orientation = constants.SteerMotorInverted ? ChassisReference.Clockwise_Positive : ChassisReference.CounterClockwise_Positive;
-        driveSimState.Orientation = constants.DriveMotorInverted ? ChassisReference.Clockwise_Positive : ChassisReference.CounterClockwise_Positive;
 
         steerSim.setInputVoltage(steerSimState.getMotorVoltage());
         driveSim.setInputVoltage(driveSimState.getMotorVoltage());
@@ -86,11 +107,10 @@ public class SwerveModule3 extends com.ctre.phoenix6.mechanisms.swerve.SwerveMod
         driveSimState.setSupplyVoltage(supplyVoltage);
         encoderSimState.setSupplyVoltage(supplyVoltage);
 
-
         steerSimState.setRawRotorPosition(steerSim.getAngularPositionRotations() * constants.SteerMotorGearRatio);
         steerSimState.setRotorVelocity(steerSim.getAngularVelocityRPM() / 60.0 * constants.SteerMotorGearRatio);
 
-        /* CANcoders see the mechanism, so don't account for the steer gearing */
+        // /* CANcoders see the mechanism, so don't account for the steer gearing */
         encoderSimState.setRawPosition(steerSim.getAngularPositionRotations());
         encoderSimState.setVelocity(steerSim.getAngularVelocityRPM() / 60.0);
 

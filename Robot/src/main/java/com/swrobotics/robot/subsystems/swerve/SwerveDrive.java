@@ -31,6 +31,7 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.RobotBase;
+import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
@@ -52,7 +53,7 @@ public final class SwerveDrive extends SubsystemBase {
     private final SwerveModule3[] modules;
     private final SwerveKinematics kinematics;
     private final SwerveEstimator estimator;
-    
+
     private SwerveModulePosition[] prevPositions;
     private Rotation2d prevGyroAngle;
     
@@ -66,9 +67,9 @@ public final class SwerveDrive extends SubsystemBase {
 
             SwerveModuleConstants moduleConstants = SWERVE_MODULE_BUILDER.createModuleConstants(info.turnId(), info.driveId(), info.encoderId(), info.offset().get(), info.position().getX(), info.position().getY(), false);
             if (RobotBase.isSimulation()) {
-                moduleConstants = moduleConstants.withCANcoderOffset(0);
+                moduleConstants = moduleConstants.withCANcoderOffset(0.25);
             }
-            modules[i] = new SwerveModule3(moduleConstants, CANAllocation.CANIVORE_BUS);
+            modules[i] = new SwerveModule3(moduleConstants, info.name(), CANAllocation.CANIVORE_BUS);
             positions[i] = info.position();
         }
 
@@ -120,13 +121,18 @@ public final class SwerveDrive extends SubsystemBase {
         return states;
     }
 
-    @AutoLogOutput(key = "Drive/Current Swerve Module Positions")
-    public SwerveModulePosition[] getCurrentModulePositions() {
+    public SwerveModulePosition[] getCurrentModulePositions(boolean refresh) {
         SwerveModulePosition[] positions = new SwerveModulePosition[INFOS.length];
         for (int i = 0; i < positions.length; i++) {
-            positions[i] = modules[i].getPosition(true);
+            positions[i] = modules[i].getPosition(refresh);
         }
         return positions;
+    }
+
+    @AutoLogOutput(key = "Drive/Current Swerve Module Positions")
+    public SwerveModulePosition[] getCurrentModulePositionsForLogging() {
+        // No refresh here since it's already refreshed when we update the estimator
+        return getCurrentModulePositions(false);
     }
 
     // TODO: Better way of selecting between manual/auto input
@@ -134,10 +140,12 @@ public final class SwerveDrive extends SubsystemBase {
     public void drive(ChassisSpeeds robotRelSpeeds) {
         robotRelSpeeds = ChassisSpeeds.discretize(robotRelSpeeds, 0.020);
         SwerveModuleState[] targetStates = kinematics.getStates(robotRelSpeeds);
-        SwerveModulePosition[] positions = getCurrentModulePositions();
         for (int i = 0; i < modules.length; i++) {
             modules[i].apply(targetStates[i], DriveRequestType.OpenLoopVoltage);
         }
+
+        // Do refresh here, so we get the most up-to-date data
+        SwerveModulePosition[] positions = getCurrentModulePositions(true);
 
         Rotation2d gyroAngle = gyro.getRotation2d();
         if (prevPositions != null) {
@@ -176,7 +184,7 @@ public final class SwerveDrive extends SubsystemBase {
     @Override
     public void simulationPeriodic() {
         for (SwerveModule3 module : modules) {
-            module.updateSim(0.02, 12.0);
+            module.updateSim(0.02, RobotController.getBatteryVoltage());
         }
     }
 }
