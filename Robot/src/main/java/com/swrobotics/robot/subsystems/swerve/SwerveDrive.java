@@ -70,7 +70,7 @@ public final class SwerveDrive extends SubsystemBase {
 
             SwerveModuleConstants moduleConstants = SWERVE_MODULE_BUILDER.createModuleConstants(info.turnId(), info.driveId(), info.encoderId(), info.offset().get(), info.position().getX(), info.position().getY(), false);
             if (RobotBase.isSimulation()) {
-                moduleConstants = moduleConstants.withCANcoderOffset(0);
+                moduleConstants = moduleConstants.withCANcoderOffset(0.25);
             }
             modules[i] = new SwerveModule3(moduleConstants, CANAllocation.CANIVORE_BUS);
             positions[i] = info.position();
