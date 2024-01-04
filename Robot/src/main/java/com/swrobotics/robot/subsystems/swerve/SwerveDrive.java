@@ -21,12 +21,15 @@ import com.swrobotics.robot.NTData;
 import com.swrobotics.robot.config.CANAllocation;
 import com.swrobotics.robot.subsystems.swerve.modules.SwerveModule;
 import com.swrobotics.robot.subsystems.swerve.modules.SwerveModule3;
+import com.swrobotics.robot.subsystems.swerve.modules.SwerveModule4;
 
+import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.util.Units;
@@ -52,18 +55,18 @@ public final class SwerveDrive extends SubsystemBase {
 
     
     private final AHRS gyro;
-    private final SwerveModule3[] modules;
+    private final SwerveModule4[] modules;
     private final SwerveKinematics kinematics;
     private final SwerveEstimator estimator;
+    private final SwerveDriveOdometry odometry;
     
     private SwerveModulePosition[] prevPositions;
-    private SwerveModulePosition[] doublePrevPositions;
     private Rotation2d prevGyroAngle;
     
     public SwerveDrive(FieldInfo fieldInfo, MessengerClient msg) {
         gyro = new AHRS(SPI.Port.kMXP);
 
-        modules = new SwerveModule3[INFOS.length];
+        modules = new SwerveModule4[INFOS.length];
         Translation2d[] positions = new Translation2d[INFOS.length];
         for (int i = 0; i < modules.length; i++) {
             SwerveModule.Info info = INFOS[i];
@@ -72,12 +75,13 @@ public final class SwerveDrive extends SubsystemBase {
             if (RobotBase.isSimulation()) {
                 moduleConstants = moduleConstants.withCANcoderOffset(0.25);
             }
-            modules[i] = new SwerveModule3(moduleConstants, CANAllocation.CANIVORE_BUS);
+            modules[i] = new SwerveModule4(moduleConstants, info.name(), CANAllocation.CANIVORE_BUS);
             positions[i] = info.position();
         }
 
         this.kinematics = new SwerveKinematics(positions, MAX_LINEAR_SPEED);
         this.estimator = new SwerveEstimator(fieldInfo);
+        odometry = new SwerveDriveOdometry(kinematics.toSwerveDriveKinematics(), new Rotation2d(), getCurrentModulePositions());
 
         prevPositions = null;
 
@@ -129,7 +133,7 @@ public final class SwerveDrive extends SubsystemBase {
     public SwerveModulePosition[] getCurrentModulePositions() {
         SwerveModulePosition[] positions = new SwerveModulePosition[INFOS.length];
         for (int i = 0; i < positions.length; i++) {
-            positions[i] = modules[i].getPosition(true);
+            positions[i] = modules[i].getCurrentPosition();
         }
         return positions;
     }
@@ -139,36 +143,23 @@ public final class SwerveDrive extends SubsystemBase {
     public void drive(ChassisSpeeds robotRelSpeeds) {
         robotRelSpeeds = ChassisSpeeds.discretize(robotRelSpeeds, 0.020);
         SwerveModuleState[] targetStates = kinematics.getStates(robotRelSpeeds);
-        for (int i = 0; i < modules.length; i++) {
-            modules[i].apply(targetStates[i], DriveRequestType.OpenLoopVoltage);
-        }
         SwerveModulePosition[] positions = getCurrentModulePositions();
+        for (int i = 0; i < modules.length; i++) {
+            modules[i].setTargetState(targetStates[i], DriveRequestType.OpenLoopVoltage);
+        }
 
         Rotation2d gyroAngle = gyro.getRotation2d();
-        if (prevPositions != null) {
-            // if (doublePrevPositions != null) {
-
-                // System.out.println(getCurrentModulePositions()[0] == prevPositions[0]);
-    
-                Twist2d twist = kinematics.getTwistDelta(prevPositions, positions);
-                // System.out.println(positions[0] == prevPositions[0]);
-    
-                // We trust the gyro more than the kinematics estimate
-                if (RobotBase.isReal() && gyro.isConnected()) {
-                    twist.dtheta = gyroAngle.getRadians() - prevGyroAngle.getRadians();
-                }
-    
-                estimator.update(twist);
-            // }
-            // doublePrevPositions = prevPositions;
-        }
-        prevPositions = positions;
-        prevGyroAngle = gyroAngle;
+        
     }
 
     @AutoLogOutput(key = "Pose Estimate")
     public Pose2d getEstimatedPose() {
         return estimator.getEstimatedPose();
+    }
+
+    @AutoLogOutput(key = "Odometry")
+    public Pose2d getOdometry() {
+        return odometry.getPoseMeters();
     }
 
     public void setPose(Pose2d newPose) {
@@ -184,11 +175,40 @@ public final class SwerveDrive extends SubsystemBase {
         return kinematics.toChassisSpeeds(getCurrentModuleStates());
     }
 
+    @Override
+    public void periodic() {
+        var positions = getCurrentModulePositions();
+        if (prevPositions != null) {
+            // if (doublePrevPositions != null) {
+
+                // System.out.println(getCurrentModulePositions()[0] == prevPositions[0]);
+    
+                System.out.println(prevPositions[0] == positions[0]);
+                Twist2d twist = kinematics.getTwistDelta(prevPositions, positions);
+                // System.out.println(positions[0] == prevPositions[0]);
+    
+                // We trust the gyro more than the kinematics estimate
+                // if (RobotBase.isReal() && gyro.isConnected()) {
+                //     twist.dtheta = gyroAngle.getRadians() - prevGyroAngle.getRadians();
+                // }
+
+                System.out.println(getCurrentModulePositions()[0]);
+    
+                estimator.update(twist);
+                odometry.update(new Rotation2d(), positions);
+            // }
+            // doublePrevPositions = prevPositions;
+        }
+        prevPositions = positions.clone();
+        // prevPositions = new SwerveModulePosition[] {new SwerveModulePosition(), new SwerveModulePosition(), new SwerveModulePosition(), new SwerveModulePosition()};
+        // prevGyroAngle = gyroAngle;
+    }
+
 
     @Override
     public void simulationPeriodic() {
-        for (SwerveModule3 module : modules) {
-            module.updateSim(0.02, RobotController.getBatteryVoltage());
-        }
+        // for (SwerveModule4 module : modules) {
+        //     // module.updateSim(0.02, RobotController.getBatteryVoltage());
+        // }
     }
 }

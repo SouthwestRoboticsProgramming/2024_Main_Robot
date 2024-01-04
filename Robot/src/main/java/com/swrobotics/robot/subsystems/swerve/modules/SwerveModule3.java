@@ -1,5 +1,6 @@
 package com.swrobotics.robot.subsystems.swerve.modules;
 
+import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveModuleConstants;
 import com.ctre.phoenix6.sim.CANcoderSimState;
 import com.ctre.phoenix6.sim.ChassisReference;
@@ -69,13 +70,6 @@ public class SwerveModule3 extends com.ctre.phoenix6.mechanisms.swerve.SwerveMod
 
     public SwerveModuleState getTargetState() {
         return targetState;
-    }
-
-    @Override
-    public SwerveModulePosition getPosition(boolean refresh) {
-        var state = getCurrentState();
-        pos = new SwerveModulePosition(pos.distanceMeters + state.speedMetersPerSecond * 0.02, state.angle);
-        return pos;
     }
 
     @Override
