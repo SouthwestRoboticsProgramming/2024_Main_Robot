@@ -1,11 +1,14 @@
-package com.swrobotics.robot.subsystems.swerve.modules;
+package com.swrobotics.robot.subsystems.swerve;
 
 import com.ctre.phoenix6.mechanisms.swerve.SwerveModuleConstants;
 import com.ctre.phoenix6.sim.CANcoderSimState;
 import com.ctre.phoenix6.sim.ChassisReference;
 import com.ctre.phoenix6.sim.TalonFXSimState;
 
+import com.swrobotics.lib.net.NTEntry;
+import com.swrobotics.robot.config.CANAllocation;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.system.plant.DCMotor;
@@ -13,7 +16,7 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.simulation.DCMotorSim;
 
-public class SwerveModule3 extends com.ctre.phoenix6.mechanisms.swerve.SwerveModule {
+public class SwerveModule extends com.ctre.phoenix6.mechanisms.swerve.SwerveModule {
 
     private final String name; // For debugging
     private final SwerveModuleConstants constants;
@@ -27,7 +30,7 @@ public class SwerveModule3 extends com.ctre.phoenix6.mechanisms.swerve.SwerveMod
 
     private SwerveModuleState targetState = new SwerveModuleState();
 
-    public SwerveModule3(SwerveModuleConstants constants, String name, String canbusName) {
+    public SwerveModule(SwerveModuleConstants constants, String name, String canbusName) {
         super(constants, canbusName);
 
         this.name = name;
@@ -116,5 +119,17 @@ public class SwerveModule3 extends com.ctre.phoenix6.mechanisms.swerve.SwerveMod
 
         driveSimState.setRawRotorPosition(driveSim.getAngularPositionRotations() * constants.DriveMotorGearRatio);
         driveSimState.setRotorVelocity(driveSim.getAngularVelocityRPM() / 60.0 * constants.DriveMotorGearRatio);
+    }
+
+    public record Info(
+            int driveId, int turnId, int encoderId,
+            Translation2d position,
+            NTEntry<Double> offset,
+            String name) {
+        public Info(CANAllocation.SwerveIDs ids, double x, double y, NTEntry<Double> offset, String name) {
+            this(ids.drive, ids.turn, ids.encoder,
+                    new Translation2d(x, y),
+                    offset, name);
+        }
     }
 }

@@ -19,8 +19,6 @@ import com.pathplanner.lib.util.ReplanningConfig;
 import com.swrobotics.lib.field.FieldInfo;
 import com.swrobotics.robot.NTData;
 import com.swrobotics.robot.config.CANAllocation;
-import com.swrobotics.robot.subsystems.swerve.modules.SwerveModule;
-import com.swrobotics.robot.subsystems.swerve.modules.SwerveModule3;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -50,7 +48,7 @@ public final class SwerveDrive extends SubsystemBase {
 
     
     private final AHRS gyro;
-    private final SwerveModule3[] modules;
+    private final SwerveModule[] modules;
     private final SwerveKinematics kinematics;
     private final SwerveEstimator estimator;
 
@@ -60,7 +58,7 @@ public final class SwerveDrive extends SubsystemBase {
     public SwerveDrive(FieldInfo fieldInfo, MessengerClient msg) {
         gyro = new AHRS(SPI.Port.kMXP);
 
-        modules = new SwerveModule3[INFOS.length];
+        modules = new SwerveModule[INFOS.length];
         Translation2d[] positions = new Translation2d[INFOS.length];
         for (int i = 0; i < modules.length; i++) {
             SwerveModule.Info info = INFOS[i];
@@ -69,7 +67,7 @@ public final class SwerveDrive extends SubsystemBase {
             if (RobotBase.isSimulation()) {
                 moduleConstants = moduleConstants.withCANcoderOffset(0.25);
             }
-            modules[i] = new SwerveModule3(moduleConstants, info.name(), CANAllocation.CANIVORE_BUS);
+            modules[i] = new SwerveModule(moduleConstants, info.name(), CANAllocation.CANIVORE_BUS);
             positions[i] = info.position();
         }
 
@@ -183,7 +181,7 @@ public final class SwerveDrive extends SubsystemBase {
 
     @Override
     public void simulationPeriodic() {
-        for (SwerveModule3 module : modules) {
+        for (SwerveModule module : modules) {
             module.updateSim(0.02, RobotController.getBatteryVoltage());
         }
     }
