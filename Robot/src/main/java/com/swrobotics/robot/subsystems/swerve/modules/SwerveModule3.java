@@ -19,7 +19,6 @@ public class SwerveModule3 extends com.ctre.phoenix6.mechanisms.swerve.SwerveMod
     private final DCMotorSim driveSim;
 
     private SwerveModuleState targetState = new SwerveModuleState();
-    private SwerveModulePosition pos = new SwerveModulePosition();
 
     public SwerveModule3(SwerveModuleConstants constants, String canbusName) {
         super(constants, canbusName);
@@ -52,9 +51,14 @@ public class SwerveModule3 extends com.ctre.phoenix6.mechanisms.swerve.SwerveMod
 
     @Override
     public SwerveModulePosition getPosition(boolean refresh) {
-        var state = getCurrentState();
-        pos = new SwerveModulePosition(pos.distanceMeters + state.speedMetersPerSecond * 0.02, state.angle);
-        return pos;
+        SwerveModulePosition pos = super.getPosition(refresh);
+
+        // Make a copy since super.getPosition() always returns the same
+        // instance of SwerveModulePosition
+        return new SwerveModulePosition(
+                pos.distanceMeters,
+                pos.angle
+        );
     }
 
     /**
