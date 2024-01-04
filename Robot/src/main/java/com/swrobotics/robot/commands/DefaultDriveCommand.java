@@ -1,5 +1,6 @@
 package com.swrobotics.robot.commands;
 
+import com.ctre.phoenix6.mechanisms.swerve.SwerveModule;
 import com.swrobotics.mathlib.MathUtil;
 import com.swrobotics.robot.control.ControlBoard;
 
@@ -29,11 +30,12 @@ public class DefaultDriveCommand extends Command {
         Translation2d translation = rawTranslation.times(3.77); // FIXME: Make this a constant
         Rotation2d rotation = new Rotation2d(MathUtil.TAU * rawRotation);
 
-        drive.drive(
+        drive.drive(new SwerveDrive.DriveRequest(
                 ChassisSpeeds.fromFieldRelativeSpeeds(
                         translation.getX(),
                         translation.getY(),
                         rotation.getRadians(),
-                        drive.getEstimatedPose().getRotation()));
+                        drive.getEstimatedPose().getRotation()),
+                SwerveModule.DriveRequestType.OpenLoopVoltage));
     }
 }

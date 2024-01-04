@@ -8,6 +8,7 @@ import com.ctre.phoenix6.mechanisms.swerve.SwerveModuleConstantsFactory;
 
 public class SwerveConstants {
     // Both sets of gains need to be tuned to your individual robot.
+    // TODO: tune them to the robot
 
     // The steer motor uses any SwerveModule.SteerRequestType control request with the
     // output type specified by SwerveModuleConstants.SteerMotorClosedLoopOutput
@@ -29,10 +30,12 @@ public class SwerveConstants {
 
     // The stator current at which the wheels start to slip;
     // This needs to be tuned to your individual robot
+    // TODO: tune to the robot
     private static final double slipCurrentA = 300.0;
 
     // Theoretical free speed (m/s) at 12v applied output;
     // This needs to be tuned to your individual robot
+    // TODO: tune to the robot
     private static final double speedAt12VoltsMps = 4.0;
 
     // Every 1 rotation of the azimuth results in kCoupleRatio drive motor turns;
