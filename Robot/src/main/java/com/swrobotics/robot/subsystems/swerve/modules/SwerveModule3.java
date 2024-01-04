@@ -1,7 +1,5 @@
 package com.swrobotics.robot.subsystems.swerve.modules;
 
-import com.ctre.phoenix6.BaseStatusSignal;
-import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveModuleConstants;
 import com.ctre.phoenix6.sim.CANcoderSimState;
 import com.ctre.phoenix6.sim.ChassisReference;
@@ -21,11 +19,9 @@ public class SwerveModule3 extends com.ctre.phoenix6.mechanisms.swerve.SwerveMod
     
     private final DCMotorSim steerSim;
     private final DCMotorSim driveSim;
-
-    private final StatusSignal<Double> drivePosition, driveVelocity, steerPosition, steerVelocity;
-    private final double driveRotationsPerMeter;
-
-    private final BaseStatusSignal[] allSignals;
+    private final TalonFXSimState steerSimState;
+    private final TalonFXSimState driveSimState;
+    private final CANcoderSimState encoderSimState;
 
     private SwerveModuleState targetState = new SwerveModuleState();
     private SwerveModulePosition pos = new SwerveModulePosition();
@@ -37,25 +33,22 @@ public class SwerveModule3 extends com.ctre.phoenix6.mechanisms.swerve.SwerveMod
 
         double rotationsPerWheelRotation = constants.DriveMotorGearRatio;
         double metersPerWheelRotation = 2 * Math.PI * Units.inchesToMeters(constants.WheelRadius);
-        driveRotationsPerMeter = rotationsPerWheelRotation / metersPerWheelRotation;
-
-        drivePosition = getDriveMotor().getPosition();
-        driveVelocity = getDriveMotor().getVelocity();
-        steerPosition = getSteerMotor().getPosition();
-        steerVelocity = getSteerMotor().getVelocity();
-
-        allSignals = new BaseStatusSignal[4];
-        allSignals[0] = drivePosition;
-        allSignals[1] = driveVelocity;
-        allSignals[2] = steerPosition;
-        allSignals[3] = steerVelocity;
-
         if (RobotBase.isSimulation()) {
             steerSim = new DCMotorSim(DCMotor.getFalcon500Foc(1), constants.SteerMotorGearRatio, constants.SteerInertia);
             driveSim = new DCMotorSim(DCMotor.getKrakenX60Foc(1), constants.DriveMotorGearRatio, constants.DriveInertia);
+
+            driveSimState = getDriveMotor().getSimState();
+            steerSimState = getSteerMotor().getSimState();
+            encoderSimState = getCANcoder().getSimState();
+
+            steerSimState.Orientation = constants.SteerMotorInverted ? ChassisReference.Clockwise_Positive : ChassisReference.CounterClockwise_Positive;
+            driveSimState.Orientation = constants.DriveMotorInverted ? ChassisReference.Clockwise_Positive : ChassisReference.CounterClockwise_Positive;
         } else {
             steerSim = null;
             driveSim = null;
+            steerSimState = null;
+            driveSimState = null;
+            encoderSimState = null;
         }
     }
 
@@ -74,10 +67,6 @@ public class SwerveModule3 extends com.ctre.phoenix6.mechanisms.swerve.SwerveMod
         return targetState;
     }
 
-    public BaseStatusSignal[] getSignals() {
-        return allSignals;
-    }
-
     @Override
     public SwerveModulePosition getPosition(boolean refresh) {
         var state = getCurrentState();
@@ -87,16 +76,16 @@ public class SwerveModule3 extends com.ctre.phoenix6.mechanisms.swerve.SwerveMod
 
     @Override
     public SwerveModuleState getCurrentState() {
-        driveVelocity.refresh();
-        steerPosition.refresh();
-        return new SwerveModuleState(driveVelocity.getValue() / driveRotationsPerMeter, Rotation2d.fromRotations(steerPosition.getValue()));
+        return new SwerveModuleState(getDriveMotor().getVelocity().getValue() / 1, Rotation2d.fromRotations(getSteerMotor().getPosition().getValue()));
+        // return new SwerveModuleState(getDriveMotor().getClosedLoopReference().refresh().getValue(), Rotation2d.fromRotations(getSteerMotor().getClosedLoopReference().refresh().getValue()));
 
     }
 
     // @Override
     // public SwerveModuleState getCurrentState() {
-    //     return getTargetState();
+    //     return super.getCurrentState();
     // }
+
 
     /**
      * Updates the simulated version of the module.
@@ -106,12 +95,6 @@ public class SwerveModule3 extends com.ctre.phoenix6.mechanisms.swerve.SwerveMod
      *  @param supplyVoltage How much voltage the module is recieving from the battery
      */
     public void updateSim(double dtSeconds, double supplyVoltage) {
-        TalonFXSimState steerSimState = getSteerMotor().getSimState();
-        TalonFXSimState driveSimState = getDriveMotor().getSimState();
-        CANcoderSimState encoderSimState = getCANcoder().getSimState();
-
-        steerSimState.Orientation = constants.SteerMotorInverted ? ChassisReference.Clockwise_Positive : ChassisReference.CounterClockwise_Positive;
-        driveSimState.Orientation = constants.DriveMotorInverted ? ChassisReference.Clockwise_Positive : ChassisReference.CounterClockwise_Positive;
 
         steerSim.setInputVoltage(steerSimState.getMotorVoltage());
         driveSim.setInputVoltage(driveSimState.getMotorVoltage());
@@ -123,19 +106,27 @@ public class SwerveModule3 extends com.ctre.phoenix6.mechanisms.swerve.SwerveMod
         driveSimState.setSupplyVoltage(supplyVoltage);
         encoderSimState.setSupplyVoltage(supplyVoltage);
 
-        System.out.println(steerSim.getAngularVelocityRPM());
-
-
         // steerSimState.setRawRotorPosition(steerSim.getAngularPositionRotations() * constants.SteerMotorGearRatio);
-        steerSimState.setRawRotorPosition(targetState.angle.getRotations() * constants.SteerMotorGearRatio);
-        steerSimState.setRotorVelocity(steerSim.getAngularVelocityRPM() / 60.0 * constants.SteerMotorGearRatio);
+        // // steerSimState.setRawRotorPosition(getSteerMotor().getClosedLoopReference().getValue() * constants.SteerMotorGearRatio);
+        // steerSimState.setRawRotorPosition(targetState.angle.getRotations() * constants.SteerMotorGearRatio - 0.5);
+        // steerSimState.setRotorVelocity(steerSim.getAngularVelocityRPM() / 60.0 * constants.SteerMotorGearRatio);
 
-        /* CANcoders see the mechanism, so don't account for the steer gearing */
+        // /* CANcoders see the mechanism, so don't account for the steer gearing */
         // encoderSimState.setRawPosition(steerSim.getAngularPositionRotations());
-        encoderSimState.setRawPosition(targetState.angle.getRotations());
-        encoderSimState.setVelocity(steerSim.getAngularVelocityRPM() / 60.0);
+        // // encoderSimState.setRawPosition(getSteerMotor().getClosedLoopReference().getValue());
+        // encoderSimState.setRawPosition(targetState.angle.getRotations()-0.5);
+        // encoderSimState.setVelocity(steerSim.getAngularVelocityRPM() / 60.0);
 
-        driveSimState.setRawRotorPosition(driveSim.getAngularPositionRotations() * constants.DriveMotorGearRatio);
-        driveSimState.setRotorVelocity(driveSim.getAngularVelocityRPM() / 60.0 * constants.DriveMotorGearRatio);
+        // driveSimState.setRawRotorPosition(driveSim.getAngularPositionRotations() * constants.DriveMotorGearRatio);
+        // // driveSimState.setRotorVelocity(getDriveMotor().getClosedLoopReference().getValue() * constants.DriveMotorGearRatio);
+        // driveSimState.setRotorVelocity(driveSim.getAngularVelocityRPM() / 60.0 * constants.DriveMotorGearRatio);
+
+        driveSimState.setRotorVelocity(targetState.speedMetersPerSecond / 60.0 * constants.DriveMotorGearRatio);
+        steerSimState.setRawRotorPosition(targetState.angle.getRotations() * constants.SteerMotorGearRatio);
+        encoderSimState.setRawPosition(targetState.angle.getRotations());
+
+        if (constants.CANcoderId == 1) {
+            System.out.println(getDriveMotor().getVelocity().getValue());
+        }
     }
 }

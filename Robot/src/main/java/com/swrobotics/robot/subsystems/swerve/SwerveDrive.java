@@ -31,6 +31,7 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.RobotBase;
+import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
@@ -183,10 +184,11 @@ public final class SwerveDrive extends SubsystemBase {
         return kinematics.toChassisSpeeds(getCurrentModuleStates());
     }
 
+
     @Override
     public void simulationPeriodic() {
         for (SwerveModule3 module : modules) {
-            module.updateSim(0.02, 12.0);
+            module.updateSim(0.02, RobotController.getBatteryVoltage());
         }
     }
 }
