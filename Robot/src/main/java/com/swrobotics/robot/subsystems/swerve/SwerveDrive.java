@@ -7,6 +7,9 @@ import com.swrobotics.robot.subsystems.swerve.pathfinding.ThetaStarPathfinder;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
+import com.ctre.phoenix6.mechanisms.swerve.SwerveModuleConstants;
+import com.ctre.phoenix6.mechanisms.swerve.SwerveModule.DriveRequestType;
+import com.ctre.phoenix6.mechanisms.swerve.SwerveModule.SteerRequestType;
 import com.kauailabs.navx.frc.AHRS;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.pathfinding.Pathfinding;
@@ -17,9 +20,6 @@ import com.pathplanner.lib.util.ReplanningConfig;
 import com.swrobotics.lib.field.FieldInfo;
 import com.swrobotics.robot.NTData;
 import com.swrobotics.robot.config.CANAllocation;
-import com.swrobotics.robot.subsystems.swerve.modules.SwerveModule;
-import com.swrobotics.robot.subsystems.swerve.modules.SwerveModuleIORealisticSim;
-import com.swrobotics.robot.subsystems.swerve.modules.SwerveModuleIOTalonFX;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -30,10 +30,23 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.RobotBase;
+import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
+import static com.swrobotics.robot.subsystems.swerve.SwerveConstants.SWERVE_MODULE_BUILDER;
+
 public final class SwerveDrive extends SubsystemBase {
+    public static record DriveRequest(
+            ChassisSpeeds robotRelSpeeds,
+            DriveRequestType driveRequestType,
+            SteerRequestType steerRequestType
+    ) {
+        public DriveRequest(ChassisSpeeds robotRelSpeeds, DriveRequestType driveRequestType) {
+            this(robotRelSpeeds, driveRequestType, SteerRequestType.MotionMagic);
+        }
+    }
+
     private static final double HALF_SPACING = Units.inchesToMeters(20); // FIXME
     private static final SwerveModule.Info[] INFOS = {
             new SwerveModule.Info(CANAllocation.SWERVE_FL, HALF_SPACING, HALF_SPACING, NTData.FL_OFFSET, "Front Left"),
@@ -42,6 +55,9 @@ public final class SwerveDrive extends SubsystemBase {
             new SwerveModule.Info(CANAllocation.SWERVE_BR, -HALF_SPACING, -HALF_SPACING, NTData.BR_OFFSET, "Back Right")
     };
 
+    private static final double MAX_LINEAR_SPEED = 4.11; // FIXME: Different with Kraken
+
+    
     private final AHRS gyro;
     private final SwerveModule[] modules;
     private final SwerveKinematics kinematics;
@@ -50,6 +66,8 @@ public final class SwerveDrive extends SubsystemBase {
     private SwerveModulePosition[] prevPositions;
     private Rotation2d prevGyroAngle;
 
+    private DriveRequest currentRequest;
+    
     public SwerveDrive(FieldInfo fieldInfo, MessengerClient msg) {
         gyro = new AHRS(SPI.Port.kMXP);
 
@@ -57,33 +75,31 @@ public final class SwerveDrive extends SubsystemBase {
         Translation2d[] positions = new Translation2d[INFOS.length];
         for (int i = 0; i < modules.length; i++) {
             SwerveModule.Info info = INFOS[i];
+
+            SwerveModuleConstants moduleConstants = SWERVE_MODULE_BUILDER.createModuleConstants(info.turnId(), info.driveId(), info.encoderId(), info.offset().get(), info.position().getX(), info.position().getY(), false);
             if (RobotBase.isSimulation()) {
-                modules[i] = new SwerveModule(new SwerveModuleIORealisticSim(), INFOS[i]);
-            } else {
-                modules[i] = new SwerveModule(new SwerveModuleIOTalonFX(INFOS[i], CANAllocation.CANIVORE_BUS), INFOS[i]);
+                moduleConstants = moduleConstants.withCANcoderOffset(0.25);
             }
+            modules[i] = new SwerveModule(moduleConstants, info.name(), CANAllocation.CANIVORE_BUS);
             positions[i] = info.position();
         }
 
-        double minMax = Double.POSITIVE_INFINITY;
-        for (SwerveModule module : modules) {
-            minMax = Math.min(module.getMaxVelocity(), minMax);
-        }
-
-        this.kinematics = new SwerveKinematics(positions, minMax);
+        this.kinematics = new SwerveKinematics(positions, MAX_LINEAR_SPEED);
         this.estimator = new SwerveEstimator(fieldInfo);
 
         prevPositions = null;
+        currentRequest = null;
 
         // Configure pathing
         AutoBuilder.configureHolonomic(
-            this::getEstimatedPose,
-            this::setPose,
-            this::getRobotRelativeSpeeds,
-            this::drive,
-            new HolonomicPathFollowerConfig(
-                new PIDConstants(8.0), new PIDConstants(4.0, 0.0), minMax, Math.hypot(HALF_SPACING, HALF_SPACING), new ReplanningConfig(), 0.020),
-            this);
+                this::getEstimatedPose,
+                this::setPose,
+                this::getRobotRelativeSpeeds,
+                (speeds) -> // TODO: Switch to velocity control once that is tuned
+                        drive(new DriveRequest(speeds, DriveRequestType.OpenLoopVoltage)),
+                new HolonomicPathFollowerConfig(
+                        new PIDConstants(8.0), new PIDConstants(4.0, 0.0), MAX_LINEAR_SPEED, Math.hypot(HALF_SPACING, HALF_SPACING), new ReplanningConfig(), 0.020),
+                this);
 
 //        Pathfinding.setPathfinder(new LocalADStar());
         Pathfinding.setPathfinder(new ThetaStarPathfinder(msg));
@@ -118,37 +134,61 @@ public final class SwerveDrive extends SubsystemBase {
         return states;
     }
 
-    @AutoLogOutput(key = "Drive/Current Swerve Module Positions")
-    public SwerveModulePosition[] getCurrentModulePositions() {
+    public SwerveModulePosition[] getCurrentModulePositions(boolean refresh) {
         SwerveModulePosition[] positions = new SwerveModulePosition[INFOS.length];
         for (int i = 0; i < positions.length; i++) {
-            positions[i] = modules[i].getCurrentPosition();
+            positions[i] = modules[i].getPosition(refresh);
         }
         return positions;
     }
 
-    // TODO: Better way of selecting between manual/auto input
-    // TODO: Split some of this into periodic(), since drive is not guaranteed to be called every time
-    public void drive(ChassisSpeeds robotRelSpeeds) {
-        robotRelSpeeds = ChassisSpeeds.discretize(robotRelSpeeds, 0.020);
-        SwerveModuleState[] targetStates = kinematics.getStates(robotRelSpeeds);
-        SwerveModulePosition[] positions = getCurrentModulePositions();
-        for (int i = 0; i < modules.length; i++) {
-            modules[i].setTargetState(targetStates[i]);
+    @AutoLogOutput(key = "Drive/Current Swerve Module Positions")
+    public SwerveModulePosition[] getCurrentModulePositionsForLogging() {
+        // No refresh here since it's already refreshed when we update the estimator
+        return getCurrentModulePositions(false);
+    }
+
+    public void drive(DriveRequest request) {
+        currentRequest = request;
+    }
+
+    @Override
+    public void periodic() {
+        // Apply the drive request
+        if (currentRequest != null) {
+            ChassisSpeeds robotRelSpeeds = ChassisSpeeds.discretize(currentRequest.robotRelSpeeds, 0.020);
+            SwerveModuleState[] targetStates = kinematics.getStates(robotRelSpeeds);
+            for (int i = 0; i < modules.length; i++) {
+                modules[i].apply(targetStates[i], currentRequest.driveRequestType, currentRequest.steerRequestType);
+            }
+
+            currentRequest = null;
         }
 
+        // Update estimator
+        // Do refresh here, so we get the most up-to-date data
+        SwerveModulePosition[] positions = getCurrentModulePositions(true);
         Rotation2d gyroAngle = gyro.getRotation2d();
         if (prevPositions != null) {
             Twist2d twist = kinematics.getTwistDelta(prevPositions, positions);
+            Logger.recordOutput("Drive/Estimated Twist", twist);
 
             // We trust the gyro more than the kinematics estimate
-            if (RobotBase.isReal() && gyro.isConnected())
+            if (RobotBase.isReal() && gyro.isConnected()) {
                 twist.dtheta = gyroAngle.getRadians() - prevGyroAngle.getRadians();
+            }
 
             estimator.update(twist);
         }
         prevPositions = positions;
         prevGyroAngle = gyroAngle;
+    }
+
+    @Override
+    public void simulationPeriodic() {
+        for (SwerveModule module : modules) {
+            module.updateSim(0.02, RobotController.getBatteryVoltage());
+        }
     }
 
     @AutoLogOutput(key = "Pose Estimate")
@@ -167,12 +207,5 @@ public final class SwerveDrive extends SubsystemBase {
     @AutoLogOutput(key = "Drive/Robot Rel Velocity")
     public ChassisSpeeds getRobotRelativeSpeeds() {
         return kinematics.toChassisSpeeds(getCurrentModuleStates());
-    }
-
-    @Override
-    public void periodic() {
-        for (SwerveModule module: modules) {
-            module.update();
-        }
     }
 }

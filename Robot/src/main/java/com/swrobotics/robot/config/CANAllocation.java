@@ -4,7 +4,7 @@ package com.swrobotics.robot.config;
  * Class to define all CAN IDs in one place, so it is easy to verify all the IDs are set correctly
  */
 public final class CANAllocation {
-    public static final String CANIVORE_BUS = "geoff";
+    public static final String CANIVORE_BUS = "sim";
 
     // Drive, Turn, Encoder
     public static final SwerveIDs SWERVE_FL = new SwerveIDs(9, 5, 1);
