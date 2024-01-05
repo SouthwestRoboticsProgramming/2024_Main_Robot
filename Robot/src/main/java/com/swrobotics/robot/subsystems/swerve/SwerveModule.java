@@ -16,6 +16,7 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.simulation.DCMotorSim;
 
+@SuppressWarnings("unused")
 public class SwerveModule extends com.ctre.phoenix6.mechanisms.swerve.SwerveModule {
 
     private final String name; // For debugging
@@ -121,7 +122,8 @@ public class SwerveModule extends com.ctre.phoenix6.mechanisms.swerve.SwerveModu
         driveSimState.setRotorVelocity(driveSim.getAngularVelocityRPM() / 60.0 * constants.DriveMotorGearRatio);
     }
 
-    public record Info(
+    /** Describes settings needed to create a swerve module */
+    public record Info( // Not directly used in SwerveModule but used to create the SwerveModuleConstants object
             int driveId, int turnId, int encoderId,
             Translation2d position,
             NTEntry<Double> offset,

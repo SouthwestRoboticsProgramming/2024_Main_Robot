@@ -10,8 +10,10 @@ import org.littletonrobotics.junction.Logger;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveModuleConstants;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveModule.SteerRequestType;
+import com.ctre.phoenix6.mechanisms.swerve.SwerveRequest;
 import com.kauailabs.navx.frc.AHRS;
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.pathfinding.LocalADStar; // Used if Theta* is broken. Don't delete
 import com.pathplanner.lib.pathfinding.Pathfinding;
 import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
 import com.pathplanner.lib.util.PIDConstants;
@@ -36,6 +38,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 import static com.swrobotics.robot.subsystems.swerve.SwerveConstants.SWERVE_MODULE_BUILDER;
 
+@SuppressWarnings("unused")
 public final class SwerveDrive extends SubsystemBase {
     public static record DriveRequest(
             ChassisSpeeds robotRelSpeeds,
@@ -58,7 +61,6 @@ public final class SwerveDrive extends SubsystemBase {
     /** Meters per second */
     public static final double MAX_LINEAR_SPEED = 3.78; // TODO: Measure emperically
 
-    
     private final AHRS gyro;
     private final SwerveModule[] modules;
     private final SwerveKinematics kinematics;
@@ -102,7 +104,8 @@ public final class SwerveDrive extends SubsystemBase {
                         new PIDConstants(8.0), new PIDConstants(4.0, 0.0), MAX_LINEAR_SPEED, Math.hypot(HALF_SPACING, HALF_SPACING), new ReplanningConfig(), 0.020),
                 this);
 
-//        Pathfinding.setPathfinder(new LocalADStar());
+        
+        // Pathfinding.setPathfinder(new LocalADStar());
         Pathfinding.setPathfinder(new ThetaStarPathfinder(msg));
         PathPlannerLogging.setLogActivePathCallback(
             (activePath) -> {
@@ -185,13 +188,6 @@ public final class SwerveDrive extends SubsystemBase {
         prevGyroAngle = gyroAngle;
     }
 
-    @Override
-    public void simulationPeriodic() {
-        for (SwerveModule module : modules) {
-            module.updateSim(0.02, RobotController.getBatteryVoltage());
-        }
-    }
-
     @AutoLogOutput(key = "Pose Estimate")
     public Pose2d getEstimatedPose() {
         return estimator.getEstimatedPose();
@@ -208,5 +204,12 @@ public final class SwerveDrive extends SubsystemBase {
     @AutoLogOutput(key = "Drive/Robot Rel Velocity")
     public ChassisSpeeds getRobotRelativeSpeeds() {
         return kinematics.toChassisSpeeds(getCurrentModuleStates());
+    }
+
+    @Override
+    public void simulationPeriodic() {
+        for (SwerveModule module : modules) {
+            module.updateSim(0.02, RobotController.getBatteryVoltage());
+        }
     }
 }

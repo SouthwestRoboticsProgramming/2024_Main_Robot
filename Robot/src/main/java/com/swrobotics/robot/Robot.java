@@ -85,7 +85,7 @@ public class Robot extends LoggedRobot {
         // Create a RobotContainer to manage our subsystems and our buttons
         robotContainer = new RobotContainer();
 
-        // Log active commands FIXME: is this automatic now?
+        // Log active commands
         Map<String, Integer> commandCounts = new HashMap<>();
         BiConsumer<Command, Boolean> logCommandFunction =
                 (Command command, Boolean active) -> {
