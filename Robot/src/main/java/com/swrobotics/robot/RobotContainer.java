@@ -1,5 +1,6 @@
 package com.swrobotics.robot;
 
+import com.ctre.phoenix6.mechanisms.swerve.SwerveModule.DriveRequestType;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 import com.swrobotics.lib.field.FieldInfo;
@@ -8,10 +9,13 @@ import com.swrobotics.robot.commands.DefaultDriveCommand;
 import com.swrobotics.robot.control.ControlBoard;
 import com.swrobotics.robot.logging.FieldView;
 import com.swrobotics.robot.subsystems.swerve.SwerveDrive;
+import com.swrobotics.robot.subsystems.swerve.SwerveDrive.DriveRequest;
 import com.swrobotics.taskmanager.filesystem.FileSystemAPI;
 
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.*;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.PrintCommand;
 
@@ -58,7 +62,7 @@ public class RobotContainer {
 
         // Create a chooser to select the autonomous
         autoSelector = new LoggedDashboardChooser<>("Auto Selection", AutoBuilder.buildAutoChooser());
-        autoSelector.addDefaultOption("Drive forward", new PrintCommand("FIXME!!"));
+        autoSelector.addDefaultOption("Drive forward", Commands.run(() -> drive.drive(new DriveRequest(new ChassisSpeeds(0.0, 0.5, 0.0), DriveRequestType.OpenLoopVoltage)), drive).withTimeout(5));
 
         autoSelector.addOption("Example other auto", new PrintCommand("Example Auto"));
 
