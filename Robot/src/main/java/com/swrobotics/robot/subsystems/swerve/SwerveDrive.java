@@ -47,7 +47,7 @@ public final class SwerveDrive extends SubsystemBase {
         }
     }
 
-    private static final double HALF_SPACING = Units.inchesToMeters(20); // FIXME
+    private static final double HALF_SPACING = Units.inchesToMeters(27 - 2.625 * 2); // Perimeter - MK4i inset // TODO: Set
     private static final SwerveModule.Info[] INFOS = {
             new SwerveModule.Info(CANAllocation.SWERVE_FL, HALF_SPACING, HALF_SPACING, NTData.FL_OFFSET, "Front Left"),
             new SwerveModule.Info(CANAllocation.SWERVE_FR, HALF_SPACING, -HALF_SPACING, NTData.FR_OFFSET, "Front Right"),
@@ -55,7 +55,8 @@ public final class SwerveDrive extends SubsystemBase {
             new SwerveModule.Info(CANAllocation.SWERVE_BR, -HALF_SPACING, -HALF_SPACING, NTData.BR_OFFSET, "Back Right")
     };
 
-    private static final double MAX_LINEAR_SPEED = 4.11; // FIXME: Different with Kraken
+    /** Meters per second */
+    public static final double MAX_LINEAR_SPEED = 3.78; // TODO: Measure emperically
 
     
     private final AHRS gyro;
