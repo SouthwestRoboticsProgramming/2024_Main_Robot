@@ -52,8 +52,7 @@ public class RobotContainer {
         new FileSystemAPI(messenger, "RoboRIO", Filesystem.getOperatingDirectory());
 
         
-        // FIXME: Update at kickoff
-        drive = new SwerveDrive(FieldInfo.CHARGED_UP_2023, messenger);
+        drive = new SwerveDrive(FieldInfo.CRESCENDO_2024, messenger);
         controlboard = new ControlBoard(this);
         drive.setDefaultCommand(new DefaultDriveCommand(drive, controlboard));
 

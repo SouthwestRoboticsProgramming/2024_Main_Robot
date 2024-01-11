@@ -15,6 +15,10 @@ public final class FieldInfo {
     public static final FieldInfo CHARGED_UP_2023 =
             new FieldInfo(16.4846, 8.02, FieldSymmetry.LATERAL);
 
+    /** Information for the 2024 Crescendo field */
+    public static final FieldInfo CRESCENDO_2024 =
+            new FieldInfo(16.541, 8.211, FieldSymmetry.LATERAL);
+
     private final Translation2d size;
     private final FieldSymmetry symmetry;
 
