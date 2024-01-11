@@ -1,5 +1,7 @@
 package com.swrobotics.shufflelog.tool.field;
 
+import com.google.gson.JsonObject;
+import com.swrobotics.shufflelog.json.JsonObj;
 import com.swrobotics.shufflelog.tool.data.nt.NTInstanceListener;
 
 import edu.wpi.first.math.Vector;
@@ -8,6 +10,8 @@ import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 
+import imgui.ImGui;
+import imgui.type.ImBoolean;
 import processing.core.PConstants;
 import processing.core.PGraphics;
 
@@ -17,7 +21,15 @@ import java.util.Set;
 public final class TagTrackerLayer implements FieldLayer, NTInstanceListener {
     private static final String TABLE_NAME = "/TagTracker";
 
+    private final ImBoolean showTags;
+    private final ImBoolean showTagAxes;
+
     private NetworkTable table;
+
+    public TagTrackerLayer() {
+        showTags = new ImBoolean(true);
+        showTagAxes = new ImBoolean(false);
+    }
 
     @Override
     public void onNTInit(NetworkTableInstance inst) {
@@ -136,5 +148,25 @@ public final class TagTrackerLayer implements FieldLayer, NTInstanceListener {
     }
 
     @Override
-    public void showGui() {}
+    public void showGui() {
+        ImGui.checkbox("Show tags", showTags);
+        ImGui.beginDisabled(!showTags.get());
+        ImGui.checkbox("Show tag axes", showTagAxes);
+        ImGui.endDisabled();
+    }
+
+    @Override
+    public void load(JsonObj obj) {
+        JsonObj o = obj.getObject("tagtracker");
+        showTags.set(o.getBoolean("tags", true));
+        showTagAxes.set(o.getBoolean("tagAxes", false));
+    }
+
+    @Override
+    public void store(JsonObject obj) {
+        JsonObject o = new JsonObject();
+        o.addProperty("tags", showTags.get());
+        o.addProperty("tagAxes", showTagAxes.get());
+        obj.add("tagtracker", o);
+    }
 }

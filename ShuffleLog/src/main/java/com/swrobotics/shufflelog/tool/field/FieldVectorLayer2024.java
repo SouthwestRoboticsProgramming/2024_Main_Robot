@@ -1,6 +1,10 @@
 package com.swrobotics.shufflelog.tool.field;
 
+import com.google.gson.JsonObject;
+import com.swrobotics.shufflelog.json.JsonObj;
 import edu.wpi.first.math.util.Units;
+import imgui.ImGui;
+import imgui.type.ImBoolean;
 import processing.core.PConstants;
 import processing.core.PGraphics;
 
@@ -44,6 +48,12 @@ public final class FieldVectorLayer2024 implements FieldLayer {
     private static final float stageTruncatedCornerToCenterDist = stageCornerToCenterDist - stageTruncatedCornerHeight;
     private static final float stageCenterX = stageLegHorizontalToAllianceWall + stageTruncatedCornerToCenterDist;
     private static final float noteDiameter = (noteInnerDiameter + noteOuterDiameter) / 2;
+
+    private final ImBoolean show;
+
+    public FieldVectorLayer2024() {
+        show = new ImBoolean();
+    }
 
     @Override
     public String getName() {
@@ -164,6 +174,9 @@ public final class FieldVectorLayer2024 implements FieldLayer {
 
     @Override
     public void draw(PGraphics g) {
+        if (!show.get())
+            return;
+
         drawFieldHalf(g, false);
         drawFieldHalf(g, true);
 
@@ -183,6 +196,16 @@ public final class FieldVectorLayer2024 implements FieldLayer {
 
     @Override
     public void showGui() {
+        ImGui.checkbox("Show", show);
+    }
 
+    @Override
+    public void load(JsonObj obj) {
+        show.set(obj.getBoolean("vector", true));
+    }
+
+    @Override
+    public void store(JsonObject obj) {
+        obj.addProperty("vector", show.get());
     }
 }

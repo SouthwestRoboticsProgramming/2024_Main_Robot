@@ -1,8 +1,10 @@
 package com.swrobotics.shufflelog.tool.field.path;
 
+import com.google.gson.JsonObject;
 import com.swrobotics.messenger.client.MessageBuilder;
 import com.swrobotics.messenger.client.MessageReader;
 import com.swrobotics.messenger.client.MessengerClient;
+import com.swrobotics.shufflelog.json.JsonObj;
 import com.swrobotics.shufflelog.tool.ToolConstants;
 import com.swrobotics.shufflelog.tool.field.FieldLayer;
 import com.swrobotics.shufflelog.tool.field.path.shape.Circle;
@@ -493,5 +495,34 @@ public final class PathfindingLayer implements FieldLayer {
                 }
             }
         }
+    }
+
+    /*
+    private final ImBoolean showGridLines;
+    private final ImBoolean showGridCells;
+    private final ImBoolean showShapes;
+    private final ImBoolean showDynShapes;
+    private final ImBoolean showPath;
+     */
+
+    @Override
+    public void load(JsonObj obj) {
+        JsonObj o = obj.getObject("pathfinding");
+        showGridLines.set(o.getBoolean("gridLines", false));
+        showGridCells.set(o.getBoolean("gridCells", true));
+        showShapes.set(o.getBoolean("shapes", true));
+        showDynShapes.set(o.getBoolean("dynShapes", true));
+        showPath.set(o.getBoolean("path", true));
+    }
+
+    @Override
+    public void store(JsonObject obj) {
+        JsonObject o = new JsonObject();
+        o.addProperty("gridLines", showGridLines.get());
+        o.addProperty("gridCells", showGridCells.get());
+        o.addProperty("shapes", showShapes.get());
+        o.addProperty("dynShapes", showDynShapes.get());
+        o.addProperty("path", showPath.get());
+        obj.add("pathfinding", o);
     }
 }

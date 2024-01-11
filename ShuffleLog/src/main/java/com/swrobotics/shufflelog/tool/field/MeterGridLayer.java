@@ -1,5 +1,7 @@
 package com.swrobotics.shufflelog.tool.field;
 
+import com.google.gson.JsonObject;
+import com.swrobotics.shufflelog.json.JsonObj;
 import imgui.ImGui;
 import imgui.type.ImBoolean;
 
@@ -36,5 +38,15 @@ public final class MeterGridLayer implements FieldLayer {
     @Override
     public void showGui() {
         ImGui.checkbox("Show", show);
+    }
+
+    @Override
+    public void load(JsonObj obj) {
+        show.set(obj.getBoolean("grid", true));
+    }
+
+    @Override
+    public void store(JsonObject obj) {
+        obj.addProperty("grid", show.get());
     }
 }
