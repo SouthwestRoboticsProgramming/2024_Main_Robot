@@ -38,7 +38,7 @@ const MSG_SHAPES: &str = "Pathfinder:Shapes";
 // TODO: This should almost certainly be split up at some point
 struct PathfinderTask {
     messenger: MessengerClient,
-    static_shapes: HashMap<Uuid, CollisionShape>,
+    static_shapes: HashMap<Uuid, (String, CollisionShape)>,
     dyn_shapes: Vec<CollisionShape>,
     robot_radius: f64,
     dyn_grid: grid::Grid2D,
@@ -92,7 +92,7 @@ impl PathfinderTask {
             env_file_name: conf.env_file,
         };
 
-        for (_, shape) in &task.static_shapes.clone() {
+        for (_, (_, shape)) in &task.static_shapes.clone() {
             task.update_add_static_shape(shape);
         }
 
@@ -191,7 +191,7 @@ impl PathfinderTask {
                 let robot = self.get_robot_circle(&cell_pos);
 
                 if shape.collides_with_circle(&robot) {
-                    for (_, shape) in &self.static_shapes {
+                    for (_, (_, shape)) in &self.static_shapes {
                         if shape.collides_with_circle(&robot) {
                             continue 'cell_loop;
                         }
@@ -417,9 +417,13 @@ impl PathfinderTask {
     fn on_get_shapes(&mut self) {
         let mut data = BytesMut::with_capacity(4);
         data.put_i32(self.static_shapes.len() as i32);
-        for (id, shape) in &self.static_shapes {
-            data.reserve(17);
+        for (id, (name, shape)) in &self.static_shapes {
+            let name_utf = name.as_bytes();
+
+            data.reserve(17 + 2 + name_utf.len());
             data.put_u128(id.as_u128());
+            data.put_u16(name_utf.len() as u16);
+            data.put(name_utf);
             Self::write_shape(&mut data, shape);
         }
 
@@ -467,9 +471,16 @@ impl PathfinderTask {
     async fn on_set_shape(&mut self, mut data: Bytes) {
         let id = Uuid::from_u128(data.get_u128());
 
+        let name_len = data.get_u16() as usize;
+        let mut name_data = BytesMut::with_capacity(name_len);
+        for _ in 0..name_len {
+            name_data.put_u8(data.get_u8());
+        }
+        let name = String::from_utf8_lossy(&name_data).to_string();
+
         if let Some(shape) = Self::read_shape(&mut data) {
             self.update_add_static_shape(&shape);
-            if let Some(old_shape) = self.static_shapes.insert(id, shape) {
+            if let Some((_, old_shape)) = self.static_shapes.insert(id, (name, shape)) {
                 self.update_remove_static_shape(&old_shape);
             }
             self.save_static_shapes().await;
@@ -478,7 +489,7 @@ impl PathfinderTask {
 
     async fn on_remove_shape(&mut self, mut data: Bytes) {
         let id = Uuid::from_u128(data.get_u128());
-        if let Some(removed_shape) = self.static_shapes.remove(&id) {
+        if let Some((_, removed_shape)) = self.static_shapes.remove(&id) {
             self.update_remove_static_shape(&removed_shape);
             self.save_static_shapes().await;
         }

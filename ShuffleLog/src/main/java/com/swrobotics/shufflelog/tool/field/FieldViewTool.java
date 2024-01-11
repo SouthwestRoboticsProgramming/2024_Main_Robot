@@ -38,7 +38,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public final class FieldViewTool extends ViewportTool {
-    public static final float LAYER_Z_SPACING = 0.01f;
+    public static final float LAYER_Z_SPACING = 0.05f;
 
     // This is not how transformation matrices work, this is just to
     // make the transition between projections look nice

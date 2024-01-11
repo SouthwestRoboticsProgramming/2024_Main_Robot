@@ -124,7 +124,7 @@ public final class PathfindingLayer implements FieldLayer {
         int count = reader.readInt();
         shapes = new ArrayList<>();
         for (int i = 0; i < count; i++) {
-            Shape shape = Shape.read(reader, true);
+            Shape shape = Shape.read(reader, true, true);
             shapes.add(shape);
         }
 
@@ -151,7 +151,7 @@ public final class PathfindingLayer implements FieldLayer {
         dynShapes.clear();
         int count = reader.readInt();
         for (int i = 0; i < count; i++) {
-            Shape shape = Shape.read(reader, false);
+            Shape shape = Shape.read(reader, false, false);
             dynShapes.add(shape);
         }
         needsRefreshCellData = true;
@@ -330,10 +330,8 @@ public final class PathfindingLayer implements FieldLayer {
     }
 
     private void showCircle(Circle circle) {
-        String id = "Circle##" + circle.getId();
-
         ImGui.tableNextColumn();
-        boolean open = ImGui.treeNodeEx(id, ImGuiTreeNodeFlags.SpanFullWidth);
+        boolean open = ImGui.treeNodeEx(circle.getId().toString(), ImGuiTreeNodeFlags.SpanFullWidth, circle.name.get());
         if (ImGui.isItemHovered()) hoveredShape = circle;
         if (ImGui.beginPopupContextItem()) {
             if (ImGui.selectable("Delete")) {
@@ -347,8 +345,10 @@ public final class PathfindingLayer implements FieldLayer {
         if (open) {
             boolean changed;
 
+            fieldHeader("Name");
+            changed = ImGui.inputText("##name", circle.name);
             fieldHeader("X");
-            changed = ExpressionInput.inputDouble("##x", circle.x);
+            changed |= ExpressionInput.inputDouble("##x", circle.x);
             fieldHeader("Y");
             changed |= ExpressionInput.inputDouble("##y", circle.y);
             fieldHeader("Radius");
@@ -366,10 +366,8 @@ public final class PathfindingLayer implements FieldLayer {
     }
 
     private void showRectangle(Rectangle rect) {
-        String id = "Rectangle##" + rect.getId();
-
         ImGui.tableNextColumn();
-        boolean open = ImGui.treeNodeEx(id, ImGuiTreeNodeFlags.SpanFullWidth);
+        boolean open = ImGui.treeNodeEx(rect.getId().toString(), ImGuiTreeNodeFlags.SpanFullWidth, rect.name.get());
         if (ImGui.isItemHovered()) hoveredShape = rect;
         if (ImGui.beginPopupContextItem()) {
             if (ImGui.selectable("Delete")) {
@@ -382,8 +380,10 @@ public final class PathfindingLayer implements FieldLayer {
 
         if (open) {
             boolean changed;
+            fieldHeader("Name");
+            changed = ImGui.inputText("##name", rect.name);
             fieldHeader("X");
-            changed = ExpressionInput.inputDouble("##x", rect.x);
+            changed |= ExpressionInput.inputDouble("##x", rect.x);
             fieldHeader("Y");
             changed |= ExpressionInput.inputDouble("##y", rect.y);
             fieldHeader("Width");
@@ -432,14 +432,14 @@ public final class PathfindingLayer implements FieldLayer {
                 if (ImGui.beginPopupContextItem()) {
                     Shape addedShape = null;
                     if (ImGui.selectable("Add Circle")) {
-                        Circle c = new Circle(UUID.randomUUID());
+                        Circle c = new Circle(UUID.randomUUID(), "Circle");
                         c.x.set(0);
                         c.y.set(0);
                         c.radius.set(1);
                         addedShape = c;
                     }
                     if (ImGui.selectable("Add Rectangle")) {
-                        Rectangle r = new Rectangle(UUID.randomUUID());
+                        Rectangle r = new Rectangle(UUID.randomUUID(), "Rectangle");
                         r.x.set(0);
                         r.y.set(0);
                         r.width.set(1);

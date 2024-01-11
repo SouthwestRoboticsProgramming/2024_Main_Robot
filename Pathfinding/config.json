@@ -4,11 +4,11 @@
     "port": 5805,
     "name": "Pathfinding"
   },
-  "robot_radius": 0.5,
+  "robot_radius": 0.6202230647076,
   "field": {
     "cell_size": 0.0762,
     "origin_x": 0.0,
     "origin_y": 1.0
   },
-  "env_file": "environment.json"
+  "env_file": "crescendo.json"
 }

@@ -1,0 +1,246 @@
+{
+  "width": 16.541,
+  "height": 8.211,
+  "shapes": {
+    "f8afb2bc-a3c8-4ac1-81c0-e7f271cd9dfe": [
+      "Red STAGE foot 1",
+      {
+        "type": "Rectangle",
+        "position": {
+          "x": 13.165975,
+          "y": 4.1055
+        },
+        "size": {
+          "x": 0.31115,
+          "y": 0.3556
+        },
+        "rotation": 0.0,
+        "inverted": false
+      }
+    ],
+    "2ede9536-53b7-4b52-8f6e-3b19d34333b1": [
+      "Red SPEAKER front",
+      {
+        "type": "Rectangle",
+        "position": {
+          "x": 16.081500000000002,
+          "y": 5.5475
+        },
+        "size": {
+          "x": 0.919,
+          "y": 1.0287
+        },
+        "rotation": 0.0,
+        "inverted": false
+      }
+    ],
+    "c51ac2dc-837d-43d2-ad63-b2f63f7bb0e7": [
+      "Red SPEAKER top",
+      {
+        "type": "Rectangle",
+        "position": {
+          "x": 16.237314,
+          "y": 6.06185
+        },
+        "size": {
+          "x": 1.06346,
+          "y": 0.619271
+        },
+        "rotation": 0.5273163618116318,
+        "inverted": false
+      }
+    ],
+    "a30c645a-9cff-4035-b952-cd3ca5068a49": [
+      "Blue STAGE foot 3",
+      {
+        "type": "Rectangle",
+        "position": {
+          "x": 5.602092,
+          "y": 2.8197020000000004
+        },
+        "size": {
+          "x": 0.31115,
+          "y": 0.3556
+        },
+        "rotation": -1.0471975511965976,
+        "inverted": false
+      }
+    ],
+    "f75ac3bc-71e1-4e18-a557-4bed352b61f7": [
+      "Field perimeter",
+      {
+        "type": "Rectangle",
+        "position": {
+          "x": 8.2705,
+          "y": 4.1055
+        },
+        "size": {
+          "x": 16.541,
+          "y": 8.211
+        },
+        "rotation": 0.0,
+        "inverted": true
+      }
+    ],
+    "c38497ca-ab4b-46da-86b9-b150e1351f2d": [
+      "Red STAGE foot 3",
+      {
+        "type": "Rectangle",
+        "position": {
+          "x": 10.938908000000001,
+          "y": 2.819702
+        },
+        "size": {
+          "x": 0.31115,
+          "y": 0.3556
+        },
+        "rotation": 1.0471975511965976,
+        "inverted": false
+      }
+    ],
+    "ac8271b9-b26a-43e2-ba74-d08eca556778": [
+      "Blue SPEAKER bottom",
+      {
+        "type": "Rectangle",
+        "position": {
+          "x": 0.303686331,
+          "y": 5.03315
+        },
+        "size": {
+          "x": 1.063459695,
+          "y": 0.619271444
+        },
+        "rotation": 0.5273163618116318,
+        "inverted": false
+      }
+    ],
+    "e4498ed4-a5e7-4a30-a2b6-f69734f23726": [
+      "Red SOURCE",
+      {
+        "type": "Rectangle",
+        "position": {
+          "x": 0.759423,
+          "y": 0.0
+        },
+        "size": {
+          "x": 2.49748,
+          "y": 1.063
+        },
+        "rotation": -0.5314671038387245,
+        "inverted": false
+      }
+    ],
+    "7bf63b30-a94c-499e-ae47-bfedbb801909": [
+      "Blue SPEAKER front",
+      {
+        "type": "Rectangle",
+        "position": {
+          "x": 0.4595,
+          "y": 5.5475
+        },
+        "size": {
+          "x": 0.919,
+          "y": 1.0287
+        },
+        "rotation": 0.0,
+        "inverted": false
+      }
+    ],
+    "4305f3d6-eeb7-4c58-a98c-0dd898a4003c": [
+      "Red SPEAKER bottom",
+      {
+        "type": "Rectangle",
+        "position": {
+          "x": 16.237314,
+          "y": 5.03315
+        },
+        "size": {
+          "x": 1.06346,
+          "y": 0.619271
+        },
+        "rotation": -0.5273163618116318,
+        "inverted": false
+      }
+    ],
+    "9caabf77-d166-44b6-8b3f-018dabbb4547": [
+      "Blue STAGE foot 1",
+      {
+        "type": "Rectangle",
+        "position": {
+          "x": 3.375025,
+          "y": 4.1055
+        },
+        "size": {
+          "x": 0.31115,
+          "y": 0.3556
+        },
+        "rotation": 0.0,
+        "inverted": false
+      }
+    ],
+    "25a1c692-12bb-421c-92d9-e749f37844dd": [
+      "Blue SPEAKER top",
+      {
+        "type": "Rectangle",
+        "position": {
+          "x": 0.303686,
+          "y": 6.06185
+        },
+        "size": {
+          "x": 1.06346,
+          "y": 0.619271
+        },
+        "rotation": -0.5273163618116318,
+        "inverted": false
+      }
+    ],
+    "67edd599-50b9-4db5-b71c-42cfff5d6eb9": [
+      "Blue STAGE foot 2",
+      {
+        "type": "Rectangle",
+        "position": {
+          "x": 5.6020924,
+          "y": 5.391298
+        },
+        "size": {
+          "x": 0.31115,
+          "y": 0.3556
+        },
+        "rotation": 1.0471975511965976,
+        "inverted": false
+      }
+    ],
+    "1b4b516e-3187-461d-95f3-1e0a2ab8d1a6": [
+      "Blue SOURCE",
+      {
+        "type": "Rectangle",
+        "position": {
+          "x": 15.781577,
+          "y": 0.0
+        },
+        "size": {
+          "x": 2.49748,
+          "y": 1.063
+        },
+        "rotation": 0.5314671038387248,
+        "inverted": false
+      }
+    ],
+    "8fcba4bf-f63b-41fa-a5d2-e942bbf16f6b": [
+      "Red STAGE foot 2",
+      {
+        "type": "Rectangle",
+        "position": {
+          "x": 10.938908000000001,
+          "y": 5.391298
+        },
+        "size": {
+          "x": 0.31115,
+          "y": 0.3556
+        },
+        "rotation": -1.0471975511965976,
+        "inverted": false
+      }
+    ]
+  }
+}

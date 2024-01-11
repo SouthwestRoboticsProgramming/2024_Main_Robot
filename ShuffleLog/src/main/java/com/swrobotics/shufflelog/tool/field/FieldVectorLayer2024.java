@@ -115,6 +115,14 @@ public final class FieldVectorLayer2024 implements FieldLayer {
         g.endShape();
 
         // Stage border
+
+        float[] stageOuterPtRotated = rotateStage(-stageTruncatedCornerToCenterDist + stageFootParallel/2, 0, 1);
+        if (!isRedAlliance) {
+//            System.out.println("Stage foot center pos: " + stageOuterPtRotated[0] + ", " + stageOuterPtRotated[1]);
+        }
+        // 0.74235576, 1.2857977
+        // 4.8597364
+
         g.pushMatrix();
         g.translate(stageCenterX, fieldHeight/2);
         g.beginShape(PConstants.LINE_LOOP);

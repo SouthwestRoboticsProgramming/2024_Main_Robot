@@ -15,8 +15,8 @@ public final class Rectangle extends Shape {
     public final ImDouble rotation;
     public final ImBoolean inverted;
 
-    public Rectangle(UUID id) {
-        super(id);
+    public Rectangle(UUID id, String name) {
+        super(id, name);
 
         x = new ImDouble();
         y = new ImDouble();

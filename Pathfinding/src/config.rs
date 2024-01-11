@@ -65,7 +65,7 @@ impl Default for FieldConfig {
 pub struct Environment {
     pub width: f64,
     pub height: f64,
-    pub shapes: HashMap<Uuid, collision::CollisionShape>,
+    pub shapes: HashMap<Uuid, (String, collision::CollisionShape)>,
 }
 
 impl Default for Environment {
@@ -74,18 +74,21 @@ impl Default for Environment {
         let mut shapes = HashMap::new();
         shapes.insert(
             Uuid::new_v4(),
-            collision::CollisionShape::Rectangle(collision::Rectangle {
-                position: Vec2f {
-                    x: 8.2296,
-                    y: 4.1148,
-                },
-                size: Vec2f {
-                    x: 16.4592,
-                    y: 8.2296,
-                },
-                rotation: 0.0,
-                inverted: true,
-            }),
+            (
+                "Field perimeter".to_string(),
+                collision::CollisionShape::Rectangle(collision::Rectangle {
+                    position: Vec2f {
+                        x: 8.2296,
+                        y: 4.1148,
+                    },
+                    size: Vec2f {
+                        x: 16.4592,
+                        y: 8.2296,
+                    },
+                    rotation: 0.0,
+                    inverted: true,
+                }),
+            ),
         );
 
         Self {
