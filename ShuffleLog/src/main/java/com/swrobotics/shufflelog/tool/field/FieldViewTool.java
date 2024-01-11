@@ -67,8 +67,8 @@ public final class FieldViewTool extends ViewportTool {
         }
     }
 
-    public static final double WIDTH = 16.4592;
-    public static final double HEIGHT = 8.2296;
+    public static final double WIDTH = 16.541;
+    public static final double HEIGHT = 8.211;
 
     private static final float SMOOTH = 12;
 
@@ -104,7 +104,7 @@ public final class FieldViewTool extends ViewportTool {
         MessengerClient msg = log.getMessenger();
         layers = new ArrayList<>();
         layers.add(new MeterGridLayer());
-        // TODO-Kickoff: Field vector layer 2024
+        layers.add(new FieldVectorLayer2024());
         layers.add(new Field2dLayer(smartDashboard));
         layers.add(new PathfindingLayer(msg));
         TagTrackerLayer tagTrackerLayer = new TagTrackerLayer();
