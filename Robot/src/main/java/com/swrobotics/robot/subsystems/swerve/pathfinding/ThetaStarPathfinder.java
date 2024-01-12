@@ -3,6 +3,7 @@ package com.swrobotics.robot.subsystems.swerve.pathfinding;
 import com.pathplanner.lib.path.GoalEndState;
 import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.path.PathPlannerPath;
+import com.pathplanner.lib.pathfinding.LocalADStar;
 import com.pathplanner.lib.pathfinding.Pathfinder;
 import com.swrobotics.messenger.client.MessageBuilder;
 import com.swrobotics.messenger.client.MessageReader;
@@ -25,7 +26,8 @@ public final class ThetaStarPathfinder implements Pathfinder {
     private enum PathStatus {
         READY,
         ALREADY_THERE,
-        IMPOSSIBLE
+        IMPOSSIBLE,
+        TIMED_OUT
     }
 
     private static final String MSG_SET_ENDPOINTS = "Pathfinder:SetEndpoints";
@@ -40,6 +42,7 @@ public final class ThetaStarPathfinder implements Pathfinder {
     private static final double SMOOTHING_CONTROL_PCT = 0.33;
 
     private final MessengerClient msg;
+    private final Pathfinder fallback;
 
     private Translation2d start, goal;
     private boolean pathRequestPending;
@@ -60,6 +63,8 @@ public final class ThetaStarPathfinder implements Pathfinder {
         newPathAvail = false;
         start = goal = new Translation2d();
         pathRequestPending = false;
+
+        fallback = new LocalADStar();
     }
 
     private void markNewPath(PathStatus status) {
@@ -69,17 +74,14 @@ public final class ThetaStarPathfinder implements Pathfinder {
     }
 
     private void onPath(String type, MessageReader reader) {
-        System.out.println("Path received");
         boolean pathValid = reader.readBoolean();
         if (!pathValid) {
-            System.out.println("It was invalid :(");
             markNewPath(PathStatus.IMPOSSIBLE);
             return;
         }
 
         int count = reader.readInt();
         if (count < 2) {
-            System.out.println("Not enough points - already at target");
             // This only happens if start and end are the same point, in which
             // case we can skip the path following since we're already there
             markNewPath(PathStatus.ALREADY_THERE);
@@ -93,13 +95,11 @@ public final class ThetaStarPathfinder implements Pathfinder {
 
             pathPoints.add(new Translation2d(x, y));
         }
-        System.out.println("Path points: " + pathPoints);
 
         // Check if path is to correct target
         // In case of latency returning path for previous target
         Translation2d lastPoint = pathPoints.get(pathPoints.size() - 1);
         if (lastPoint.minus(goal).getNorm() > CORRECT_TARGET_TOL) {
-            System.out.println("Wrong target... old path? want to go to " + goal);
             return;
         }
 
@@ -109,7 +109,6 @@ public final class ThetaStarPathfinder implements Pathfinder {
 
         pathBezier = generateBezier(pathPoints);
         markNewPath(PathStatus.READY);
-        System.out.println("Bezierified into " + pathBezier);
     }
 
     private List<Translation2d> generateBezier(List<Translation2d> pathPoints) {
@@ -164,15 +163,22 @@ public final class ThetaStarPathfinder implements Pathfinder {
         if (pathRequestPending && Timer.getFPGATimestamp() - pathRequestTimestamp > TIMEOUT) {
             newPathAvail = true;
             pathRequestPending = false;
-            status = PathStatus.IMPOSSIBLE;
+            status = PathStatus.TIMED_OUT;
+
+            // Try to get path from the fallback pathfinder
+            fallback.setStartPosition(start);
+            fallback.setGoalPosition(goal);
         }
+
+        if (status == PathStatus.TIMED_OUT)
+            return fallback.isNewPathAvailable();
 
         return newPathAvail;
     }
 
     @Override
     public PathPlannerPath getCurrentPath(PathConstraints constraints, GoalEndState goalEndState) {
-        if (!newPathAvail)
+        if (!newPathAvail && status != PathStatus.TIMED_OUT)
             return null;
         newPathAvail = false;
 
@@ -180,6 +186,7 @@ public final class ThetaStarPathfinder implements Pathfinder {
             case READY -> new PathPlannerPath(pathBezier, constraints, goalEndState);
             // Make a dummy path that goes straight from start to goal
             case ALREADY_THERE, IMPOSSIBLE -> new PathPlannerPath(generateBezier(List.of(start, goal)), constraints, goalEndState);
+            case TIMED_OUT -> fallback.getCurrentPath(constraints, goalEndState);
         };
     }
 
