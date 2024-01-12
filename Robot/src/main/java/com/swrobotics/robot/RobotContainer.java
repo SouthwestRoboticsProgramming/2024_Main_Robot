@@ -61,7 +61,10 @@ public class RobotContainer {
 
         // Create a chooser to select the autonomous
         autoSelector = new LoggedDashboardChooser<>("Auto Selection", AutoBuilder.buildAutoChooser());
-        autoSelector.addDefaultOption("Drive forward", Commands.run(() -> drive.drive(new DriveRequest(new ChassisSpeeds(0.0, 0.5, 0.0), DriveRequestType.OpenLoopVoltage)), drive).withTimeout(5));
+        autoSelector.addDefaultOption("Drive forward", Commands.run(
+                () -> drive.drive(new DriveRequest(new ChassisSpeeds(0.0, 0.5, 0.0), DriveRequestType.OpenLoopVoltage)),
+                drive
+        ).withTimeout(5));
 
         autoSelector.addOption("Example other auto", new PrintCommand("Example Auto"));
 

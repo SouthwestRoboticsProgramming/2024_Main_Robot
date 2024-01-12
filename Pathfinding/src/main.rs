@@ -140,8 +140,8 @@ impl PathfinderTask {
     fn constrain_to_grid(&self, cell: Vec2i) -> Vec2i {
         let sz = self.dyn_grid.cell_size();
         return Vec2i {
-            x: cell.x.clamp(0, sz.x - 1),
-            y: cell.y.clamp(0, sz.y - 1),
+            x: cell.x.clamp(0, sz.x),
+            y: cell.y.clamp(0, sz.y),
         };
     }
 
@@ -302,10 +302,10 @@ impl PathfinderTask {
             if needs_recalc {
                 let start_time = Instant::now();
 
-                let real_start_cell = self.find_nearest_cell(start_pos);
+                let real_start_cell = self.find_nearest_point(start_pos);
                 let start_cell = dijkstra::find_nearest_passable(&self.dyn_grid, real_start_cell)
                     .unwrap_or(real_start_cell);
-                let goal_cell = self.find_nearest_cell(goal_pos);
+                let goal_cell = self.find_nearest_point(goal_pos);
 
                 let mut result = theta_star::find_path(&self.dyn_grid, start_cell, goal_cell);
                 let end_time = Instant::now();
@@ -346,7 +346,7 @@ impl PathfinderTask {
         }
     }
 
-    fn find_nearest_cell(&self, pos_meters: Vec2f) -> Vec2i {
+    fn find_nearest_point(&self, pos_meters: Vec2f) -> Vec2i {
         let cell_f = self.meters_to_cell(&pos_meters);
         let size = self.dyn_grid.cell_size();
         Vec2i {

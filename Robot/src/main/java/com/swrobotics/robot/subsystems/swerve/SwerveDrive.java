@@ -4,6 +4,7 @@ import com.swrobotics.messenger.client.MessengerClient;
 import com.swrobotics.robot.logging.FieldView;
 import com.swrobotics.robot.subsystems.swerve.pathfinding.ThetaStarPathfinder;
 
+import edu.wpi.first.wpilibj.DriverStation;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
@@ -102,6 +103,7 @@ public final class SwerveDrive extends SubsystemBase {
                         drive(new DriveRequest(speeds, DriveRequestType.OpenLoopVoltage)),
                 new HolonomicPathFollowerConfig(
                         new PIDConstants(8.0), new PIDConstants(4.0, 0.0), MAX_LINEAR_SPEED, Math.hypot(HALF_SPACING, HALF_SPACING), new ReplanningConfig(), 0.020),
+                () -> DriverStation.getAlliance().orElse(DriverStation.Alliance.Blue) == DriverStation.Alliance.Red,
                 this);
 
         
