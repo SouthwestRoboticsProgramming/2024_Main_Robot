@@ -2,7 +2,7 @@
 // Cache line-of-sight checks
 // Don't use line-of-sight for neighbor queries
 
-use std::{collections::HashMap, error::Error, time::Instant};
+use std::{collections::BTreeMap, error::Error, time::Instant};
 
 use bytes::{Buf, BufMut, Bytes, BytesMut};
 use collision::{Circle, CollisionShape, Rectangle};
@@ -38,7 +38,7 @@ const MSG_SHAPES: &str = "Pathfinder:Shapes";
 // TODO: This should almost certainly be split up at some point
 struct PathfinderTask {
     messenger: MessengerClient,
-    static_shapes: HashMap<Uuid, (String, CollisionShape)>,
+    static_shapes: BTreeMap<Uuid, (String, CollisionShape)>,
     dyn_shapes: Vec<CollisionShape>,
     robot_radius: f64,
     dyn_grid: grid::Grid2D,

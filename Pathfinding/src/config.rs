@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 
 use serde::{Deserialize, Serialize};
 use tokio::fs;
@@ -65,13 +65,13 @@ impl Default for FieldConfig {
 pub struct Environment {
     pub width: f64,
     pub height: f64,
-    pub shapes: HashMap<Uuid, (String, collision::CollisionShape)>,
+    pub shapes: BTreeMap<Uuid, (String, collision::CollisionShape)>,
 }
 
 impl Default for Environment {
     fn default() -> Self {
         // By default include border rectangle
-        let mut shapes = HashMap::new();
+        let mut shapes = BTreeMap::new();
         shapes.insert(
             Uuid::new_v4(),
             (
