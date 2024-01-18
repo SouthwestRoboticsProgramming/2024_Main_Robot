@@ -8,8 +8,6 @@ use crate::{
     obstacle::Obstacle,
 };
 
-use macroquad::prelude::*;
-
 pub struct Arc {
     pub center: Vec2f,
     pub radius: f64,
@@ -226,15 +224,6 @@ impl Field {
         for (arc_id, arc) in self.arcs.iter().enumerate() {
             self.find_point_to_arc_tangents(start, &arc, arc_id, &mut tangents);
             for tangent in &tangents {
-                draw_line(
-                    tangent.segment.from.x as f32,
-                    tangent.segment.from.y as f32,
-                    tangent.segment.to.x as f32,
-                    tangent.segment.to.y as f32,
-                    4.0,
-                    BLUE,
-                );
-
                 let cost = tangent.segment.length();
                 frontier.push(Rc::new(SearchNode {
                     context: ArcContext::new(arc_id, tangent.arc_dir),
@@ -301,24 +290,8 @@ impl Field {
             self.find_point_to_arc_tangents(goal, current_arc, current_arc_id, &mut tangents);
             for tangent in &tangents {
                 if current_dir == tangent.arc_dir {
-                    draw_line(
-                        tangent.segment.from.x as f32,
-                        tangent.segment.from.y as f32,
-                        tangent.segment.to.x as f32,
-                        tangent.segment.to.y as f32,
-                        4.0,
-                        DARKPURPLE,
-                    );
                     continue;
                 }
-                draw_line(
-                    tangent.segment.from.x as f32,
-                    tangent.segment.from.y as f32,
-                    tangent.segment.to.x as f32,
-                    tangent.segment.to.y as f32,
-                    6.0,
-                    PURPLE,
-                );
 
                 let distance_cost = tangent.segment.length();
                 let turn_cost = calc_turn_cost(

@@ -46,20 +46,43 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     let field = geom::Field::generate(&obstacles, conf.robot_radius);
 
-    let mut start = Vec2f::new(0.0, 0.0);
-    let mut goal = Vec2f::new(700.0, 500.0);
+    let mut start = Vec2f::new(1.0, 1.0);
+    let mut goal = Vec2f::new(1.2, 1.2);
 
     loop {
+        clear_background(BLACK);
+
+        let scale_x = (screen_width() - 50.0) / environment.width as f32;
+        let scale_y = (screen_height() - 50.0) / environment.height as f32;
+
+        let scale = scale_x.min(scale_y);
+        let pixel = 1.0 / scale;
+        set_camera(&Camera2D {
+            zoom: Vec2 {
+                x: 2.0 * scale / screen_width(),
+                y: 2.0 * -scale / screen_height(),
+            },
+            target: Vec2 {
+                x: environment.width as f32 / 2.0,
+                y: environment.height as f32 / 2.0,
+            },
+            ..Default::default()
+        });
+
         let (mouse_x, mouse_y) = mouse_position();
-        let mouse_pos = Vec2f::new(mouse_x as f64, mouse_y as f64);
+        let mouse_pos = Vec2f {
+            x: ((mouse_x - screen_width() / 2.0) / scale) as f64 + environment.width / 2.0,
+            y: ((screen_height() / 2.0 - mouse_y) / scale) as f64 + environment.height / 2.0,
+        };
+        draw_circle(mouse_pos.x as f32, mouse_pos.y as f32, 15.0 * pixel, BLUE);
+        println!("Mouse pos: {:?}", mouse_pos);
+
         if is_mouse_button_down(MouseButton::Left) {
             start = mouse_pos;
         }
         if is_mouse_button_down(MouseButton::Right) {
             goal = mouse_pos;
         }
-
-        clear_background(BLACK);
 
         for obstacle in &obstacles {
             match obstacle {
@@ -68,7 +91,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                         circle.position.x as f32,
                         circle.position.y as f32,
                         circle.radius as f32,
-                        2.0,
+                        2.0 * pixel,
                         ORANGE,
                     );
                 }
@@ -80,7 +103,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                             prev.y as f32,
                             vert.x as f32,
                             vert.y as f32,
-                            2.0,
+                            2.0 * pixel,
                             ORANGE,
                         );
                         prev = *vert;
@@ -98,7 +121,18 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 (arc.min_angle, arc.max_angle)
             };
 
-            draw_arc(arc.center, arc.radius, min, max, 2.0, RED);
+            draw_arc(arc.center, arc.radius, min, max, 2.0 * pixel, RED);
+        }
+
+        for segment in &field.segments {
+            draw_line(
+                segment.from.x as f32,
+                segment.from.y as f32,
+                segment.to.x as f32,
+                segment.to.y as f32,
+                2.0 * pixel,
+                GRAY,
+            );
         }
 
         for edge_set in &field.visibility {
@@ -109,7 +143,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                     seg.from.y as f32,
                     seg.to.x as f32,
                     seg.to.y as f32,
-                    1.0,
+                    1.0 * pixel,
                     MAGENTA,
                 );
             }
@@ -117,6 +151,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
         let calc_start = Instant::now();
         let path_opt = field.find_path(start, goal);
+        // let path_opt: Option<Vec<geom::PathArc>> = None;
         let calc_end = Instant::now();
 
         if let Some(path) = path_opt {
@@ -128,7 +163,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                         p.y as f32,
                         (arc.center.x + arc.radius * arc.incoming_angle.cos()) as f32,
                         (arc.center.y + arc.radius * arc.incoming_angle.sin()) as f32,
-                        4.0,
+                        4.0 * pixel,
                         GREEN,
                     );
 
@@ -142,7 +177,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                         angle2 += PI * 2.0;
                     }
 
-                    draw_arc(arc.center, arc.radius, angle1, angle2, 4.0, GREEN);
+                    draw_arc(arc.center, arc.radius, angle1, angle2, 4.0 * pixel, GREEN);
                     p = arc.center + Vec2f::new_angle(arc.radius, arc.outgoing_angle);
                 }
                 draw_line(
@@ -150,7 +185,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                     p.y as f32,
                     goal.x as f32,
                     goal.y as f32,
-                    4.0,
+                    4.0 * pixel,
                     GREEN,
                 );
             }
@@ -177,7 +212,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                     edge.segment.from.y as f32,
                     edge.segment.to.x as f32,
                     edge.segment.to.y as f32,
-                    8.0,
+                    8.0 * pixel,
                     BLUE,
                 );
             }
@@ -189,12 +224,13 @@ async fn main() -> Result<(), Box<dyn Error>> {
                     edge.segment.from.y as f32,
                     edge.segment.to.x as f32,
                     edge.segment.to.y as f32,
-                    8.0,
+                    8.0 * pixel,
                     GOLD,
                 );
             }
         }
 
+        set_default_camera();
         let calc_time_ms = calc_end.duration_since(calc_start).as_secs_f64() * 1000.0;
         draw_text(
             format!("Calc time: {:.3} ms", calc_time_ms).as_str(),

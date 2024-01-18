@@ -27,6 +27,8 @@ impl Default for Config {
 
 #[derive(Serialize, Deserialize)]
 pub struct EnvironmentConfig {
+    pub width: f64,
+    pub height: f64,
     pub obstacles: BTreeMap<Uuid, (String, ConfigObstacle)>,
 }
 
@@ -45,7 +47,11 @@ impl Default for EnvironmentConfig {
             ),
         );
 
-        Self { obstacles }
+        Self {
+            width: 16.0,
+            height: 8.0,
+            obstacles,
+        }
     }
 }
 

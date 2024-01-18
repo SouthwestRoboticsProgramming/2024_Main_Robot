@@ -1,4 +1,4 @@
 {
-  "robot_radius": 15,
-  "env_file": "environment.json"
+  "robot_radius": 0.6202230647076,
+  "env_file": "crescendo.json"
 }

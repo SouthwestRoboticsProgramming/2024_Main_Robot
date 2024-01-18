@@ -14,7 +14,7 @@ pub fn wrap_angle(angle: f64) -> f64 {
     floor_mod(angle + PI, PI * 2.0) - PI
 }
 
-#[derive(Clone, Copy, Serialize, Deserialize)]
+#[derive(Clone, Copy, Serialize, Deserialize, Debug)]
 pub struct Vec2f {
     pub x: f64,
     pub y: f64,
