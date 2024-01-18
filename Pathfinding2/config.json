@@ -1,0 +1,4 @@
+{
+  "robot_radius": 15,
+  "env_file": "environment.json"
+}
