@@ -113,6 +113,7 @@ pub struct VisibilityEdge {
     pub dest: ArcContext,
 }
 
+#[derive(Clone)]
 pub struct PathArc {
     pub center: Vec2f,
     pub radius: f64,

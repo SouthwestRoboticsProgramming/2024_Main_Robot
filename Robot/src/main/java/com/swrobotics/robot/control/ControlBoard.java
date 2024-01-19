@@ -8,6 +8,7 @@ import com.swrobotics.robot.RobotContainer;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.wpilibj2.command.CommandScheduler;
 
 public class ControlBoard {
     private static final double DEADBAND = 0.15;
@@ -35,7 +36,11 @@ public class ControlBoard {
         driver = new XboxController(0, DEADBAND);
         operator = new XboxController(1, DEADBAND);
 
-        driver.x.onRising(AutoBuilder.pathfindToPose(new Pose2d(10, 4, new Rotation2d(0)), new PathConstraints(4, 8, 10, 40)));
+        // Pathing test
+        Pose2d[] target = new Pose2d[1];
+        target[0] = new Pose2d(10, 4, new Rotation2d(0));
+        driver.a.onRising(() -> CommandScheduler.getInstance().schedule(AutoBuilder.pathfindToPose(target[0], new PathConstraints(4, 8, 10, 40))));
+        driver.b.onRising(() -> target[0] = robot.drive.getEstimatedPose());
 
         // Congigure triggers
        driver.start.onFalling(() -> robot.drive.setRotation(new Rotation2d()));

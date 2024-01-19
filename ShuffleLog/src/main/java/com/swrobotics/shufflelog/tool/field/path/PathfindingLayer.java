@@ -461,7 +461,9 @@ public final class PathfindingLayer implements FieldLayer {
                 }
                 ImGui.tableNextColumn();
                 if (open) {
-                    for (Shape shape : new ArrayList<>(shapes)) {
+                    List<Shape> sortedShapes = new ArrayList<>(shapes);
+                    sortedShapes.sort(Comparator.comparing((shape) -> shape.name.get()));
+                    for (Shape shape : sortedShapes) {
                         showShape(shape);
                     }
                     ImGui.treePop();
@@ -496,14 +498,6 @@ public final class PathfindingLayer implements FieldLayer {
             }
         }
     }
-
-    /*
-    private final ImBoolean showGridLines;
-    private final ImBoolean showGridCells;
-    private final ImBoolean showShapes;
-    private final ImBoolean showDynShapes;
-    private final ImBoolean showPath;
-     */
 
     @Override
     public void load(JsonObj obj) {

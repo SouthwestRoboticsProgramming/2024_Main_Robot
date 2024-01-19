@@ -1,7 +1,9 @@
 package com.swrobotics.robot.subsystems.swerve;
 
+import com.pathplanner.lib.pathfinding.Pathfinder;
 import com.swrobotics.messenger.client.MessengerClient;
 import com.swrobotics.robot.logging.FieldView;
+import com.swrobotics.robot.subsystems.swerve.pathfinding.ArcPathfinder;
 import com.swrobotics.robot.subsystems.swerve.pathfinding.ThetaStarPathfinder;
 
 import edu.wpi.first.wpilibj.DriverStation;
@@ -108,7 +110,8 @@ public final class SwerveDrive extends SubsystemBase {
 
         
         // Pathfinding.setPathfinder(new LocalADStar());
-        Pathfinding.setPathfinder(new ThetaStarPathfinder(msg));
+//        Pathfinding.setPathfinder(new ThetaStarPathfinder(msg));
+        Pathfinding.setPathfinder(new ArcPathfinder(msg));
         PathPlannerLogging.setLogActivePathCallback(
             (activePath) -> {
               Logger.recordOutput(

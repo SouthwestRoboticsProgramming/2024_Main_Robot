@@ -106,7 +106,7 @@ public final class FieldViewTool extends ViewportTool {
         layers.add(new MeterGridLayer());
         layers.add(new FieldVectorLayer2024());
         layers.add(new Field2dLayer(smartDashboard));
-        layers.add(new PathfindingLayer(msg));
+//        layers.add(new PathfindingLayer(msg));
         TagTrackerLayer tagTrackerLayer = new TagTrackerLayer();
         layers.add(tagTrackerLayer);
         nt.addListener(tagTrackerLayer);
