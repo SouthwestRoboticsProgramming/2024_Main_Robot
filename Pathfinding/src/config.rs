@@ -1,16 +1,18 @@
-use std::collections::BTreeMap;
+use std::{collections::BTreeMap, fs};
 
 use serde::{Deserialize, Serialize};
-use tokio::fs;
 use uuid::Uuid;
 
-use crate::{collision, vectors::Vec2f};
+use crate::{
+    math::Vec2f,
+    obstacle::{self, Obstacle},
+};
 
 #[derive(Serialize, Deserialize)]
 pub struct Config {
     pub messenger: MessengerConfig,
     pub robot_radius: f64,
-    pub field: FieldConfig,
+    pub tolerance: f64,
     pub env_file: String,
 }
 
@@ -19,7 +21,7 @@ impl Default for Config {
         Self {
             messenger: Default::default(),
             robot_radius: 0.5,
-            field: Default::default(),
+            tolerance: 0.1,
             env_file: "environment.json".to_string(),
         }
     }
@@ -42,81 +44,82 @@ impl Default for MessengerConfig {
     }
 }
 
-#[derive(Serialize, Deserialize)]
-pub struct FieldConfig {
-    pub cell_size: f64,
-    pub origin_x: f64,
-    pub origin_y: f64,
-}
-
-impl Default for FieldConfig {
-    fn default() -> Self {
-        Self {
-            cell_size: 0.1524,
-            origin_x: 0.0,
-            origin_y: 1.0,
-        }
-    }
-}
-
-// ---------------------------------------
+// ---------------------------------
 
 #[derive(Serialize, Deserialize)]
-pub struct Environment {
+pub struct EnvironmentConfig {
     pub width: f64,
     pub height: f64,
-    pub shapes: BTreeMap<Uuid, (String, collision::CollisionShape)>,
+    pub obstacles: BTreeMap<Uuid, (String, ConfigObstacle)>,
 }
 
-impl Default for Environment {
+impl Default for EnvironmentConfig {
     fn default() -> Self {
-        // By default include border rectangle
-        let mut shapes = BTreeMap::new();
-        shapes.insert(
+        let mut obstacles = BTreeMap::new();
+
+        obstacles.insert(
             Uuid::new_v4(),
             (
-                "Field perimeter".to_string(),
-                collision::CollisionShape::Rectangle(collision::Rectangle {
-                    position: Vec2f {
-                        x: 8.2296,
-                        y: 4.1148,
-                    },
-                    size: Vec2f {
-                        x: 16.4592,
-                        y: 8.2296,
-                    },
-                    rotation: 0.0,
-                    inverted: true,
+                "Test circle".to_string(),
+                ConfigObstacle::Circle(obstacle::Circle {
+                    position: Vec2f::new(300.0, 300.0),
+                    radius: 75.0,
                 }),
             ),
         );
 
         Self {
-            width: 16.4592,
-            height: 8.2296,
-            shapes,
+            width: 16.0,
+            height: 8.0,
+            obstacles,
         }
     }
 }
 
-pub async fn load_or_save_default<T>(file_name: &str) -> Result<T, Box<dyn std::error::Error>>
+#[derive(Serialize, Deserialize, Clone)]
+pub struct Rectangle {
+    pub position: Vec2f,
+    pub size: Vec2f,
+    pub rotation: f64,
+}
+
+#[derive(Serialize, Deserialize, Clone)]
+#[serde(tag = "type")]
+pub enum ConfigObstacle {
+    Circle(obstacle::Circle),
+    Polygon(obstacle::Polygon),
+    Rectangle(Rectangle),
+}
+
+impl ConfigObstacle {
+    pub fn into_obstacle(self) -> Obstacle {
+        match self {
+            Self::Circle(circle) => Obstacle::Circle(circle),
+            Self::Polygon(polygon) => Obstacle::Polygon(polygon),
+            Self::Rectangle(rect) => Obstacle::Polygon(obstacle::Polygon::new_rectangle(
+                rect.position,
+                rect.size,
+                rect.rotation,
+            )),
+        }
+    }
+}
+
+pub fn load_or_save_default<T>(file_name: &str) -> Result<T, Box<dyn std::error::Error>>
 where
     for<'a> T: Default + Serialize + Deserialize<'a>,
 {
-    let file_exists = match fs::try_exists(file_name).await {
-        Ok(exists) => exists,
-        Err(_) => false,
-    };
+    let file_exists = std::path::Path::new(file_name).exists();
 
     if file_exists {
         println!("Reading {}", file_name);
-        let string = fs::read_to_string(file_name).await?;
+        let string = fs::read_to_string(file_name)?;
         Ok(serde_json::from_str::<T>(&string)?)
     } else {
         println!("File {} not found, saving defaults", file_name);
         let def: T = Default::default();
         let string = serde_json::to_string_pretty(&def).unwrap();
-        fs::write(file_name, &string).await?;
+        fs::write(file_name, &string)?;
         Ok(def)
     }
 }

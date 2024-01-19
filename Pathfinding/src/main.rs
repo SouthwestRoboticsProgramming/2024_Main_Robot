@@ -1,522 +1,484 @@
-// Potential future optimizations:
-// Cache line-of-sight checks
-// Don't use line-of-sight for neighbor queries
+// TODO:
+//   CRITICAL: Make it not freeze if the goal is inside obstacle
+//   If inside obstacle, find a way out first
+//   OPTIMIZATION: Use bidirectional Dijkstra for fast
 
-use std::{collections::BTreeMap, error::Error, time::Instant};
+use std::{
+    error::Error,
+    sync::{Arc, Mutex},
+    time::Instant,
+};
 
-use bytes::{Buf, BufMut, Bytes, BytesMut};
-use collision::{Circle, CollisionShape, Rectangle};
+use bytes::{Buf, BufMut, BytesMut};
+use itertools::Itertools;
+use math::Vec2f;
 use messenger_client::{Message, MessengerClient};
-use tokio::fs;
-use uuid::Uuid;
-use vectors::{Vec2f, Vec2i};
 
-pub mod collision;
-pub mod config;
-pub mod dijkstra;
-pub mod grid;
-pub mod theta_star;
-pub mod vectors;
+mod bezier;
+mod config;
+mod geom;
+mod math;
+mod obstacle;
 
-const CONFIG_FILE_NAME: &str = "config.json";
+mod gui;
 
 const MSG_SET_ENDPOINTS: &str = "Pathfinder:SetEndpoints";
 const MSG_PATH: &str = "Pathfinder:Path";
 
-const MSG_GET_FIELD_INFO: &str = "Pathfinder:GetFieldInfo";
-const MSG_GET_CELL_DATA: &str = "Pathfinder:GetCellData";
-const MSG_GET_SHAPES: &str = "Pathfinder:GetShapes";
-
-const MSG_SET_SHAPE: &str = "Pathfinder:SetShape";
-const MSG_REMOVE_SHAPE: &str = "Pathfinder:RemoveShape";
-const MSG_SET_DYN_SHAPES: &str = "Pathfinder:SetDynamicShapes";
-
-const MSG_FIELD_INFO: &str = "Pathfinder:FieldInfo";
-const MSG_CELL_DATA: &str = "Pathfinder:CellData";
-const MSG_SHAPES: &str = "Pathfinder:Shapes";
-
-// TODO: This should almost certainly be split up at some point
-struct PathfinderTask {
-    messenger: MessengerClient,
-    static_shapes: BTreeMap<Uuid, (String, CollisionShape)>,
-    dyn_shapes: Vec<CollisionShape>,
-    robot_radius: f64,
-    dyn_grid: grid::Grid2D,
-    static_grid: grid::Grid2D,
-
-    cell_size: f64,
-    origin_pos_cell: Vec2f,
-    field_size: Vec2f,
-    env_file_name: String,
-}
-
-impl PathfinderTask {
-    async fn new() -> Result<Self, Box<dyn Error>> {
-        let conf: config::Config = config::load_or_save_default(CONFIG_FILE_NAME).await?;
-        let env: config::Environment = config::load_or_save_default(&conf.env_file).await?;
-
-        let msg_addr = format!("{}:{}", conf.messenger.host, conf.messenger.port);
-        let mut messenger = MessengerClient::new(msg_addr, conf.messenger.name);
-        messenger.listen_multiple(vec![
-            MSG_SET_ENDPOINTS,
-            MSG_GET_FIELD_INFO,
-            MSG_GET_CELL_DATA,
-            MSG_GET_SHAPES,
-            MSG_SET_SHAPE,
-            MSG_REMOVE_SHAPE,
-            MSG_SET_DYN_SHAPES,
-        ]);
-
-        let shapes = env.shapes;
-        let grid = grid::Grid2D::new(Vec2i {
-            x: (env.width / conf.field.cell_size).ceil() as i32,
-            y: (env.height / conf.field.cell_size).ceil() as i32,
-        });
-
-        let mut task = PathfinderTask {
-            messenger,
-            static_shapes: shapes,
-            dyn_shapes: Vec::new(),
-            robot_radius: conf.robot_radius,
-            cell_size: conf.field.cell_size,
-            origin_pos_cell: Vec2f {
-                x: grid.cell_size().x as f64 * conf.field.origin_x,
-                y: grid.cell_size().y as f64 * conf.field.origin_y,
-            },
-            static_grid: grid.clone(),
-            dyn_grid: grid,
-            field_size: Vec2f {
-                x: env.width,
-                y: env.height,
-            },
-            env_file_name: conf.env_file,
-        };
-
-        for (_, (_, shape)) in &task.static_shapes.clone() {
-            task.update_add_static_shape(shape);
-        }
-
-        Ok(task)
-    }
-
-    fn cell_to_meters(&self, cell: &Vec2f) -> Vec2f {
-        Vec2f {
-            x: (cell.x - self.origin_pos_cell.x) * self.cell_size,
-            y: -(cell.y - self.origin_pos_cell.y) * self.cell_size,
-        }
-    }
-
-    fn meters_to_cell(&self, meters: &Vec2f) -> Vec2f {
-        Vec2f {
-            x: meters.x / self.cell_size + self.origin_pos_cell.x,
-            y: self.origin_pos_cell.y - meters.y / self.cell_size,
-        }
-    }
-
-    fn cell_center(&self, cell: &Vec2i) -> Vec2f {
-        self.cell_to_meters(&(Vec2f::from(cell) + Vec2f { x: 0.5, y: 0.5 }))
-    }
-
-    async fn save_env_file(&self) -> Result<(), Box<dyn Error>> {
-        let new_env = config::Environment {
-            width: self.field_size.x,
-            height: self.field_size.y,
-            shapes: self.static_shapes.clone(),
-        };
-        let env_str = serde_json::to_string_pretty(&new_env)?;
-        fs::write(&self.env_file_name, &env_str).await?;
-        println!("Saved environment file");
-        Ok(())
-    }
-
-    fn get_robot_circle(&self, cell_pos: &Vec2i) -> Circle {
-        let robot_pos = self.cell_center(cell_pos);
-        Circle {
-            position: robot_pos,
-            radius: self.robot_radius,
-        }
-    }
-
-    fn constrain_to_grid(&self, cell: Vec2i) -> Vec2i {
-        let sz = self.dyn_grid.cell_size();
-        return Vec2i {
-            x: cell.x.clamp(0, sz.x),
-            y: cell.y.clamp(0, sz.y),
-        };
-    }
-
-    fn get_shape_region(&self, shape: &CollisionShape) -> (Vec2i, Vec2i) {
-        let aabb = shape.get_bounding_box().inflate(self.robot_radius);
-        let min = self.meters_to_cell(&aabb.min).floor();
-        let max = self.meters_to_cell(&aabb.max).ceil();
-        (
-            self.constrain_to_grid(Vec2i { x: min.x, y: max.y }),
-            self.constrain_to_grid(Vec2i { x: max.x, y: min.y }),
-        )
-    }
-
-    // When adding static shape:
-    //   In shape's bounding box, if currently passable and shape collides, set not passable
-    //   Also set not passable in dynamic grid
-    fn update_add_static_shape(&mut self, shape: &CollisionShape) {
-        let (min, max) = self.get_shape_region(shape);
-
-        for y in min.y..max.y {
-            for x in min.x..max.x {
-                // Don't bother checking, we already can't go here
-                if !self.static_grid.can_cell_pass(x, y) {
-                    continue;
-                }
-
-                let cell_pos = Vec2i { x, y };
-                let robot = self.get_robot_circle(&cell_pos);
-
-                if shape.collides_with_circle(&robot) {
-                    self.static_grid.set_cell_passable(&cell_pos, false);
-                    self.dyn_grid.set_cell_passable(&cell_pos, false);
-                }
-            }
-        }
-    }
-
-    // When removing static shape:
-    //   In shape's bounding box, if did collide with removed shape, recalculate with all others
-    //   If it got cleared, recalculate dynamic cell as well
-    fn update_remove_static_shape(&mut self, shape: &CollisionShape) {
-        let (min, max) = self.get_shape_region(shape);
-
-        for y in min.y..max.y {
-            'cell_loop: for x in min.x..max.x {
-                let cell_pos = Vec2i { x, y };
-                let robot = self.get_robot_circle(&cell_pos);
-
-                if shape.collides_with_circle(&robot) {
-                    for (_, (_, shape)) in &self.static_shapes {
-                        if shape.collides_with_circle(&robot) {
-                            continue 'cell_loop;
-                        }
-                    }
-                    self.static_grid.set_cell_passable(&cell_pos, true);
-
-                    for shape in &self.dyn_shapes {
-                        if shape.collides_with_circle(&robot) {
-                            continue 'cell_loop;
-                        }
-                    }
-                    self.dyn_grid.set_cell_passable(&cell_pos, true);
-                }
-            }
-        }
-    }
-
-    // When setting dynamic shapes:
-    //   Copy all cell data from static grid into dynamic grid
-    //   For each new dynamic shape, do same as adding static shape
-    fn update_set_dyn_shapes(&mut self) {
-        let start_time = Instant::now();
-        // Copy in all the datas
-        self.dyn_grid = self.static_grid.clone();
-
-        for shape in &self.dyn_shapes {
-            let (min, max) = self.get_shape_region(shape);
-
-            for y in min.y..max.y {
-                for x in min.x..max.x {
-                    // Don't bother checking, we already can't go here
-                    if !self.dyn_grid.can_cell_pass(x, y) {
-                        continue;
-                    }
-
-                    let cell_pos = Vec2i { x, y };
-                    let robot = self.get_robot_circle(&cell_pos);
-
-                    if shape.collides_with_circle(&robot) {
-                        self.dyn_grid.set_cell_passable(&cell_pos, false);
-                    }
-                }
-            }
-        }
-        let end_time = Instant::now();
-
-        println!(
-            "Regenerating dynamic grid took {} secs",
-            end_time.duration_since(start_time).as_secs_f64(),
-        );
-    }
-
-    async fn save_static_shapes(&mut self) {
-        match self.save_env_file().await {
-            Ok(_) => {}
-            Err(e) => {
-                eprintln!("Failed to save environment: {}", e);
-            }
-        }
-    }
-
-    async fn run(mut self) {
-        println!("Pathfinder is running");
-
-        let mut start_pos = Vec2f { x: 0.0, y: 0.0 };
-        let mut goal_pos = Vec2f { x: 0.0, y: 0.0 };
-        let mut needs_recalc = false;
-
-        loop {
-            for msg in self.messenger.poll_or_await_messages().await {
-                let mut data = msg.data;
-                match msg.name.as_str() {
-                    MSG_SET_ENDPOINTS => {
-                        let start_x = data.get_f64();
-                        let start_y = data.get_f64();
-                        let goal_x = data.get_f64();
-                        let goal_y = data.get_f64();
-                        start_pos = Vec2f {
-                            x: start_x,
-                            y: start_y,
-                        };
-                        goal_pos = Vec2f {
-                            x: goal_x,
-                            y: goal_y,
-                        };
-                        needs_recalc = true;
-                    }
-                    MSG_GET_FIELD_INFO => self.on_get_field_info(),
-                    MSG_GET_CELL_DATA => self.on_get_cell_data(),
-                    MSG_GET_SHAPES => self.on_get_shapes(),
-                    MSG_SET_SHAPE => self.on_set_shape(data).await,
-                    MSG_REMOVE_SHAPE => self.on_remove_shape(data).await,
-                    MSG_SET_DYN_SHAPES => {
-                        self.on_set_dyn_shapes(&mut data);
-
-                        let start_x = data.get_f64();
-                        let start_y = data.get_f64();
-                        start_pos = Vec2f {
-                            x: start_x,
-                            y: start_y,
-                        };
-                        needs_recalc = true;
-                    }
-                    _ => {}
-                }
-            }
-
-            if needs_recalc {
-                let start_time = Instant::now();
-
-                let real_start_cell = self.find_nearest_point(start_pos);
-                let start_cell = dijkstra::find_nearest_passable(&self.dyn_grid, real_start_cell)
-                    .unwrap_or(real_start_cell);
-                let goal_cell = self.find_nearest_point(goal_pos);
-
-                let mut result = theta_star::find_path(&self.dyn_grid, start_cell, goal_cell);
-                let end_time = Instant::now();
-
-                let data = match &mut result {
-                    Some(path) => {
-                        if start_cell != real_start_cell {
-                            path.insert(0, real_start_cell);
-                        }
-
-                        let mut buf = BytesMut::with_capacity(5 + 16 * path.len());
-                        buf.put_u8(1);
-                        buf.put_i32(path.len() as i32);
-                        for point in path {
-                            let pos_meters = self.cell_to_meters(&point.into());
-                            buf.put_f64(pos_meters.x);
-                            buf.put_f64(pos_meters.y);
-                        }
-                        buf
-                    }
-                    None => BytesMut::zeroed(1),
-                };
-
-                self.messenger.send_message(Message {
-                    name: MSG_PATH.to_string(),
-                    data: data.into(),
-                });
-
-                println!(
-                    "Calculating path from {:?} to {:?} took {} secs; found={}",
-                    start_pos,
-                    goal_pos,
-                    end_time.duration_since(start_time).as_secs_f64(),
-                    result.is_some()
-                );
-                needs_recalc = false;
-            }
-        }
-    }
-
-    fn find_nearest_point(&self, pos_meters: Vec2f) -> Vec2i {
-        let cell_f = self.meters_to_cell(&pos_meters);
-        let size = self.dyn_grid.cell_size();
-        Vec2i {
-            x: (cell_f.x.round() as i32).clamp(0, size.x),
-            y: (cell_f.y.round() as i32).clamp(0, size.y),
-        }
-    }
-
-    // ---- Message handlers ----
-
-    fn on_get_field_info(&mut self) {
-        let mut data = BytesMut::with_capacity(48);
-        data.put_f64(self.cell_size);
-        data.put_f64(self.field_size.x);
-        data.put_f64(self.field_size.y);
-        data.put_f64(self.origin_pos_cell.x);
-        data.put_f64(self.origin_pos_cell.y);
-        let grid_sz = self.dyn_grid.cell_size();
-        data.put_i32(grid_sz.x);
-        data.put_i32(grid_sz.y);
-
-        self.messenger.send_message(Message {
-            name: MSG_FIELD_INFO.to_string(),
-            data: data.into(),
-        });
-    }
-
-    fn on_get_cell_data(&mut self) {
-        let size = self.dyn_grid.cell_size();
-        let bit_data = self.dyn_grid.get_as_java_bitset();
-
-        let mut data = BytesMut::with_capacity(bit_data.len() * 8 + 12);
-        data.put_i32(size.x);
-        data.put_i32(size.y);
-        data.put_i32(bit_data.len() as i32);
-        for word in bit_data {
-            data.put_u64(word);
-        }
-
-        self.messenger.send_message(Message {
-            name: MSG_CELL_DATA.to_string(),
-            data: data.into(),
-        });
-    }
-
-    fn write_shape(data: &mut BytesMut, shape: &CollisionShape) {
-        match shape {
-            CollisionShape::Circle(c) => {
-                data.reserve(25);
-                data.put_u8(0);
-                data.put_f64(c.position.x);
-                data.put_f64(c.position.y);
-                data.put_f64(c.radius);
-            }
-            CollisionShape::Rectangle(r) => {
-                data.reserve(42);
-                data.put_u8(1);
-                data.put_f64(r.position.x);
-                data.put_f64(r.position.y);
-                data.put_f64(r.size.x);
-                data.put_f64(r.size.y);
-                data.put_f64(r.rotation);
-                data.put_u8(if r.inverted { 1 } else { 0 });
-            }
-        }
-    }
-
-    fn on_get_shapes(&mut self) {
-        let mut data = BytesMut::with_capacity(4);
-        data.put_i32(self.static_shapes.len() as i32);
-        for (id, (name, shape)) in &self.static_shapes {
-            let name_utf = name.as_bytes();
-
-            data.reserve(17 + 2 + name_utf.len());
-            data.put_u128(id.as_u128());
-            data.put_u16(name_utf.len() as u16);
-            data.put(name_utf);
-            Self::write_shape(&mut data, shape);
-        }
-
-        data.reserve(4);
-        data.put_i32(self.dyn_shapes.len() as i32);
-        for shape in &self.dyn_shapes {
-            Self::write_shape(&mut data, shape);
-        }
-
-        self.messenger.send_message(Message {
-            name: MSG_SHAPES.to_string(),
-            data: data.into(),
-        });
-    }
-
-    fn read_shape(data: &mut Bytes) -> Option<CollisionShape> {
-        match data.get_u8() {
-            0 => {
-                let x = data.get_f64();
-                let y = data.get_f64();
-                let rad = data.get_f64();
-                Some(CollisionShape::Circle(Circle {
-                    position: Vec2f { x, y },
-                    radius: rad,
-                }))
-            }
-            1 => {
-                let x = data.get_f64();
-                let y = data.get_f64();
-                let w = data.get_f64();
-                let h = data.get_f64();
-                let rot = data.get_f64();
-                let inv = data.get_u8() != 0;
-                Some(CollisionShape::Rectangle(Rectangle {
-                    position: Vec2f { x, y },
-                    size: Vec2f { x: w, y: h },
-                    rotation: rot,
-                    inverted: inv,
-                }))
-            }
-            _ => None,
-        }
-    }
-
-    async fn on_set_shape(&mut self, mut data: Bytes) {
-        let id = Uuid::from_u128(data.get_u128());
-
-        let name_len = data.get_u16() as usize;
-        let mut name_data = BytesMut::with_capacity(name_len);
-        for _ in 0..name_len {
-            name_data.put_u8(data.get_u8());
-        }
-        let name = String::from_utf8_lossy(&name_data).to_string();
-
-        if let Some(shape) = Self::read_shape(&mut data) {
-            self.update_add_static_shape(&shape);
-            if let Some((_, old_shape)) = self.static_shapes.insert(id, (name, shape)) {
-                self.update_remove_static_shape(&old_shape);
-            }
-            self.save_static_shapes().await;
-        }
-    }
-
-    async fn on_remove_shape(&mut self, mut data: Bytes) {
-        let id = Uuid::from_u128(data.get_u128());
-        if let Some((_, removed_shape)) = self.static_shapes.remove(&id) {
-            self.update_remove_static_shape(&removed_shape);
-            self.save_static_shapes().await;
-        }
-    }
-
-    fn on_set_dyn_shapes(&mut self, data: &mut Bytes) {
-        let count = data.get_i32();
-        self.dyn_shapes.clear();
-        for _ in 0..count {
-            if let Some(shape) = Self::read_shape(data) {
-                self.dyn_shapes.push(shape);
-            } else {
-                self.update_set_dyn_shapes();
-                return;
-            }
-        }
-        self.update_set_dyn_shapes();
-    }
-}
-
 #[tokio::main]
-async fn main() {
-    match PathfinderTask::new().await {
-        Ok(task) => task.run().await,
-        Err(e) => {
-            eprintln!("Failed to start pathfinding:");
-            eprintln!("{}", e);
+async fn main() -> Result<(), Box<dyn Error>> {
+    let conf: config::Config = config::load_or_save_default("config.json")?;
+    let environment: config::EnvironmentConfig = config::load_or_save_default(&conf.env_file)?;
+
+    let addr = format!("{}:{}", conf.messenger.host, conf.messenger.port);
+    let mut messenger = MessengerClient::new(addr, conf.messenger.name);
+    messenger.listen_multiple(vec![MSG_SET_ENDPOINTS]);
+
+    let obstacles = environment
+        .obstacles
+        .values()
+        .map(|(_, o)| o.clone().into_obstacle())
+        .collect_vec();
+
+    let field = Arc::new(geom::Field::generate(
+        &obstacles,
+        conf.robot_radius + conf.tolerance,
+    ));
+
+    let mut start = Vec2f::new(1.0, 1.0);
+    let mut goal = Vec2f::new(1.2, 1.2);
+
+    let gui_state = Arc::new(Mutex::new(gui::GraphicsState {
+        start,
+        goal,
+        calc_time: 0.0,
+        path: None,
+    }));
+    gui::show_graphics_window(
+        Vec2f::new(environment.width, environment.height),
+        conf.robot_radius,
+        obstacles,
+        field.clone(),
+        gui_state.clone(),
+    );
+
+    loop {
+        let mut needs_recalc = false;
+        for msg in messenger.poll_or_await_messages().await {
+            let mut data = msg.data;
+            match msg.name.as_str() {
+                MSG_SET_ENDPOINTS => {
+                    let start_x = data.get_f64();
+                    let start_y = data.get_f64();
+                    let goal_x = data.get_f64();
+                    let goal_y = data.get_f64();
+                    start = Vec2f {
+                        x: start_x,
+                        y: start_y,
+                    };
+                    goal = Vec2f {
+                        x: goal_x,
+                        y: goal_y,
+                    };
+                    needs_recalc = true;
+                }
+                _ => {}
+            }
+        }
+
+        if needs_recalc {
+            let calc_start = Instant::now();
+            let path_opt = field.find_path(start, goal);
+            let calc_end = Instant::now();
+            let calc_time = calc_end.duration_since(calc_start).as_secs_f64();
+
+            if let Ok(mut state) = gui_state.lock() {
+                state.start = start;
+                state.goal = goal;
+                state.calc_time = calc_time;
+            }
+
+            let has_path = path_opt.is_some();
+            let data = match path_opt {
+                Some(path) => {
+                    let bezier_pts = bezier::to_bezier(&path, start, goal);
+
+                    let mut buf = BytesMut::with_capacity(bezier_pts.len() * 16 + 4 + 1);
+                    buf.put_u8(1);
+                    buf.put_i32(bezier_pts.len() as i32);
+                    for point in &bezier_pts {
+                        buf.put_f64(point.x);
+                        buf.put_f64(point.y);
+                    }
+
+                    if let Ok(mut state) = gui_state.lock() {
+                        state.path = Some((path, bezier_pts));
+                    }
+
+                    buf
+                }
+                None => {
+                    if let Ok(mut state) = gui_state.lock() {
+                        state.path = None;
+                    }
+                    BytesMut::zeroed(1)
+                }
+            };
+
+            messenger.send_message(Message {
+                name: MSG_PATH.to_string(),
+                data: data.into(),
+            });
+
+            println!(
+                "Calculating path from {:?} to {:?} took {} secs; found={}",
+                start, goal, calc_time, has_path
+            );
         }
     }
 }
+
+// use std::{error::Error, f64::consts::PI, time::Instant};
+
+// use geom::WindingDir;
+// use itertools::Itertools;
+// use lerp::Lerp;
+// use macroquad::prelude::*;
+// use math::Vec2f;
+// use obstacle::Obstacle;
+
+// fn draw_arc(center: Vec2f, radius: f64, min: f64, max: f64, thickness: f32, color: Color) {
+//     let mut prev_angle = min;
+//     for i in 1..=31 {
+//         let angle = min.lerp(max, (i as f64) / 31.0);
+
+//         let prev_pos = center + Vec2f::new_angle(radius, prev_angle);
+//         let pos = center + Vec2f::new_angle(radius, angle);
+
+//         draw_line(
+//             prev_pos.x as f32,
+//             prev_pos.y as f32,
+//             pos.x as f32,
+//             pos.y as f32,
+//             thickness,
+//             color,
+//         );
+
+//         prev_angle = angle;
+//     }
+// }
+
+// fn draw_bezier(p0: Vec2f, p1: Vec2f, p2: Vec2f, p3: Vec2f, thickness: f32, color: Color) {
+//     let mut prev_pt = p0;
+//     for i in 1..=16 {
+//         let t = i as f64 / 16.0;
+
+//         let a = p0.lerp(p1, t);
+//         let b = p1.lerp(p2, t);
+//         let c = p2.lerp(p3, t);
+//         let d = a.lerp(b, t);
+//         let e = b.lerp(c, t);
+//         let point = d.lerp(e, t);
+
+//         draw_line(
+//             prev_pt.x as f32,
+//             prev_pt.y as f32,
+//             point.x as f32,
+//             point.y as f32,
+//             thickness,
+//             color,
+//         );
+//         prev_pt = point;
+//     }
+// }
+
+// #[macroquad::main("Arc Pathfinding")]
+// async fn main() -> Result<(), Box<dyn Error>> {
+//     let conf: config::Config = config::load_or_save_default("config.json")?;
+//     let environment: config::EnvironmentConfig = config::load_or_save_default(&conf.env_file)?;
+
+//     let obstacles = environment
+//         .obstacles
+//         .values()
+//         .map(|(_, o)| o.clone().into_obstacle())
+//         .collect_vec();
+
+//     let gen_start = Instant::now();
+//     let field = geom::Field::generate(&obstacles, conf.robot_radius + conf.tolerance);
+//     println!("Precalc took {} secs", gen_start.elapsed().as_secs_f64());
+
+//     let mut start = Vec2f::new(1.0, 1.0);
+//     let mut goal = Vec2f::new(1.2, 1.2);
+
+//     let mut preview_dist = 0.0;
+//     let mut prev_frame_time = Instant::now();
+
+//     loop {
+//         let frame_time = Instant::now();
+//         let elapsed = frame_time.duration_since(prev_frame_time);
+//         prev_frame_time = frame_time;
+
+//         clear_background(BLACK);
+
+//         let scale_x = (screen_width() - 50.0) / environment.width as f32;
+//         let scale_y = (screen_height() - 50.0) / environment.height as f32;
+
+//         let scale = scale_x.min(scale_y);
+//         let pixel = 1.0 / scale;
+//         set_camera(&Camera2D {
+//             zoom: Vec2 {
+//                 x: 2.0 * scale / screen_width(),
+//                 y: 2.0 * -scale / screen_height(),
+//             },
+//             target: Vec2 {
+//                 x: environment.width as f32 / 2.0,
+//                 y: environment.height as f32 / 2.0,
+//             },
+//             ..Default::default()
+//         });
+
+//         let (mouse_x, mouse_y) = mouse_position();
+//         let mouse_pos = Vec2f {
+//             x: ((mouse_x - screen_width() / 2.0) / scale) as f64 + environment.width / 2.0,
+//             y: ((screen_height() / 2.0 - mouse_y) / scale) as f64 + environment.height / 2.0,
+//         };
+//         draw_circle(mouse_pos.x as f32, mouse_pos.y as f32, 15.0 * pixel, BLUE);
+
+//         if is_mouse_button_down(MouseButton::Left) {
+//             start = mouse_pos;
+//         }
+//         if is_mouse_button_down(MouseButton::Right) {
+//             goal = mouse_pos;
+//         }
+
+//         for obstacle in &obstacles {
+//             match obstacle {
+//                 Obstacle::Circle(circle) => {
+//                     draw_circle_lines(
+//                         circle.position.x as f32,
+//                         circle.position.y as f32,
+//                         circle.radius as f32,
+//                         2.0 * pixel,
+//                         ORANGE,
+//                     );
+//                 }
+//                 Obstacle::Polygon(polygon) => {
+//                     let mut prev = polygon.vertices[polygon.vertices.len() - 1];
+//                     for vert in &polygon.vertices {
+//                         draw_line(
+//                             prev.x as f32,
+//                             prev.y as f32,
+//                             vert.x as f32,
+//                             vert.y as f32,
+//                             2.0 * pixel,
+//                             ORANGE,
+//                         );
+//                         prev = *vert;
+//                     }
+//                 }
+//             }
+//         }
+
+//         for arc in &field.arcs {
+//             let (min, max) = if arc.min_angle == arc.max_angle {
+//                 (0.0, PI * 2.0)
+//             } else if arc.max_angle < arc.min_angle {
+//                 (arc.min_angle, arc.max_angle + PI * 2.0)
+//             } else {
+//                 (arc.min_angle, arc.max_angle)
+//             };
+
+//             draw_arc(arc.center, arc.radius, min, max, 2.0 * pixel, RED);
+//         }
+
+//         for segment in &field.segments {
+//             draw_line(
+//                 segment.from.x as f32,
+//                 segment.from.y as f32,
+//                 segment.to.x as f32,
+//                 segment.to.y as f32,
+//                 2.0 * pixel,
+//                 GRAY,
+//             );
+//         }
+
+//         for edge_set in &field.visibility {
+//             for edge in edge_set {
+//                 let seg = &edge.segment;
+//                 draw_line(
+//                     seg.from.x as f32,
+//                     seg.from.y as f32,
+//                     seg.to.x as f32,
+//                     seg.to.y as f32,
+//                     1.0 * pixel,
+//                     MAGENTA,
+//                 );
+//             }
+//         }
+
+//         let calc_start = Instant::now();
+//         let path_opt = field.find_path(start, goal);
+//         // let path_opt: Option<Vec<geom::PathArc>> = None;
+//         let calc_end = Instant::now();
+
+//         if let Some(path) = path_opt {
+//             if is_key_down(KeyCode::Space) {
+//                 let mut p = start;
+//                 for arc in &path {
+//                     draw_line(
+//                         p.x as f32,
+//                         p.y as f32,
+//                         (arc.center.x + arc.radius * arc.incoming_angle.cos()) as f32,
+//                         (arc.center.y + arc.radius * arc.incoming_angle.sin()) as f32,
+//                         4.0 * pixel,
+//                         GREEN,
+//                     );
+
+//                     let mut angle1 = math::wrap_angle(arc.incoming_angle);
+//                     let mut angle2 = math::wrap_angle(arc.outgoing_angle);
+//                     if arc.direction == WindingDir::Clockwise {
+//                         std::mem::swap(&mut angle1, &mut angle2);
+//                     }
+
+//                     if angle2 < angle1 {
+//                         angle2 += PI * 2.0;
+//                     }
+
+//                     draw_arc(arc.center, arc.radius, angle1, angle2, 4.0 * pixel, GREEN);
+//                     p = arc.center + Vec2f::new_angle(arc.radius, arc.outgoing_angle);
+//                 }
+//                 draw_line(
+//                     p.x as f32,
+//                     p.y as f32,
+//                     goal.x as f32,
+//                     goal.y as f32,
+//                     4.0 * pixel,
+//                     GREEN,
+//                 );
+//             } else {
+//                 let bezier_pts = bezier::to_bezier(&path, start, goal);
+
+//                 let mut anchor = bezier_pts[0];
+//                 let curve_count = (bezier_pts.len() - 1) / 3;
+
+//                 for i in 0..curve_count {
+//                     let cp1 = bezier_pts[i * 3 + 1];
+//                     let cp2 = bezier_pts[i * 3 + 2];
+//                     let anchor2 = bezier_pts[i * 3 + 3];
+
+//                     draw_bezier(anchor, cp1, cp2, anchor2, 4.0 * pixel, ORANGE);
+//                     anchor = anchor2;
+//                 }
+//             }
+
+//             preview_dist += elapsed.as_secs_f64() * 2.5;
+
+//             let mut preview_pt = start;
+//             let mut dist_so_far = 0.0;
+//             let mut preview_found = false;
+//             for arc in &path {
+//                 let in_pt = arc.center + Vec2f::new_angle(arc.radius, arc.incoming_angle);
+//                 let out_pt = arc.center + Vec2f::new_angle(arc.radius, arc.outgoing_angle);
+
+//                 let to_in_dist = preview_pt.distance_sq(in_pt).sqrt();
+//                 if dist_so_far + to_in_dist > preview_dist {
+//                     preview_pt = preview_pt.lerp(in_pt, (preview_dist - dist_so_far) / to_in_dist);
+//                     preview_found = true;
+//                     break;
+//                 }
+//                 dist_so_far += to_in_dist;
+
+//                 let angle1 = math::wrap_angle(arc.incoming_angle);
+//                 let angle2 = math::wrap_angle(arc.outgoing_angle);
+//                 let diff = math::floor_mod(
+//                     match arc.direction {
+//                         WindingDir::Counterclockwise => angle2 - angle1,
+//                         WindingDir::Clockwise => angle1 - angle2,
+//                     },
+//                     PI * 2.0,
+//                 );
+//                 let arc_dist = diff * arc.radius;
+//                 if dist_so_far + arc_dist > preview_dist {
+//                     let angle = angle1.lerp(angle2, (preview_dist - dist_so_far) / arc_dist);
+//                     preview_pt = arc.center + Vec2f::new_angle(arc.radius, angle);
+//                     preview_found = true;
+//                     break;
+//                 }
+
+//                 preview_pt = out_pt;
+//                 dist_so_far += arc_dist;
+//             }
+
+//             if !preview_found {
+//                 let to_goal_dist = preview_pt.distance_sq(goal).sqrt();
+//                 if dist_so_far + to_goal_dist > preview_dist {
+//                     preview_pt = preview_pt.lerp(goal, (preview_dist - dist_so_far) / to_goal_dist);
+//                     preview_found = true;
+//                 }
+//             }
+
+//             if !preview_found {
+//                 preview_dist = 0.0;
+//             }
+
+//             draw_circle_lines(
+//                 preview_pt.x as f32,
+//                 preview_pt.y as f32,
+//                 conf.robot_radius as f32,
+//                 2.0 * pixel,
+//                 GREEN,
+//             );
+//         }
+
+//         let mut closest = None;
+//         for (id, arc) in field.arcs.iter().enumerate() {
+//             let dist = arc.center.distance_sq(mouse_pos).sqrt();
+//             if dist < arc.radius
+//                 && match closest {
+//                     Some((_, distance)) => dist < distance,
+//                     None => true,
+//                 }
+//             {
+//                 closest = Some((id, dist));
+//             }
+//         }
+
+//         if let Some((id, _)) = closest {
+//             // Clockwise
+//             for edge in &field.visibility[id << 1] {
+//                 draw_line(
+//                     edge.segment.from.x as f32,
+//                     edge.segment.from.y as f32,
+//                     edge.segment.to.x as f32,
+//                     edge.segment.to.y as f32,
+//                     4.0 * pixel,
+//                     BLUE,
+//                 );
+//             }
+
+//             // Counterclockwise
+//             for edge in &field.visibility[(id << 1) + 1] {
+//                 draw_line(
+//                     edge.segment.from.x as f32,
+//                     edge.segment.from.y as f32,
+//                     edge.segment.to.x as f32,
+//                     edge.segment.to.y as f32,
+//                     4.0 * pixel,
+//                     GOLD,
+//                 );
+//             }
+//         }
+
+//         set_default_camera();
+//         let calc_time_ms = calc_end.duration_since(calc_start).as_secs_f64() * 1000.0;
+//         draw_text(
+//             format!("Calc time: {:.3} ms", calc_time_ms).as_str(),
+//             20.0,
+//             20.0,
+//             30.0,
+//             WHITE,
+//         );
+
+//         next_frame().await;
+//     }
+// }
