@@ -1,6 +1,7 @@
 use std::{cmp::Ordering, collections::BinaryHeap, f64::consts::PI, rc::Rc};
 
 use arrayvec::ArrayVec;
+use lerp::Lerp;
 use ordered_float::OrderedFloat;
 
 use crate::{
@@ -205,7 +206,7 @@ impl Field {
         field
     }
 
-    pub fn find_path(&self, start: Vec2f, goal: Vec2f) -> Option<Vec<PathArc>> {
+    pub fn find_path(&self, mut start: Vec2f, goal: Vec2f) -> Option<Vec<PathArc>> {
         if self.is_segment_passable(
             &Segment {
                 from: start,
@@ -218,21 +219,97 @@ impl Field {
             return Some(Vec::new());
         }
 
+        // Check if the goal is unreachable, since if we try to search for unreachable
+        // goal it will loop forever
+        let mut tangents: ArrayVec<_, 2> = ArrayVec::new();
+        let mut goal_reachable = false;
+        for (arc_id, arc) in self.arcs.iter().enumerate() {
+            self.find_point_to_arc_tangents(goal, arc, arc_id, &mut tangents);
+            if !tangents.is_empty() {
+                goal_reachable = true;
+                break;
+            }
+        }
+        if !goal_reachable {
+            return None;
+        }
+
         let mut frontier = BinaryHeap::new();
 
-        let mut tangents: ArrayVec<_, 2> = ArrayVec::new();
-        for (arc_id, arc) in self.arcs.iter().enumerate() {
-            self.find_point_to_arc_tangents(start, &arc, arc_id, &mut tangents);
-            for tangent in &tangents {
-                let cost = tangent.segment.length();
-                frontier.push(Rc::new(SearchNode {
-                    context: ArcContext::new(arc_id, tangent.arc_dir),
-                    is_goal: false,
-                    came_from: None,
-                    incoming_angle: tangent.arc_angle,
-                    parent_outgoing_angle: 0.0,
-                    cost_so_far: cost,
-                }));
+        let mut start_changed = false;
+        for _ in 0..8 {
+            for (arc_id, arc) in self.arcs.iter().enumerate() {
+                self.find_point_to_arc_tangents(start, &arc, arc_id, &mut tangents);
+                for tangent in &tangents {
+                    let cost = tangent.segment.length();
+                    frontier.push(Rc::new(SearchNode {
+                        context: ArcContext::new(arc_id, tangent.arc_dir),
+                        is_goal: false,
+                        came_from: None,
+                        incoming_angle: tangent.arc_angle,
+                        parent_outgoing_angle: 0.0,
+                        cost_so_far: cost,
+                    }));
+                }
+            }
+
+            if !frontier.is_empty() {
+                break;
+            }
+
+            // Try to find a way back to the field
+            // This is somewhat goofy, but I don't care since it really shouldn't ever happen
+
+            let mut nearest_seg = None;
+            for segment in &self.segments {
+                let p1 = segment.from;
+                let p2 = segment.to;
+
+                let l2 = p1.distance_sq(p2);
+                let (dist, point) = if l2 == 0.0 {
+                    (start.distance_sq(p1), p1)
+                } else {
+                    let t =
+                        ((start.x - p1.x) * (p2.x - p1.x) + (start.y - p1.y) * (p2.y - p1.y)) / l2;
+                    let t = t.clamp(0.0, 1.0);
+
+                    let pt = p1.lerp(p2, t);
+                    (start.distance_sq(pt), pt)
+                };
+
+                if match nearest_seg {
+                    Some((d, _)) => dist < d,
+                    None => true,
+                } {
+                    nearest_seg = Some((dist, point));
+                }
+            }
+
+            match nearest_seg {
+                Some((_, proj_point)) => {
+                    start = proj_point + (proj_point - start).norm() * 0.05;
+                    start_changed = true;
+                }
+                None => return None,
+            }
+        }
+        if frontier.is_empty() {
+            // Couldn't find a way back to safe area
+            return None;
+        }
+
+        // Try straight line again if it changed
+        if start_changed {
+            if self.is_segment_passable(
+                &Segment {
+                    from: start,
+                    to: goal,
+                },
+                None,
+                None,
+            ) {
+                // Straight line from start to goal
+                return Some(Vec::new());
             }
         }
 
@@ -259,6 +336,7 @@ impl Field {
                 }
 
                 out.reverse();
+
                 return Some(out);
             }
 

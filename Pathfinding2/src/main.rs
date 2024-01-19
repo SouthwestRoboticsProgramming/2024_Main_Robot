@@ -1,3 +1,107 @@
+// TODO:
+//   CRITICAL: Make it not freeze if the goal is inside obstacle
+//   If inside obstacle, find a way out first
+//   OPTIMIZATION: Use bidirectional Dijkstra for fast
+
+// use std::{error::Error, time::Instant};
+
+// use bytes::{Buf, BufMut, BytesMut};
+// use itertools::Itertools;
+// use math::Vec2f;
+// use messenger_client::{Message, MessengerClient};
+
+mod bezier;
+mod config;
+mod geom;
+mod math;
+mod obstacle;
+
+const MSG_SET_ENDPOINTS: &str = "Pathfinder:SetEndpoints";
+const MSG_PATH: &str = "Pathfinder:Path";
+
+// #[tokio::main]
+// async fn main() -> Result<(), Box<dyn Error>> {
+//     let conf: config::Config = config::load_or_save_default("config.json")?;
+//     let environment: config::EnvironmentConfig = config::load_or_save_default(&conf.env_file)?;
+
+//     let addr = format!("{}:{}", conf.messenger.host, conf.messenger.port);
+//     let mut messenger = MessengerClient::new(addr, conf.messenger.name);
+//     messenger.listen_multiple(vec![MSG_SET_ENDPOINTS]);
+
+//     let obstacles = environment
+//         .obstacles
+//         .values()
+//         .map(|(_, o)| o.clone().into_obstacle())
+//         .collect_vec();
+
+//     let field = geom::Field::generate(&obstacles, conf.robot_radius);
+
+//     let mut start = Vec2f::new(1.0, 1.0);
+//     let mut goal = Vec2f::new(1.2, 1.2);
+
+//     loop {
+//         let mut needs_recalc = false;
+//         for msg in messenger.poll_or_await_messages().await {
+//             let mut data = msg.data;
+//             match msg.name.as_str() {
+//                 MSG_SET_ENDPOINTS => {
+//                     let start_x = data.get_f64();
+//                     let start_y = data.get_f64();
+//                     let goal_x = data.get_f64();
+//                     let goal_y = data.get_f64();
+//                     start = Vec2f {
+//                         x: start_x,
+//                         y: start_y,
+//                     };
+//                     goal = Vec2f {
+//                         x: goal_x,
+//                         y: goal_y,
+//                     };
+//                     needs_recalc = true;
+//                 }
+//                 _ => {}
+//             }
+//         }
+
+//         if needs_recalc {
+//             let calc_start = Instant::now();
+//             let path_opt = field.find_path(start, goal);
+//             let calc_end = Instant::now();
+
+//             let has_path = path_opt.is_some();
+//             let data = match path_opt {
+//                 Some(path) => {
+//                     let bezier_pts = bezier::to_bezier(path, start, goal);
+
+//                     let mut buf = BytesMut::with_capacity(bezier_pts.len() * 16 + 4 + 1);
+//                     buf.put_u8(1);
+//                     buf.put_i32(bezier_pts.len() as i32);
+//                     for point in bezier_pts {
+//                         buf.put_f64(point.x);
+//                         buf.put_f64(point.y);
+//                     }
+
+//                     buf
+//                 }
+//                 None => BytesMut::zeroed(1),
+//             };
+
+//             messenger.send_message(Message {
+//                 name: MSG_PATH.to_string(),
+//                 data: data.into(),
+//             });
+
+//             println!(
+//                 "Calculating path from {:?} to {:?} took {} secs; found={}",
+//                 start,
+//                 goal,
+//                 calc_end.duration_since(calc_start).as_secs_f64(),
+//                 has_path
+//             );
+//         }
+//     }
+// }
+
 use std::{error::Error, f64::consts::PI, time::Instant};
 
 use geom::WindingDir;
@@ -7,14 +111,9 @@ use macroquad::prelude::*;
 use math::Vec2f;
 use obstacle::Obstacle;
 
-mod config;
-mod geom;
-mod math;
-mod obstacle;
-
 fn draw_arc(center: Vec2f, radius: f64, min: f64, max: f64, thickness: f32, color: Color) {
-    let mut prev_angle = max;
-    for i in 0..=31 {
+    let mut prev_angle = min;
+    for i in 1..=31 {
         let angle = min.lerp(max, (i as f64) / 31.0);
 
         let prev_pos = center + Vec2f::new_angle(radius, prev_angle);
@@ -33,6 +132,30 @@ fn draw_arc(center: Vec2f, radius: f64, min: f64, max: f64, thickness: f32, colo
     }
 }
 
+fn draw_bezier(p0: Vec2f, p1: Vec2f, p2: Vec2f, p3: Vec2f, thickness: f32, color: Color) {
+    let mut prev_pt = p0;
+    for i in 1..=16 {
+        let t = i as f64 / 16.0;
+
+        let a = p0.lerp(p1, t);
+        let b = p1.lerp(p2, t);
+        let c = p2.lerp(p3, t);
+        let d = a.lerp(b, t);
+        let e = b.lerp(c, t);
+        let point = d.lerp(e, t);
+
+        draw_line(
+            prev_pt.x as f32,
+            prev_pt.y as f32,
+            point.x as f32,
+            point.y as f32,
+            thickness,
+            color,
+        );
+        prev_pt = point;
+    }
+}
+
 #[macroquad::main("Arc Pathfinding")]
 async fn main() -> Result<(), Box<dyn Error>> {
     let conf: config::Config = config::load_or_save_default("config.json")?;
@@ -44,12 +167,21 @@ async fn main() -> Result<(), Box<dyn Error>> {
         .map(|(_, o)| o.clone().into_obstacle())
         .collect_vec();
 
-    let field = geom::Field::generate(&obstacles, conf.robot_radius);
+    let gen_start = Instant::now();
+    let field = geom::Field::generate(&obstacles, conf.robot_radius + conf.tolerance);
+    println!("Precalc took {} secs", gen_start.elapsed().as_secs_f64());
 
     let mut start = Vec2f::new(1.0, 1.0);
     let mut goal = Vec2f::new(1.2, 1.2);
 
+    let mut preview_dist = 0.0;
+    let mut prev_frame_time = Instant::now();
+
     loop {
+        let frame_time = Instant::now();
+        let elapsed = frame_time.duration_since(prev_frame_time);
+        prev_frame_time = frame_time;
+
         clear_background(BLACK);
 
         let scale_x = (screen_width() - 50.0) / environment.width as f32;
@@ -75,7 +207,6 @@ async fn main() -> Result<(), Box<dyn Error>> {
             y: ((screen_height() / 2.0 - mouse_y) / scale) as f64 + environment.height / 2.0,
         };
         draw_circle(mouse_pos.x as f32, mouse_pos.y as f32, 15.0 * pixel, BLUE);
-        println!("Mouse pos: {:?}", mouse_pos);
 
         if is_mouse_button_down(MouseButton::Left) {
             start = mouse_pos;
@@ -155,9 +286,9 @@ async fn main() -> Result<(), Box<dyn Error>> {
         let calc_end = Instant::now();
 
         if let Some(path) = path_opt {
-            if !is_key_down(KeyCode::Space) {
+            if is_key_down(KeyCode::Space) {
                 let mut p = start;
-                for arc in path {
+                for arc in &path {
                     draw_line(
                         p.x as f32,
                         p.y as f32,
@@ -188,7 +319,79 @@ async fn main() -> Result<(), Box<dyn Error>> {
                     4.0 * pixel,
                     GREEN,
                 );
+            } else {
+                let bezier_pts = bezier::to_bezier(&path, start, goal);
+
+                let mut anchor = bezier_pts[0];
+                let curve_count = (bezier_pts.len() - 1) / 3;
+
+                for i in 0..curve_count {
+                    let cp1 = bezier_pts[i * 3 + 1];
+                    let cp2 = bezier_pts[i * 3 + 2];
+                    let anchor2 = bezier_pts[i * 3 + 3];
+
+                    draw_bezier(anchor, cp1, cp2, anchor2, 4.0 * pixel, ORANGE);
+                    anchor = anchor2;
+                }
             }
+
+            preview_dist += elapsed.as_secs_f64() * 2.5;
+
+            let mut preview_pt = start;
+            let mut dist_so_far = 0.0;
+            let mut preview_found = false;
+            for arc in &path {
+                let in_pt = arc.center + Vec2f::new_angle(arc.radius, arc.incoming_angle);
+                let out_pt = arc.center + Vec2f::new_angle(arc.radius, arc.outgoing_angle);
+
+                let to_in_dist = preview_pt.distance_sq(in_pt).sqrt();
+                if dist_so_far + to_in_dist > preview_dist {
+                    preview_pt = preview_pt.lerp(in_pt, (preview_dist - dist_so_far) / to_in_dist);
+                    preview_found = true;
+                    break;
+                }
+                dist_so_far += to_in_dist;
+
+                let angle1 = math::wrap_angle(arc.incoming_angle);
+                let angle2 = math::wrap_angle(arc.outgoing_angle);
+                let diff = math::floor_mod(
+                    match arc.direction {
+                        WindingDir::Counterclockwise => angle2 - angle1,
+                        WindingDir::Clockwise => angle1 - angle2,
+                    },
+                    PI * 2.0,
+                );
+                let arc_dist = diff * arc.radius;
+                if dist_so_far + arc_dist > preview_dist {
+                    let angle = angle1.lerp(angle2, (preview_dist - dist_so_far) / arc_dist);
+                    preview_pt = arc.center + Vec2f::new_angle(arc.radius, angle);
+                    preview_found = true;
+                    break;
+                }
+
+                preview_pt = out_pt;
+                dist_so_far += arc_dist;
+            }
+
+            if !preview_found {
+                let to_goal_dist = preview_pt.distance_sq(goal).sqrt();
+                if dist_so_far + to_goal_dist > preview_dist {
+                    preview_pt = preview_pt.lerp(goal, (preview_dist - dist_so_far) / to_goal_dist);
+                    preview_found = true;
+                }
+            }
+
+            if !preview_found {
+                preview_dist = 0.0;
+            }
+
+            draw_circle_lines(
+                preview_pt.x as f32,
+                preview_pt.y as f32,
+                conf.robot_radius as f32,
+                2.0 * pixel,
+                GREEN,
+            );
         }
 
         let mut closest = None;
@@ -212,7 +415,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                     edge.segment.from.y as f32,
                     edge.segment.to.x as f32,
                     edge.segment.to.y as f32,
-                    8.0 * pixel,
+                    4.0 * pixel,
                     BLUE,
                 );
             }
@@ -224,7 +427,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                     edge.segment.from.y as f32,
                     edge.segment.to.x as f32,
                     edge.segment.to.y as f32,
-                    8.0 * pixel,
+                    4.0 * pixel,
                     GOLD,
                 );
             }
@@ -242,18 +445,4 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
         next_frame().await;
     }
-
-    /*
-
-    loop {
-        let start, goal = read_request();
-
-        let path_arcs = find_path(field, start, goal);
-        let path_bezier = generate_bezier(path_arcs);
-
-        send_result(path_bezier)
-    }
-
-
-     */
 }

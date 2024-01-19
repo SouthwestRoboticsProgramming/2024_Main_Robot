@@ -1,4 +1,10 @@
 {
+  "messenger": {
+    "host": "localhost",
+    "port": 5805,
+    "name": "Pathfinding"
+  },
   "robot_radius": 0.6202230647076,
+  "tolerance": 0.1,
   "env_file": "crescendo.json"
 }

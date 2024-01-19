@@ -1,6 +1,6 @@
 use std::{
     f64::consts::PI,
-    ops::{Add, Mul, Sub},
+    ops::{Add, Div, Mul, Sub},
 };
 
 use lerp::Lerp;
@@ -14,7 +14,7 @@ pub fn wrap_angle(angle: f64) -> f64 {
     floor_mod(angle + PI, PI * 2.0) - PI
 }
 
-#[derive(Clone, Copy, Serialize, Deserialize, Debug)]
+#[derive(Clone, Copy, Serialize, Deserialize, Debug, PartialEq)]
 pub struct Vec2f {
     pub x: f64,
     pub y: f64,
@@ -70,6 +70,10 @@ impl Vec2f {
 
         self.distance_sq(p1.lerp(p2, t))
     }
+
+    pub fn norm(self) -> Self {
+        self / self.length()
+    }
 }
 
 impl Add for Vec2f {
@@ -101,6 +105,17 @@ impl Mul<f64> for Vec2f {
         Self {
             x: self.x * rhs,
             y: self.y * rhs,
+        }
+    }
+}
+
+impl Div<f64> for Vec2f {
+    type Output = Self;
+
+    fn div(self, rhs: f64) -> Self::Output {
+        Self {
+            x: self.x / rhs,
+            y: self.y / rhs,
         }
     }
 }

@@ -10,15 +10,36 @@ use crate::{
 
 #[derive(Serialize, Deserialize)]
 pub struct Config {
+    pub messenger: MessengerConfig,
     pub robot_radius: f64,
+    pub tolerance: f64,
     pub env_file: String,
 }
 
 impl Default for Config {
     fn default() -> Self {
         Self {
+            messenger: Default::default(),
             robot_radius: 0.5,
+            tolerance: 0.1,
             env_file: "environment.json".to_string(),
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct MessengerConfig {
+    pub host: String,
+    pub port: u16,
+    pub name: String,
+}
+
+impl Default for MessengerConfig {
+    fn default() -> Self {
+        Self {
+            host: "localhost".to_string(),
+            port: 5805,
+            name: "Pathfinding".to_string(),
         }
     }
 }
