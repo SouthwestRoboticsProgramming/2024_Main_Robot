@@ -1,9 +1,8 @@
 package com.swrobotics.robot.subsystems.swerve;
 
-import com.ctre.phoenix6.configs.MagnetSensorConfigs;
-import com.ctre.phoenix6.signals.SensorDirectionValue;
 import com.swrobotics.messenger.client.MessengerClient;
 import com.swrobotics.robot.config.IOAllocation;
+import com.swrobotics.robot.config.NTData;
 import com.swrobotics.robot.logging.FieldView;
 import com.swrobotics.robot.subsystems.swerve.pathfinding.ArcPathfinder;
 
@@ -22,7 +21,6 @@ import com.pathplanner.lib.util.PIDConstants;
 import com.pathplanner.lib.util.PathPlannerLogging;
 import com.pathplanner.lib.util.ReplanningConfig;
 import com.swrobotics.lib.field.FieldInfo;
-import com.swrobotics.robot.NTData;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -57,10 +55,10 @@ public final class SwerveDrive extends SubsystemBase {
 
     private static final double HALF_SPACING = Units.inchesToMeters(27 - 2.625 * 2); // Perimeter - MK4i inset // TODO: Set
     private static final SwerveModule.Info[] INFOS = {
-            new SwerveModule.Info(IOAllocation.CAN.SWERVE_FL, HALF_SPACING, HALF_SPACING, NTData.FL_OFFSET, "Front Left"),
-            new SwerveModule.Info(IOAllocation.CAN.SWERVE_FR, HALF_SPACING, -HALF_SPACING, NTData.FR_OFFSET, "Front Right"),
-            new SwerveModule.Info(IOAllocation.CAN.SWERVE_BL, -HALF_SPACING, HALF_SPACING, NTData.BL_OFFSET, "Back Left"),
-            new SwerveModule.Info(IOAllocation.CAN.SWERVE_BR, -HALF_SPACING, -HALF_SPACING, NTData.BR_OFFSET, "Back Right")
+            new SwerveModule.Info(IOAllocation.CAN.SWERVE_FL, HALF_SPACING, HALF_SPACING, NTData.DRIVE_FL_OFFSET, "Front Left"),
+            new SwerveModule.Info(IOAllocation.CAN.SWERVE_FR, HALF_SPACING, -HALF_SPACING, NTData.DRIVE_FR_OFFSET, "Front Right"),
+            new SwerveModule.Info(IOAllocation.CAN.SWERVE_BL, -HALF_SPACING, HALF_SPACING, NTData.DRIVE_BL_OFFSET, "Back Left"),
+            new SwerveModule.Info(IOAllocation.CAN.SWERVE_BR, -HALF_SPACING, -HALF_SPACING, NTData.DRIVE_BR_OFFSET, "Back Right")
     };
 
     /**

@@ -16,6 +16,11 @@ public final class NTData {
     public static final NTEntry<Double> DRIVE_AIM_KD = new NTDouble("Drive/Aim/PID/kD", 0).setPersistent();
     public static final NTEntry<Double> DRIVE_AIM_MAX_TURN = new NTDouble("Drive/Aim/Max Turn Speed (rot/s)", 2).setPersistent();
 
+    public static final NTEntry<Double> DRIVE_FL_OFFSET = new NTDouble("Drive/Modules/Front Left Offset", 0).setPersistent();
+    public static final NTEntry<Double> DRIVE_FR_OFFSET = new NTDouble("Drive/Modules/Front Right Offset", 0).setPersistent();
+    public static final NTEntry<Double> DRIVE_BL_OFFSET = new NTDouble("Drive/Modules/Back Left Offset", 0).setPersistent();
+    public static final NTEntry<Double> DRIVE_BR_OFFSET = new NTDouble("Drive/Modules/Back Right Offset", 0).setPersistent();
+
     public static final NTEntry<Double> INTAKE_RANGE = new NTDouble("Intake/Range (degrees)", 90).setPersistent(); // FIXME: Remove if we use pneumatics
     public static final NTEntry<Double> INTAKE_SPEED = new NTDouble("Intake/Speed", 0.3).setPersistent();
     public static final NTEntry<Boolean> INTAKE_CALIBRATE = new NTBoolean("Intake/Calibrate (put UP)", false);
