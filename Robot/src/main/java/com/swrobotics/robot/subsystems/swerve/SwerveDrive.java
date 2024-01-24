@@ -1,10 +1,11 @@
 package com.swrobotics.robot.subsystems.swerve;
 
-import com.pathplanner.lib.pathfinding.Pathfinder;
+import com.ctre.phoenix6.configs.MagnetSensorConfigs;
+import com.ctre.phoenix6.signals.SensorDirectionValue;
 import com.swrobotics.messenger.client.MessengerClient;
+import com.swrobotics.robot.config.IOAllocation;
 import com.swrobotics.robot.logging.FieldView;
 import com.swrobotics.robot.subsystems.swerve.pathfinding.ArcPathfinder;
-import com.swrobotics.robot.subsystems.swerve.pathfinding.ThetaStarPathfinder;
 
 import edu.wpi.first.wpilibj.DriverStation;
 import org.littletonrobotics.junction.AutoLogOutput;
@@ -13,10 +14,8 @@ import org.littletonrobotics.junction.Logger;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveModuleConstants;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveModule.SteerRequestType;
-import com.ctre.phoenix6.mechanisms.swerve.SwerveRequest;
 import com.kauailabs.navx.frc.AHRS;
 import com.pathplanner.lib.auto.AutoBuilder;
-import com.pathplanner.lib.pathfinding.LocalADStar; // Used if Theta* is broken. Don't delete
 import com.pathplanner.lib.pathfinding.Pathfinding;
 import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
 import com.pathplanner.lib.util.PIDConstants;
@@ -24,7 +23,6 @@ import com.pathplanner.lib.util.PathPlannerLogging;
 import com.pathplanner.lib.util.ReplanningConfig;
 import com.swrobotics.lib.field.FieldInfo;
 import com.swrobotics.robot.NTData;
-import com.swrobotics.robot.config.CANAllocation;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -43,26 +41,34 @@ import static com.swrobotics.robot.subsystems.swerve.SwerveConstants.SWERVE_MODU
 
 @SuppressWarnings("unused")
 public final class SwerveDrive extends SubsystemBase {
-    public static record DriveRequest(
-            ChassisSpeeds robotRelSpeeds,
-            DriveRequestType driveRequestType,
-            SteerRequestType steerRequestType
-    ) {
-        public DriveRequest(ChassisSpeeds robotRelSpeeds, DriveRequestType driveRequestType) {
-            this(robotRelSpeeds, driveRequestType, SteerRequestType.MotionMagic);
-        }
+    public static final int DEFAULT_PRIORITY = 0;
+    public static final int AUTO_PRIORITY = 1;
+    public static final int AIM_PRIORITY = 2;
+
+    // Priority should be one of the priority levels above
+    public static record DriveRequest(int priority, Translation2d robotRelTranslation, DriveRequestType type) {
     }
+
+    public static record TurnRequest(int priority, Rotation2d turn) {
+    }
+
+    private static final DriveRequest NULL_DRIVE = new DriveRequest(Integer.MIN_VALUE, new Translation2d(0, 0), DriveRequestType.OpenLoopVoltage);
+    private static final TurnRequest NULL_TURN = new TurnRequest(Integer.MIN_VALUE, new Rotation2d(0));
 
     private static final double HALF_SPACING = Units.inchesToMeters(27 - 2.625 * 2); // Perimeter - MK4i inset // TODO: Set
     private static final SwerveModule.Info[] INFOS = {
-            new SwerveModule.Info(CANAllocation.SWERVE_FL, HALF_SPACING, HALF_SPACING, NTData.FL_OFFSET, "Front Left"),
-            new SwerveModule.Info(CANAllocation.SWERVE_FR, HALF_SPACING, -HALF_SPACING, NTData.FR_OFFSET, "Front Right"),
-            new SwerveModule.Info(CANAllocation.SWERVE_BL, -HALF_SPACING, HALF_SPACING, NTData.BL_OFFSET, "Back Left"),
-            new SwerveModule.Info(CANAllocation.SWERVE_BR, -HALF_SPACING, -HALF_SPACING, NTData.BR_OFFSET, "Back Right")
+            new SwerveModule.Info(IOAllocation.CAN.SWERVE_FL, HALF_SPACING, HALF_SPACING, NTData.FL_OFFSET, "Front Left"),
+            new SwerveModule.Info(IOAllocation.CAN.SWERVE_FR, HALF_SPACING, -HALF_SPACING, NTData.FR_OFFSET, "Front Right"),
+            new SwerveModule.Info(IOAllocation.CAN.SWERVE_BL, -HALF_SPACING, HALF_SPACING, NTData.BL_OFFSET, "Back Left"),
+            new SwerveModule.Info(IOAllocation.CAN.SWERVE_BR, -HALF_SPACING, -HALF_SPACING, NTData.BR_OFFSET, "Back Right")
     };
 
-    /** Meters per second */
+    /**
+     * Meters per second
+     */
     public static final double MAX_LINEAR_SPEED = 3.78; // TODO: Measure emperically
+
+    private final FieldInfo fieldInfo;
 
     private final AHRS gyro;
     private final SwerveModule[] modules;
@@ -72,9 +78,11 @@ public final class SwerveDrive extends SubsystemBase {
     private SwerveModulePosition[] prevPositions;
     private Rotation2d prevGyroAngle;
 
-    private DriveRequest currentRequest;
-    
+    private DriveRequest currentDriveRequest;
+    private TurnRequest currentTurnRequest;
+
     public SwerveDrive(FieldInfo fieldInfo, MessengerClient msg) {
+        this.fieldInfo = fieldInfo;
         gyro = new AHRS(SPI.Port.kMXP);
 
         modules = new SwerveModule[INFOS.length];
@@ -82,11 +90,16 @@ public final class SwerveDrive extends SubsystemBase {
         for (int i = 0; i < modules.length; i++) {
             SwerveModule.Info info = INFOS[i];
 
-            SwerveModuleConstants moduleConstants = SWERVE_MODULE_BUILDER.createModuleConstants(info.turnId(), info.driveId(), info.encoderId(), info.offset().get(), info.position().getX(), info.position().getY(), false);
+            SwerveModuleConstants moduleConstants = SWERVE_MODULE_BUILDER.createModuleConstants(
+                    info.turnId(), info.driveId(), info.encoderId(),
+                    info.offset().get(),
+                    info.position().getX(), info.position().getY(),
+                    false);
+
             if (RobotBase.isSimulation()) {
-                moduleConstants = moduleConstants.withCANcoderOffset(0.25);
+//                moduleConstants = moduleConstants.withCANcoderOffset(0.25);
             }
-            modules[i] = new SwerveModule(moduleConstants, info.name(), CANAllocation.CANIVORE_BUS);
+            modules[i] = new SwerveModule(moduleConstants, info.name(), IOAllocation.CAN.GERALD);
             positions[i] = info.position();
         }
 
@@ -94,35 +107,36 @@ public final class SwerveDrive extends SubsystemBase {
         this.estimator = new SwerveEstimator(fieldInfo);
 
         prevPositions = null;
-        currentRequest = null;
+        currentDriveRequest = NULL_DRIVE;
+        currentTurnRequest = NULL_TURN;
 
         // Configure pathing
         AutoBuilder.configureHolonomic(
                 this::getEstimatedPose,
                 this::setPose,
                 this::getRobotRelativeSpeeds,
-                (speeds) -> // TODO: Switch to velocity control once that is tuned
-                        drive(new DriveRequest(speeds, DriveRequestType.OpenLoopVoltage)),
+                (speeds) ->
+                    driveAndTurn(AUTO_PRIORITY, speeds, DriveRequestType.Velocity),
                 new HolonomicPathFollowerConfig(
                         new PIDConstants(8.0), new PIDConstants(4.0, 0.0), MAX_LINEAR_SPEED, Math.hypot(HALF_SPACING, HALF_SPACING), new ReplanningConfig(), 0.020),
                 () -> DriverStation.getAlliance().orElse(DriverStation.Alliance.Blue) == DriverStation.Alliance.Red,
                 this);
 
-        
+
         // Pathfinding.setPathfinder(new LocalADStar());
 //        Pathfinding.setPathfinder(new ThetaStarPathfinder(msg));
         Pathfinding.setPathfinder(new ArcPathfinder(msg));
         PathPlannerLogging.setLogActivePathCallback(
-            (activePath) -> {
-              Logger.recordOutput(
-                  "Drive/Trajectory", activePath.toArray(new Pose2d[0]));
-                FieldView.pathPlannerPath.setPoses(activePath);
-        });
+                (activePath) -> {
+                    Logger.recordOutput(
+                            "Drive/Trajectory", activePath.toArray(new Pose2d[0]));
+                    FieldView.pathPlannerPath.setPoses(activePath);
+                });
         PathPlannerLogging.setLogTargetPoseCallback(
-            (targetPose) -> {
-                Logger.recordOutput("Odometry/TrajectorySetpoint", targetPose);
-                FieldView.pathPlannerSetpoint.setPose(targetPose);
-        });
+                (targetPose) -> {
+                    Logger.recordOutput("Odometry/TrajectorySetpoint", targetPose);
+                    FieldView.pathPlannerSetpoint.setPose(targetPose);
+                });
     }
 
     @AutoLogOutput(key = "Drive/Current Swerve Module States")
@@ -157,21 +171,35 @@ public final class SwerveDrive extends SubsystemBase {
         return getCurrentModulePositions(false);
     }
 
+    public void driveAndTurn(int priority, ChassisSpeeds speeds, DriveRequestType type) {
+        drive(new DriveRequest(priority, new Translation2d(speeds.vxMetersPerSecond, speeds.vyMetersPerSecond), DriveRequestType.OpenLoopVoltage));
+        turn(new TurnRequest(priority, new Rotation2d(speeds.omegaRadiansPerSecond)));
+    }
+
     public void drive(DriveRequest request) {
-        currentRequest = request;
+        if (request.priority > currentDriveRequest.priority)
+            currentDriveRequest = request;
+    }
+
+    public void turn(TurnRequest request) {
+        if (request.priority > currentTurnRequest.priority)
+            currentTurnRequest = request;
     }
 
     @Override
     public void periodic() {
-        // Apply the drive request
-        if (currentRequest != null) {
-            ChassisSpeeds robotRelSpeeds = ChassisSpeeds.discretize(currentRequest.robotRelSpeeds, 0.020);
-            SwerveModuleState[] targetStates = kinematics.getStates(robotRelSpeeds);
-            for (int i = 0; i < modules.length; i++) {
-                modules[i].apply(targetStates[i], currentRequest.driveRequestType, currentRequest.steerRequestType);
-            }
+        ChassisSpeeds requestedSpeeds = new ChassisSpeeds(
+                currentDriveRequest.robotRelTranslation.getX(),
+                currentDriveRequest.robotRelTranslation.getY(),
+                currentTurnRequest.turn.getRadians());
+        currentDriveRequest = NULL_DRIVE;
+        currentTurnRequest = NULL_TURN;
 
-            currentRequest = null;
+        // Apply the drive request
+        ChassisSpeeds robotRelSpeeds = ChassisSpeeds.discretize(requestedSpeeds, 0.020);
+        SwerveModuleState[] targetStates = kinematics.getStates(robotRelSpeeds);
+        for (int i = 0; i < modules.length; i++) {
+            modules[i].apply(targetStates[i], currentDriveRequest.type, SteerRequestType.MotionMagic);
         }
 
         // Update estimator
@@ -196,6 +224,10 @@ public final class SwerveDrive extends SubsystemBase {
     @AutoLogOutput(key = "Pose Estimate")
     public Pose2d getEstimatedPose() {
         return estimator.getEstimatedPose();
+    }
+
+    public FieldInfo getFieldInfo() {
+        return fieldInfo;
     }
 
     public void setPose(Pose2d newPose) {

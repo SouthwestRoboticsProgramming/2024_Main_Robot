@@ -6,7 +6,7 @@ import com.ctre.phoenix6.sim.ChassisReference;
 import com.ctre.phoenix6.sim.TalonFXSimState;
 
 import com.swrobotics.lib.net.NTEntry;
-import com.swrobotics.robot.config.CANAllocation;
+import com.swrobotics.robot.config.IOAllocation;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
@@ -28,6 +28,7 @@ public class SwerveModule extends com.ctre.phoenix6.mechanisms.swerve.SwerveModu
     private final TalonFXSimState steerSimState;
     private final TalonFXSimState driveSimState;
     private final CANcoderSimState encoderSimState;
+    private double simDistance = 0;
 
     private SwerveModuleState targetState = new SwerveModuleState();
 
@@ -52,6 +53,7 @@ public class SwerveModule extends com.ctre.phoenix6.mechanisms.swerve.SwerveModu
 
             steerSimState.Orientation = constants.SteerMotorInverted ? ChassisReference.Clockwise_Positive : ChassisReference.CounterClockwise_Positive;
             driveSimState.Orientation = constants.DriveMotorInverted ? ChassisReference.Clockwise_Positive : ChassisReference.CounterClockwise_Positive;
+            encoderSimState.Orientation = ChassisReference.CounterClockwise_Positive;
         } else {
             steerSim = null;
             driveSim = null;
@@ -68,7 +70,8 @@ public class SwerveModule extends com.ctre.phoenix6.mechanisms.swerve.SwerveModu
     
     @Override
     public void apply(SwerveModuleState state, DriveRequestType driveRequestType, SteerRequestType steerRequestType) {
-        targetState = SwerveModuleState.optimize(state, getCachedPosition().angle);
+        targetState = state;
+        simDistance += state.speedMetersPerSecond * 0.02;
         super.apply(state, driveRequestType, steerRequestType);
     }
 
@@ -77,7 +80,20 @@ public class SwerveModule extends com.ctre.phoenix6.mechanisms.swerve.SwerveModu
     }
 
     @Override
+    public SwerveModulePosition getCachedPosition() {
+//        if (RobotBase.isSimulation())
+//            return new SwerveModulePosition(simDistance, targetState.angle);
+
+        return super.getCachedPosition();
+    }
+
+    @Override
     public SwerveModulePosition getPosition(boolean refresh) {
+//        if (RobotBase.isSimulation()) {
+//            // For some reason the back-right module gets goofy with CTRE sim
+//            return new SwerveModulePosition(simDistance, targetState.angle);
+//        }
+
         SwerveModulePosition pos = super.getPosition(refresh);
 
         // Make a copy since super.getPosition() always returns the same
@@ -89,6 +105,9 @@ public class SwerveModule extends com.ctre.phoenix6.mechanisms.swerve.SwerveModu
     }
 
     public SwerveModuleState getCurrentState() {
+//        if (RobotBase.isSimulation())
+//            return targetState;
+
         return new SwerveModuleState(getDriveMotor().getVelocity().getValue() / driveRotationsPerMeter, Rotation2d.fromRotations(getSteerMotor().getPosition().getValue()));
     }
 
@@ -114,7 +133,7 @@ public class SwerveModule extends com.ctre.phoenix6.mechanisms.swerve.SwerveModu
         steerSimState.setRawRotorPosition(steerSim.getAngularPositionRotations() * constants.SteerMotorGearRatio);
         steerSimState.setRotorVelocity(steerSim.getAngularVelocityRPM() / 60.0 * constants.SteerMotorGearRatio);
 
-        // /* CANcoders see the mechanism, so don't account for the steer gearing */
+        /* CANcoders see the mechanism, so don't account for the steer gearing */
         encoderSimState.setRawPosition(steerSim.getAngularPositionRotations());
         encoderSimState.setVelocity(steerSim.getAngularVelocityRPM() / 60.0);
 
@@ -128,7 +147,7 @@ public class SwerveModule extends com.ctre.phoenix6.mechanisms.swerve.SwerveModu
             Translation2d position,
             NTEntry<Double> offset,
             String name) {
-        public Info(CANAllocation.SwerveIDs ids, double x, double y, NTEntry<Double> offset, String name) {
+        public Info(IOAllocation.SwerveIDs ids, double x, double y, NTEntry<Double> offset, String name) {
             this(ids.drive, ids.turn, ids.encoder,
                     new Translation2d(x, y),
                     offset, name);

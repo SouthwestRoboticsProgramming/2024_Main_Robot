@@ -35,8 +35,7 @@ public class SwerveConstants {
 
     // Theoretical free speed (m/s) at 12v applied output;
     // This needs to be tuned to your individual robot
-    // TODO: tune to the robot
-    private static final double speedAt12VoltsMps = 4.0;
+    public static final double speedAt12VoltsMps = SwerveDrive.MAX_LINEAR_SPEED;
 
     // Every 1 rotation of the azimuth results in kCoupleRatio drive motor turns;
     // This may need to be tuned to your individual robot
