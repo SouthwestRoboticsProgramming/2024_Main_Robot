@@ -4,6 +4,7 @@ import com.swrobotics.robot.config.IOAllocation;
 import com.swrobotics.robot.config.NTData;
 import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.wpilibj.DigitalInput;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.motorcontrol.PWMTalonSRX;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
@@ -37,6 +38,9 @@ public final class IndexerSubsystem extends SubsystemBase {
 
     @Override
     public void periodic() {
+        if (DriverStation.isDisabled())
+            return;
+
         double sides = 0, top = 0;
         if (state == State.TAKE_FROM_INTAKE) {
             if (intake.isActive() && !hasPiece()) {

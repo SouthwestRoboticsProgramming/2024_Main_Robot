@@ -5,12 +5,15 @@ import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 import com.swrobotics.lib.field.FieldInfo;
 import com.swrobotics.messenger.client.MessengerClient;
+import com.swrobotics.robot.commands.PlaySongCommand;
 import com.swrobotics.robot.control.ControlBoard;
 import com.swrobotics.robot.logging.FieldView;
 import com.swrobotics.robot.logging.SimView;
 import com.swrobotics.robot.subsystems.amp.AmpArmSubsystem;
 import com.swrobotics.robot.subsystems.amp.AmpIntakeSubsystem;
 import com.swrobotics.robot.subsystems.climber.ClimberSubsystem;
+import com.swrobotics.robot.subsystems.lights.LightsSubsystem;
+import com.swrobotics.robot.subsystems.music.MusicSubsystem;
 import com.swrobotics.robot.subsystems.speaker.IndexerSubsystem;
 import com.swrobotics.robot.subsystems.speaker.IntakeSubsystem;
 import com.swrobotics.robot.subsystems.speaker.ShooterSubsystem;
@@ -22,12 +25,12 @@ import edu.wpi.first.hal.AllianceStationID;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.*;
 import edu.wpi.first.wpilibj.simulation.DriverStationSim;
-import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.InstantCommand;
-import edu.wpi.first.wpilibj2.command.PrintCommand;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.wpilibj2.command.*;
 
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
+
+import java.io.File;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -44,20 +47,23 @@ public class RobotContainer {
 
     // Create a way to choose between autonomous sequences
     private final LoggedDashboardChooser<Command> autoSelector;
+    private final LoggedDashboardChooser<String> musicSelector;
 
     public final MessengerClient messenger;
-
     private final ControlBoard controlboard;
-    public final SwerveDrive drive;
 
+    // Mechanical
+    public final SwerveDrive drive;
     public final IntakeSubsystem intake;
     public final IndexerSubsystem indexer;
     public final ShooterSubsystem shooter;
-
     public final AmpArmSubsystem ampArm;
     public final AmpIntakeSubsystem ampIntake;
-
     public final ClimberSubsystem climber;
+
+    // Fun
+    public final LightsSubsystem lights;
+    public final MusicSubsystem music;
 
     public RobotContainer() {
         if (RobotBase.isSimulation()) {
@@ -87,6 +93,8 @@ public class RobotContainer {
         climber = new ClimberSubsystem();
 
         // ControlBoard must be initialized last
+        lights = new LightsSubsystem(this);
+        music = new MusicSubsystem(this);
         controlboard = new ControlBoard(this);
 
         // Register Named Commands for Auto
@@ -105,6 +113,37 @@ public class RobotContainer {
         autoSelector.addOption("Example other auto", new PrintCommand("Example Auto"));
 
         FieldView.publish();
+
+        char sep = File.separatorChar;
+        CommandScheduler.getInstance().schedule(musicCommand = Commands.waitSeconds(5)
+                .andThen(new PlaySongCommand(music, "music" + sep + "xp.chrp")));
+
+        SendableChooser<String> musicChooser = new SendableChooser<>();
+        for (String song : MusicSubsystem.getAvailableSongs()) {
+            int lastIdx = song.lastIndexOf(File.separatorChar);
+
+            String option = song.substring(lastIdx + 1);
+            if (option.equals("caramell-bert-expanded.chrp"))
+                musicChooser.setDefaultOption(option, song);
+            else
+                musicChooser.addOption(option, song);
+        }
+        musicSelector = new LoggedDashboardChooser<>("Victory Music Selection", musicChooser);
+    }
+
+    private boolean hasDoneFirstInit = false;
+    private Command musicCommand;
+    public void disabledInit() {
+        lights.disabledInit();
+
+        if (hasDoneFirstInit)
+            CommandScheduler.getInstance().schedule(musicCommand = new PlaySongCommand(music, musicSelector.get()));
+        hasDoneFirstInit = true;
+    }
+
+    public void disabledExit() {
+        if (musicCommand != null)
+            CommandScheduler.getInstance().cancel(musicCommand);
     }
 
     public Command getAutonomousCommand() {

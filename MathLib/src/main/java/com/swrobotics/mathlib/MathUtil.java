@@ -147,4 +147,8 @@ public final class MathUtil {
     public static boolean fuzzyEquals(double a, double b) {
         return Math.abs(a - b) <= EPSILON;
     }
+
+    public static double signedPercentError(double measured, double target) {
+        return (measured - target) / target;
+    }
 }

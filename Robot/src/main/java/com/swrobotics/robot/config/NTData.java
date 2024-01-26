@@ -21,7 +21,7 @@ public final class NTData {
     public static final NTEntry<Double> DRIVE_BL_OFFSET = new NTDouble("Drive/Modules/Back Left Offset", 0).setPersistent();
     public static final NTEntry<Double> DRIVE_BR_OFFSET = new NTDouble("Drive/Modules/Back Right Offset", 0).setPersistent();
 
-    public static final NTEntry<Double> INTAKE_RANGE = new NTDouble("Intake/Range (degrees)", 90).setPersistent(); // FIXME: Remove if we use pneumatics
+    public static final NTEntry<Double> INTAKE_RANGE = new NTDouble("Intake/Range (degrees)", 90).setPersistent();
     public static final NTEntry<Double> INTAKE_SPEED = new NTDouble("Intake/Speed", 0.3).setPersistent();
     public static final NTEntry<Boolean> INTAKE_CALIBRATE = new NTBoolean("Intake/Calibrate (put UP)", false);
     public static final NTEntry<Double> INTAKE_CANCODER_OFFSET = new NTDouble("Intake/CanCoder Offset", 0).setPersistent();
@@ -51,6 +51,12 @@ public final class NTData {
 
     public static final NTEntry<Double> SHOOTER_IDLE_SPEED = new NTDouble("Shooter/Idle Speed", 0.1).setPersistent();
     public static final NTEntry<Double> SHOOTER_FULL_SPEED_DISTANCE = new NTDouble("Shooter/Full Speed Distance (m)", 6).setPersistent();
+    public static final NTEntry<Double> SHOOTER_AFTER_DELAY = new NTDouble("Shooter/After Shoot Delay (s)", 1).setPersistent();
+    public static final NTEntry<Double> SHOOTER_ALLOWABLE_PCT_ERR = new NTDouble("Shooter/Allowable Pct Error", 0.05).setPersistent();
+    public static final NTEntry<Double> SHOOTER_FLYWHEEL_KP = new NTDouble("Shooter/Flywheel PIDV/kP", 0).setPersistent();
+    public static final NTEntry<Double> SHOOTER_FLYWHEEL_KI = new NTDouble("Shooter/Flywheel PIDV/kI", 0).setPersistent();
+    public static final NTEntry<Double> SHOOTER_FLYWHEEL_KD = new NTDouble("Shooter/Flywheel PIDV/kD", 0).setPersistent();
+    public static final NTEntry<Double> SHOOTER_FLYWHEEL_KV = new NTDouble("Shooter/Flywheel PIDV/kV", 0).setPersistent();
     public static final NTEntry<Boolean> SHOOTER_PIVOT_CALIBRATE = new NTBoolean("Shooter/Calibrate (put fully down)", false).setPersistent();
     public static final NTEntry<Double> SHOOTER_PIVOT_CANCODER_OFFSET = new NTDouble("Shooter/Pivot CanCoder Offset", 0).setPersistent();
     public static final NTEntry<Double> SHOOTER_PIVOT_IDLE_ANGLE = new NTDouble("Shooter/Pivot Idle Angle (degrees)", 35).setPersistent();

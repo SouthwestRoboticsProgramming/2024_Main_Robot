@@ -69,7 +69,7 @@ public final class SwerveDrive extends SubsystemBase {
     private final FieldInfo fieldInfo;
 
     private final AHRS gyro;
-    private final SwerveModule[] modules;
+    public final SwerveModule[] modules;
     private final SwerveKinematics kinematics;
     private final SwerveEstimator estimator;
 
@@ -78,6 +78,7 @@ public final class SwerveDrive extends SubsystemBase {
 
     private DriveRequest currentDriveRequest;
     private TurnRequest currentTurnRequest;
+    private int lastSelectedPriority;
 
     public SwerveDrive(FieldInfo fieldInfo, MessengerClient msg) {
         this.fieldInfo = fieldInfo;
@@ -186,10 +187,14 @@ public final class SwerveDrive extends SubsystemBase {
 
     @Override
     public void periodic() {
+        if (DriverStation.isDisabled())
+            return;
+
         ChassisSpeeds requestedSpeeds = new ChassisSpeeds(
                 currentDriveRequest.robotRelTranslation.getX(),
                 currentDriveRequest.robotRelTranslation.getY(),
                 currentTurnRequest.turn.getRadians());
+        lastSelectedPriority = Math.max(currentDriveRequest.priority, currentTurnRequest.priority);
         currentDriveRequest = NULL_DRIVE;
         currentTurnRequest = NULL_TURN;
 
@@ -246,5 +251,9 @@ public final class SwerveDrive extends SubsystemBase {
         for (SwerveModule module : modules) {
             module.updateSim(0.02, RobotController.getBatteryVoltage());
         }
+    }
+
+    public int getLastSelectedPriority() {
+        return lastSelectedPriority;
     }
 }

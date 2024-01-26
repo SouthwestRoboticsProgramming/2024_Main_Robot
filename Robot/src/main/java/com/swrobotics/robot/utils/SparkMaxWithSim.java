@@ -1,6 +1,13 @@
 package com.swrobotics.robot.utils;
 
+import com.ctre.phoenix6.StatusSignal;
+import com.ctre.phoenix6.configs.FeedbackConfigs;
+import com.ctre.phoenix6.configs.Slot0Configs;
+import com.ctre.phoenix6.controls.NeutralOut;
+import com.ctre.phoenix6.controls.PositionVoltage;
+import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.CANcoder;
+import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.sim.CANcoderSimState;
 import com.revrobotics.*;
 import com.swrobotics.lib.net.NTEntry;
@@ -15,7 +22,7 @@ import java.util.function.Supplier;
 public interface SparkMaxWithSim {
     static SparkMaxWithSim create(IOAllocation.CanId canId, CANSparkLowLevel.MotorType type, DCMotor motor, double gearRatio, double moi) {
         if (RobotBase.isSimulation()) {
-            return new Sim(motor, gearRatio, moi);
+            return new Falcon(canId, motor, gearRatio, moi);
         } else {
             return new Real(canId.id(), type);
         }
@@ -119,106 +126,194 @@ public interface SparkMaxWithSim {
         }
     }
 
-    final class Sim implements SparkMaxWithSim {
-        private final DCMotorSim sim;
-        private final SimPIDController pid;
-        private double rotorToMechanismRatio;
-        private double positionOffset;
+    // Falcon in sim because rev
+    final class Falcon implements SparkMaxWithSim {
+        private final TalonFXWithSim fx;
+        private final StatusSignal<Double> positionStatus;
 
-        private Supplier<Double> controlMode;
-        private boolean usingPID;
-
-        private CANcoderSimState absoluteEncoder;
-
-        public Sim(DCMotor motor, double ratio, double moi) {
-            sim = new DCMotorSim(motor, ratio, moi);
-            pid = new SimPIDController(0.001, 1);
-            rotorToMechanismRatio = 1;
-
-            // Control mode returns desired demand in volts
-            controlMode = () -> 0.0;
-            usingPID = false;
-
-            absoluteEncoder = null;
+        public Falcon(IOAllocation.CanId id, DCMotor motor, double ratio, double moi) {
+            fx = new TalonFXWithSim(id, motor, ratio, moi);
+            positionStatus = fx.getPosition();
         }
 
         @Override
         public void setInverted(boolean inverted) {
-            // Sim does not care
+            fx.setInverted(inverted);
         }
 
         @Override
         public void setIdleMode(CANSparkBase.IdleMode mode) {
-            // Sim does not care (yet)
+            NeutralModeValue fxMode = switch (mode) {
+                case kBrake -> NeutralModeValue.Brake;
+                case kCoast -> NeutralModeValue.Coast;
+            };
+
+            fx.setNeutralMode(fxMode);
         }
 
         @Override
         public void setPID(NTEntry<Double> kP, NTEntry<Double> kI, NTEntry<Double> kD) {
-            kP.nowAndOnChange(pid::setP);
-            kI.nowAndOnChange(pid::setI);
-            kD.nowAndOnChange(pid::setD);
+            kP.onChange((p) -> updatePID(kP, kI, kD));
+            kI.onChange((i) -> updatePID(kP, kI, kD));
+            kD.onChange((d) -> updatePID(kP, kI, kD));
+            updatePID(kP, kI, kD);
+        }
+
+        private void updatePID(NTEntry<Double> kP, NTEntry<Double> kI, NTEntry<Double> kD) {
+            // TODO: Rev units to CTRE units conversion
+
+            Slot0Configs config = new Slot0Configs();
+            config.kP = kP.get();
+            config.kI = kI.get();
+            config.kD = kD.get();
+            fx.getConfigurator().apply(config);
         }
 
         @Override
         public void setRotorToMechanismRatio(double ratio) {
-            rotorToMechanismRatio = ratio;
+            FeedbackConfigs config = new FeedbackConfigs();
+            config.SensorToMechanismRatio = ratio;
+            fx.getConfigurator().apply(config);
         }
 
         @Override
         public void setVoltage(double volts) {
-            controlMode = () -> volts;
-            usingPID = false;
+            fx.setControl(new VoltageOut(volts));
         }
 
         @Override
         public void setPosition(double position) {
-            if (!usingPID)
-                pid.reset();
-            usingPID = true;
-
-            controlMode = () -> 12 * pid.calc(getRotorPosition(), position * rotorToMechanismRatio);
+            fx.setControl(new PositionVoltage(position));
         }
 
         @Override
         public void stop() {
-            controlMode = () -> 0.0;
-            usingPID = false;
+            fx.setControl(new NeutralOut());
         }
 
         @Override
         public double getEncoderPosition() {
-            return getRotorPosition() / rotorToMechanismRatio;
+            return positionStatus.getValue();
         }
 
         @Override
         public void setEncoderPosition(double mechanismPos) {
-            positionOffset = mechanismPos * rotorToMechanismRatio - sim.getAngularPositionRotations();
-        }
-
-        private double getRotorPosition() {
-            return sim.getAngularPositionRotations() + positionOffset;
+            fx.setPosition(mechanismPos);
         }
 
         @Override
         public void updateSim(double supplyVolts) {
-            double targetVolts = controlMode.get();
-            targetVolts = MathUtil.clamp(targetVolts, -supplyVolts, supplyVolts);
-
-            sim.setInputVoltage(targetVolts);
-            sim.update(0.02);
-
-            if (absoluteEncoder != null) {
-                absoluteEncoder.setSupplyVoltage(supplyVolts);
-                absoluteEncoder.setRawPosition(sim.getAngularPositionRotations() / rotorToMechanismRatio);
-                // Velocity is not simulated so too bad
-                // No one uses CanCoder for velocity anyway
-            }
+            fx.updateSim(supplyVolts);
+            positionStatus.refresh();
         }
 
         @Override
         public SparkMaxWithSim attachCanCoder(CANcoder encoder) {
-            absoluteEncoder = encoder.getSimState();
+            fx.attachCanCoder(encoder);
             return this;
         }
     }
+
+//    final class Sim implements SparkMaxWithSim {
+//        private final DCMotorSim sim;
+//        private final SimPIDController pid;
+//        private double rotorToMechanismRatio;
+//        private double positionOffset;
+//
+//        private Supplier<Double> controlMode;
+//        private boolean usingPID;
+//
+//        private CANcoderSimState absoluteEncoder;
+//
+//        public Sim(DCMotor motor, double ratio, double moi) {
+//            sim = new DCMotorSim(motor, ratio, moi);
+//            pid = new SimPIDController(0.001, 1);
+//            rotorToMechanismRatio = 1;
+//
+//            // Control mode returns desired demand in volts
+//            controlMode = () -> 0.0;
+//            usingPID = false;
+//
+//            absoluteEncoder = null;
+//        }
+//
+//        @Override
+//        public void setInverted(boolean inverted) {
+//            // Sim does not care
+//        }
+//
+//        @Override
+//        public void setIdleMode(CANSparkBase.IdleMode mode) {
+//            // Sim does not care (yet)
+//        }
+//
+//        @Override
+//        public void setPID(NTEntry<Double> kP, NTEntry<Double> kI, NTEntry<Double> kD) {
+//            kP.nowAndOnChange(pid::setP);
+//            kI.nowAndOnChange(pid::setI);
+//            kD.nowAndOnChange(pid::setD);
+//        }
+//
+//        @Override
+//        public void setRotorToMechanismRatio(double ratio) {
+//            rotorToMechanismRatio = ratio;
+//        }
+//
+//        @Override
+//        public void setVoltage(double volts) {
+//            controlMode = () -> volts;
+//            usingPID = false;
+//        }
+//
+//        @Override
+//        public void setPosition(double position) {
+//            if (!usingPID)
+//                pid.reset();
+//            usingPID = true;
+//
+//            controlMode = () -> 12 * pid.calc(getRotorPosition(), position * rotorToMechanismRatio);
+//        }
+//
+//        @Override
+//        public void stop() {
+//            controlMode = () -> 0.0;
+//            usingPID = false;
+//        }
+//
+//        @Override
+//        public double getEncoderPosition() {
+//            return getRotorPosition() / rotorToMechanismRatio;
+//        }
+//
+//        @Override
+//        public void setEncoderPosition(double mechanismPos) {
+//            positionOffset = mechanismPos * rotorToMechanismRatio - sim.getAngularPositionRotations();
+//        }
+//
+//        private double getRotorPosition() {
+//            return sim.getAngularPositionRotations() + positionOffset;
+//        }
+//
+//        @Override
+//        public void updateSim(double supplyVolts) {
+//            double targetVolts = controlMode.get();
+//            targetVolts = MathUtil.clamp(targetVolts, -supplyVolts, supplyVolts);
+//
+//            sim.setInputVoltage(targetVolts);
+//            sim.update(0.02);
+//
+//            if (absoluteEncoder != null) {
+//                absoluteEncoder.setSupplyVoltage(supplyVolts);
+//                absoluteEncoder.setRawPosition(sim.getAngularPositionRotations() / rotorToMechanismRatio);
+//                // Velocity is not simulated so too bad
+//                // No one uses CanCoder for velocity anyway
+//            }
+//        }
+//
+//        @Override
+//        public SparkMaxWithSim attachCanCoder(CANcoder encoder) {
+//            absoluteEncoder = encoder.getSimState();
+//            return this;
+//        }
+//    }
 }

@@ -16,8 +16,8 @@ public final class ClimberSubsystem extends SubsystemBase {
         HOLD
     }
 
-    private static final class Arm {
-        private final TalonFX motor;
+    public static final class Arm {
+        public final TalonFX motor;
 
         public Arm(IOAllocation.CanId motorId) {
             motor = new TalonFX(motorId.id(), motorId.bus());
@@ -39,8 +39,8 @@ public final class ClimberSubsystem extends SubsystemBase {
         }
     }
 
-    private final Arm leftArm = new Arm(IOAllocation.CAN.CLIMBER_L_MOTOR);
-    private final Arm rightArm = new Arm(IOAllocation.CAN.CLIMBER_R_MOTOR);
+    public final Arm leftArm = new Arm(IOAllocation.CAN.CLIMBER_L_MOTOR);
+    public final Arm rightArm = new Arm(IOAllocation.CAN.CLIMBER_R_MOTOR);
 
     // TODO: We could add auto-balancing retracting one arm more than the other
     public void setState(ArmState state) {

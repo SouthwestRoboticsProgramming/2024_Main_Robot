@@ -12,7 +12,6 @@ import com.swrobotics.robot.config.NTData;
 import com.swrobotics.robot.logging.SimView;
 import com.swrobotics.robot.utils.TalonFXWithSim;
 import edu.wpi.first.math.system.plant.DCMotor;
-import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public final class AmpArmSubsystem extends SubsystemBase {
@@ -26,9 +25,8 @@ public final class AmpArmSubsystem extends SubsystemBase {
     private static final double motorToArmRatio = 2; // FIXME: not 2:1
 
     private final CANcoder absoluteEncoder = new CANcoder(IOAllocation.CAN.AMP_ARM_CANCODER.id(), IOAllocation.CAN.AMP_ARM_CANCODER.bus());
-    private final TalonFXWithSim motor = new TalonFXWithSim(
-            IOAllocation.CAN.AMP_ARM_MOTOR.id(),
-            IOAllocation.CAN.AMP_ARM_MOTOR.bus(),
+    public final TalonFXWithSim motor = new TalonFXWithSim(
+            IOAllocation.CAN.AMP_ARM_MOTOR,
             DCMotor.getFalcon500Foc(1),
             motorToArmRatio,
             0.01)

@@ -68,6 +68,8 @@ public final class IOAllocation {
         public static final int PWM_INDEXER_SIDES_MOTOR = 2; // something
         public static final int PWM_INDEXER_TOP_MOTOR = 3; // something 2
 
+        public static final int PWM_LEDS = 4;
+
         public static final int DIO_INDEXER_BEAM_BREAK = 0;
     }
 

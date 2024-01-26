@@ -160,4 +160,14 @@ public class Robot extends LoggedRobot {
             autonomousCommand.cancel();
         }
     }
+
+    @Override
+    public void disabledInit() {
+        robotContainer.disabledInit();
+    }
+
+    @Override
+    public void disabledExit() {
+        robotContainer.disabledExit();
+    }
 }

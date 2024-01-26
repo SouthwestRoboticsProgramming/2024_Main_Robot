@@ -1,9 +1,12 @@
 package com.swrobotics.robot.utils;
 
+import com.ctre.phoenix6.configs.AudioConfigs;
+import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.sim.CANcoderSimState;
 import com.ctre.phoenix6.sim.TalonFXSimState;
+import com.swrobotics.robot.config.IOAllocation;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotBase;
@@ -16,13 +19,14 @@ public final class TalonFXWithSim extends TalonFX {
 
     private CANcoderSimState absoluteEncoder;
 
-    public TalonFXWithSim(int deviceId, DCMotor motor, double gearRatio, double moi) {
-        this(deviceId, "", motor, gearRatio, moi);
-    }
-
-    public TalonFXWithSim(int deviceId, String canbus, DCMotor motor, double gearRatio, double moi) {
-        super(deviceId, canbus);
+    public TalonFXWithSim(IOAllocation.CanId id, DCMotor motor, double gearRatio, double moi) {
+        super(id.id(), id.bus());
         this.gearRatio = gearRatio;
+
+        AudioConfigs audio = new AudioConfigs();
+        audio.AllowMusicDurDisable = true;
+        audio.BeepOnBoot = true;
+        getConfigurator().apply(audio);
 
         if (RobotBase.isSimulation()) {
             physicsSim = new DCMotorSim(motor, gearRatio, moi);
@@ -51,7 +55,7 @@ public final class TalonFXWithSim extends TalonFX {
         // Scale by gear ratio to get rotor
         simState.setSupplyVoltage(supplyVolts);
         simState.setRawRotorPosition(position * gearRatio);
-        simState.setRotorVelocity(velocity / 60.0 * gearRatio);
+        simState.setRotorVelocity(velocity * gearRatio);
 
         if (absoluteEncoder != null) {
             absoluteEncoder.setSupplyVoltage(supplyVolts);

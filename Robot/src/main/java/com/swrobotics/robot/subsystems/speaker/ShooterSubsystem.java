@@ -2,6 +2,7 @@ package com.swrobotics.robot.subsystems.speaker;
 
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
+import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.*;
 import com.ctre.phoenix6.hardware.CANcoder;
@@ -16,10 +17,13 @@ import com.swrobotics.robot.config.NTData;
 import com.swrobotics.robot.logging.SimView;
 import com.swrobotics.robot.subsystems.swerve.SwerveDrive;
 import com.swrobotics.robot.utils.SparkMaxWithSim;
+import com.swrobotics.robot.utils.TalonFXWithSim;
+import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.system.plant.DCMotor;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public final class ShooterSubsystem extends SubsystemBase {
@@ -32,8 +36,22 @@ public final class ShooterSubsystem extends SubsystemBase {
     private final SwerveDrive drive;
     private final IndexerSubsystem indexer;
 
-    private final TalonFX flywheelMotor1 = new TalonFX(IOAllocation.CAN.SHOOTER_MOTOR_1.id(), IOAllocation.CAN.SHOOTER_MOTOR_1.bus());
-    private final TalonFX flywheelMotor2 = new TalonFX(IOAllocation.CAN.SHOOTER_MOTOR_2.id(), IOAllocation.CAN.SHOOTER_MOTOR_2.bus());
+//    private final TalonFX flywheelMotor1 = new TalonFX(IOAllocation.CAN.SHOOTER_MOTOR_1.id(), IOAllocation.CAN.SHOOTER_MOTOR_1.bus());
+//    private final TalonFX flywheelMotor2 = new TalonFX(IOAllocation.CAN.SHOOTER_MOTOR_2.id(), IOAllocation.CAN.SHOOTER_MOTOR_2.bus());
+
+    public final TalonFXWithSim flywheelMotor1 = new TalonFXWithSim(
+            IOAllocation.CAN.SHOOTER_MOTOR_1,
+            DCMotor.getFalcon500Foc(1),
+            1,
+            0.001
+    );
+    public final TalonFXWithSim flywheelMotor2 = new TalonFXWithSim(
+            IOAllocation.CAN.SHOOTER_MOTOR_2,
+            DCMotor.getFalcon500Foc(1),
+            1,
+            0.001
+    );
+
 //    private final TalonFX pivotMotor = new TalonFX(IOAllocation.CAN.SHOOTER_PIVOT_MOTOR.id(), IOAllocation.CAN.SHOOTER_PIVOT_MOTOR.bus());
     private final CANcoder pivotEncoder = new CANcoder(IOAllocation.CAN.SHOOTER_PIVOT_CANCODER.id(), IOAllocation.CAN.SHOOTER_PIVOT_CANCODER.bus());
     private final SparkMaxWithSim pivotMotor = SparkMaxWithSim.create(
@@ -44,27 +62,23 @@ public final class ShooterSubsystem extends SubsystemBase {
             0.01
     ).attachCanCoder(pivotEncoder);
 
+    private Debouncer afterShootDelay;
     private final StatusSignal<Double> encoderPosition;
+
+    private final StatusSignal<Double> flywheelVelocity1, flywheelVelocity2;
+    private boolean isPreparing;
+    private double targetVelocity;
 
     public ShooterSubsystem(SwerveDrive drive, IndexerSubsystem indexer) {
         this.drive = drive;
         this.indexer = indexer;
 
         TalonFXConfiguration flywheelConfig = new TalonFXConfiguration();
-        // TODO: Configure for good velocity feedback/feedforward
+        applyPIDV(flywheelConfig.Slot0);
         flywheelConfig.MotorOutput.NeutralMode = NeutralModeValue.Coast;
-
         flywheelMotor1.getConfigurator().apply(flywheelConfig);
         flywheelMotor2.getConfigurator().apply(flywheelConfig);
-        flywheelMotor2.setControl(new Follower(IOAllocation.CAN.SHOOTER_MOTOR_1.id(), true)); // FIXME: Is oppose correct here?
 
-//        TalonFXConfiguration pivotConfig = new TalonFXConfiguration();
-//        pivotConfig.Slot0.kP = 0;
-//        pivotConfig.Slot0.kI = 0;
-//        pivotConfig.Slot0.kD = 0;
-//        pivotConfig.Feedback.SensorToMechanismRatio = motorToPivotRatio;
-//        pivotConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
-//        pivotMotor.getConfigurator().apply(pivotConfig);
         pivotMotor.setPID(NTData.SHOOTER_PIVOT_KP, NTData.SHOOTER_PIVOT_KI, NTData.SHOOTER_PIVOT_KD);
         pivotMotor.setIdleMode(CANSparkBase.IdleMode.kBrake);
         pivotMotor.setInverted(false); // FIXME
@@ -76,12 +90,36 @@ public final class ShooterSubsystem extends SubsystemBase {
 
         encoderPosition = pivotEncoder.getAbsolutePosition();
         pivotMotor.setPosition(getPivotPositionWithCanCoder());
+
+        flywheelVelocity1 = flywheelMotor1.getVelocity();
+        flywheelVelocity2 = flywheelMotor2.getVelocity();
+
+        NTData.SHOOTER_AFTER_DELAY.nowAndOnChange((delay) -> afterShootDelay = new Debouncer(delay, Debouncer.DebounceType.kFalling));
+
+        NTData.SHOOTER_FLYWHEEL_KP.onChange(this::updatePIDV);
+        NTData.SHOOTER_FLYWHEEL_KI.onChange(this::updatePIDV);
+        NTData.SHOOTER_FLYWHEEL_KD.onChange(this::updatePIDV);
+        NTData.SHOOTER_FLYWHEEL_KV.onChange(this::updatePIDV);
+    }
+
+    private void applyPIDV(Slot0Configs config) {
+        config.kP = NTData.SHOOTER_FLYWHEEL_KP.get();
+        config.kI = NTData.SHOOTER_FLYWHEEL_KP.get();
+        config.kD = NTData.SHOOTER_FLYWHEEL_KP.get();
+        config.kV = NTData.SHOOTER_FLYWHEEL_KP.get();
+    }
+
+    private void updatePIDV(double ignored) {
+        Slot0Configs configs = new Slot0Configs();
+        applyPIDV(configs);
+        flywheelMotor1.getConfigurator().apply(configs);
+        flywheelMotor2.getConfigurator().apply(configs);
     }
 
     // TODO: Maybe account for velocity to shoot on the move
     private Aim calculateAim(double distToSpeaker) {
         // TODO
-        return new Aim(10, Math.PI / 4);
+        return new Aim(4000/60.0, Math.PI / 4);
     }
 
     public Translation2d getSpeakerPosition() {
@@ -92,6 +130,12 @@ public final class ShooterSubsystem extends SubsystemBase {
         angleRot = Math.max(angleRot, hardStopAngle);
 //        pivotMotor.setControl(new PositionDutyCycle(angleRot));
         pivotMotor.setPosition(angleRot);
+    }
+
+    private void setFlywheelTarget(double velocityRPS) {
+        targetVelocity = velocityRPS;
+        flywheelMotor1.setControl(new VelocityVoltage(velocityRPS));
+        flywheelMotor2.setControl(new VelocityVoltage(velocityRPS));
     }
 
     private double getPivotPositionWithCanCoder() {
@@ -108,34 +152,66 @@ public final class ShooterSubsystem extends SubsystemBase {
 
     @Override
     public void periodic() {
+        if (DriverStation.isDisabled())
+            return;
+
+        StatusSignal.refreshAll(flywheelVelocity1, flywheelVelocity2);
+
         if (NTData.SHOOTER_PIVOT_CALIBRATE.get()) {
             NTData.SHOOTER_PIVOT_CALIBRATE.set(false);
             calibrateCanCoder();
         }
 
-        if (indexer.hasPiece()) {
+        isPreparing = false;
+        if (afterShootDelay.calculate(indexer.hasPiece())) {
             double distToSpeaker = getSpeakerPosition().getDistance(drive.getEstimatedPose().getTranslation());
 
             if (distToSpeaker < NTData.SHOOTER_FULL_SPEED_DISTANCE.get()) {
                 Aim aim = calculateAim(distToSpeaker);
 
                 // TODO: Torque/FOC?
-                flywheelMotor1.setControl(new VelocityDutyCycle(aim.flywheelVelocity));
+                isPreparing = true;
+                setFlywheelTarget(aim.flywheelVelocity);
                 setPivotTarget(aim.pivotAngle / MathUtil.TAU);
             } else {
-                flywheelMotor1.setControl(new DutyCycleOut(NTData.SHOOTER_IDLE_SPEED.get()));
+                DutyCycleOut cmd = new DutyCycleOut(NTData.SHOOTER_IDLE_SPEED.get());
+                flywheelMotor1.setControl(cmd);
+                flywheelMotor2.setControl(cmd);
                 setPivotTarget(NTData.SHOOTER_PIVOT_IDLE_ANGLE.get() / 360.0);
             }
         } else {
             flywheelMotor1.setControl(new NeutralOut());
-//            pivotMotor.setControl(new NeutralOut());
+            flywheelMotor2.setControl(new NeutralOut());
             pivotMotor.stop();
         }
     }
 
     @Override
     public void simulationPeriodic() {
+        flywheelMotor1.updateSim(12);
+        flywheelMotor2.updateSim(12);
         pivotMotor.updateSim(12);
         SimView.updateShooter(pivotMotor.getEncoderPosition());
+    }
+
+    public boolean isPreparing() {
+        return isPreparing;
+    }
+
+    // For the status indicator in lights
+    // <1 if too slow, >1 if too high
+    public double getPercentOfTarget() {
+        double min = Math.min(flywheelVelocity1.getValue(), flywheelVelocity2.getValue());
+        return min / targetVelocity;
+    }
+
+    private double getSignedPercentErr() {
+        double err1 = MathUtil.signedPercentError(flywheelVelocity1.getValue(), targetVelocity);
+        double err2 = MathUtil.signedPercentError(flywheelVelocity2.getValue(), targetVelocity);
+        return Math.min(err1, err2);
+    }
+
+    public boolean isReadyToShoot() {
+        return Math.abs(getSignedPercentErr()) < NTData.SHOOTER_ALLOWABLE_PCT_ERR.get();
     }
 }
