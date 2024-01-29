@@ -19,7 +19,6 @@ public final class PlaySongCommand extends Command {
     @Override
     public void initialize() {
         music.beginSong(song);
-        System.out.println("Song is GO");
     }
 
     @Override

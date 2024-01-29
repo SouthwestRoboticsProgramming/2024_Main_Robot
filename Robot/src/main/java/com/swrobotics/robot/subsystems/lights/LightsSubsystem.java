@@ -3,7 +3,6 @@ package com.swrobotics.robot.subsystems.lights;
 import com.swrobotics.mathlib.MathUtil;
 import com.swrobotics.robot.RobotContainer;
 import com.swrobotics.robot.config.IOAllocation;
-import com.swrobotics.robot.config.NTData;
 import com.swrobotics.robot.subsystems.swerve.SwerveDrive;
 import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.wpilibj.*;
@@ -16,15 +15,6 @@ import java.util.List;
 import java.util.Optional;
 
 public final class LightsSubsystem extends SubsystemBase {
-    // Indicators:
-    /*
-    [x] Low battery
-    [x] Disabled (show various patterns)
-    Auto driving
-    [x] Shooter aiming status (progress bar to show percent of final velocity, flash if ready)
-    Idle (either alliance color or team purple)
-     */
-
     private static final int LED_COUNT = 32;
 
     private final RobotContainer robot;
@@ -32,7 +22,7 @@ public final class LightsSubsystem extends SubsystemBase {
     private final AddressableLEDBuffer data;
 
     private final Debouncer batteryLowDebounce;
-    private final DisabledSequencer disabledSequencer;
+    private final PrideSequencer prideSequencer;
 
     public LightsSubsystem(RobotContainer robot) {
         this.robot = robot;
@@ -45,7 +35,7 @@ public final class LightsSubsystem extends SubsystemBase {
         leds.start();
 
         batteryLowDebounce = new Debouncer(10);
-        disabledSequencer = new DisabledSequencer();
+        prideSequencer = new PrideSequencer();
     }
 
     private void showLowBattery() {
@@ -88,10 +78,9 @@ public final class LightsSubsystem extends SubsystemBase {
     private void showIdle() {
         Optional<DriverStation.Alliance> alliance = DriverStation.getAlliance();
 
-//        Color color = alliance
-//                .map(value -> value == DriverStation.Alliance.Blue ? Color.kBlue : Color.kRed)
-//                .orElse(Color.kPurple);
-        Color color = Color.kBlue;
+        Color color = alliance
+                .map(value -> value == DriverStation.Alliance.Blue ? Color.kBlue : Color.kRed)
+                .orElse(Color.kPurple);
 
         applySolid(color);
     }
@@ -102,25 +91,15 @@ public final class LightsSubsystem extends SubsystemBase {
         boolean batteryLow = RobotController.getBatteryVoltage() < 10;
         if (batteryLowDebounce.calculate(batteryLow)) {
             showLowBattery();
-            return;
-        }
-
-        if (DriverStation.isDisabled()) {
-            disabledSequencer.apply(this);
-            return;
-        }
-
-        if (robot.shooter.isPreparing()) {
+        } else if (DriverStation.isDisabled()) {
+            prideSequencer.apply(this);
+        } else if (robot.shooter.isPreparing()) {
             showShooterStatus();
-            return;
-        }
-
-        if (robot.drive.getLastSelectedPriority() == SwerveDrive.AUTO_PRIORITY) {
+        } else if (robot.drive.getLastSelectedPriority() == SwerveDrive.AUTO_PRIORITY) {
             showAutoDriving();
-            return;
+        } else {
+            showIdle();
         }
-
-        showIdle();
     }
 
     private void applySolid(Color color) {
@@ -191,6 +170,6 @@ public final class LightsSubsystem extends SubsystemBase {
     }
 
     public void disabledInit() {
-        disabledSequencer.reset();
+        prideSequencer.reset();
     }
 }
