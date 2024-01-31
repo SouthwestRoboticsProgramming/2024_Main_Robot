@@ -23,11 +23,6 @@ public final class TalonFXWithSim extends TalonFX {
         super(id.id(), id.bus());
         this.gearRatio = gearRatio;
 
-        AudioConfigs audio = new AudioConfigs();
-        audio.AllowMusicDurDisable = true;
-        audio.BeepOnBoot = true;
-        getConfigurator().apply(audio);
-
         if (RobotBase.isSimulation()) {
             physicsSim = new DCMotorSim(motor, gearRatio, moi);
             simState = getSimState();

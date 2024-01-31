@@ -43,6 +43,10 @@ public final class InputAxis implements InputElement {
         return value;
     }
 
+    public boolean isOutside(double range) {
+        return Math.abs(value) > range;
+    }
+
     @Override
     public void update() {
         value = getter.get();

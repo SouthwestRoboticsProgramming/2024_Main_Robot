@@ -23,6 +23,7 @@ public final class NTData {
 
     public static final NTEntry<Double> INTAKE_RANGE = new NTDouble("Intake/Range (degrees)", 90).setPersistent();
     public static final NTEntry<Double> INTAKE_SPEED = new NTDouble("Intake/Speed", 0.3).setPersistent();
+    public static final NTEntry<Double> INTAKE_EJECT_SPEED = new NTDouble("Intake/Eject Speed", 0.5).setPersistent();
     public static final NTEntry<Double> INTAKE_CALIBRATE_VOLTS = new NTDouble("Intake/Calibration/Output (volts)", 4).setPersistent();
     public static final NTEntry<Double> INTAKE_CALIBRATE_DEBOUNCE = new NTDouble("Intake/Calibration/Debounce Time (secs)", 0.5).setPersistent();
     public static final NTEntry<Double> INTAKE_CALIBRATE_STALL_THRESHOLD = new NTDouble("Intake/Calibration/Stall Threshold (rot/s)", 0.2).setPersistent();
@@ -31,7 +32,6 @@ public final class NTData {
     public static final NTEntry<Double> INTAKE_KI = new NTDouble("Intake/PID/kI", 0).setPersistent();
     public static final NTEntry<Double> INTAKE_KD = new NTDouble("Intake/PID/kD", 0).setPersistent();
 
-    // Both should be positive
     public static final NTEntry<Double> CLIMBER_EXTEND_SPEED = new NTDouble("Climber/Extend Speed", 0.8).setPersistent();
     public static final NTEntry<Double> CLIMBER_RETRACT_SPEED = new NTDouble("Climber/Retract Speed", 0.5).setPersistent();
 
@@ -51,8 +51,10 @@ public final class NTData {
 
     public static final NTEntry<Double> INDEXER_SIDES_TAKE_SPEED = new NTDouble("Indexer/Sides/Take Speed", 0.2).setPersistent();
     public static final NTEntry<Double> INDEXER_SIDES_FEED_SPEED = new NTDouble("Indexer/Sides/Feed Speed", 0.6).setPersistent();
+    public static final NTEntry<Double> INDEXER_SIDES_EJECT_SPEED = new NTDouble("Indexer/Sides/Eject Speed", 0.4).setPersistent();
     public static final NTEntry<Double> INDEXER_TOP_TAKE_SPEED = new NTDouble("Indexer/Top/Take Speed", 0.3).setPersistent();
     public static final NTEntry<Double> INDEXER_TOP_FEED_SPEED = new NTDouble("Indexer/Top/Feed Speed", 0.6).setPersistent();
+    public static final NTEntry<Double> INDEXER_TOP_EJECT_SPEED = new NTDouble("Indexer/Top/Eject Speed", 0.4).setPersistent();
 
     public static final NTEntry<Double> SHOOTER_IDLE_SPEED = new NTDouble("Shooter/Idle Speed", 0.1).setPersistent();
     public static final NTEntry<Double> SHOOTER_FULL_SPEED_DISTANCE = new NTDouble("Shooter/Full Speed Distance (m)", 6).setPersistent();

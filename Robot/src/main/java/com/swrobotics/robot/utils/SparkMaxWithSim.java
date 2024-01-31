@@ -63,6 +63,8 @@ public interface SparkMaxWithSim {
             pid = spark.getPIDController();
             encoder = spark.getEncoder();
 
+            spark.enableVoltageCompensation(12);
+
             rotorToMechanismRatio = 1;
             encoder.setPositionConversionFactor(1);
             encoder.setVelocityConversionFactor(1);

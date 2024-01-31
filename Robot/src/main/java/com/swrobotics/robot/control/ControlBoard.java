@@ -12,6 +12,7 @@ import com.swrobotics.robot.config.NTData;
 import com.swrobotics.robot.subsystems.amp.AmpArmSubsystem;
 import com.swrobotics.robot.subsystems.amp.AmpIntakeSubsystem;
 import com.swrobotics.robot.subsystems.speaker.IndexerSubsystem;
+import com.swrobotics.robot.subsystems.speaker.IntakeSubsystem;
 import com.swrobotics.robot.subsystems.swerve.SwerveDrive;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -35,6 +36,8 @@ public class ControlBoard extends SubsystemBase {
      * B: shoot
      * X: amp intake
      * Y: amp score
+     * Left trigger: eject
+     * Left bumper: intake through shooter
      * Right trigger: amp eject
      *
      * Dpad up: climber up
@@ -42,23 +45,7 @@ public class ControlBoard extends SubsystemBase {
      */
 
     private static final double DEADBAND = 0.15;
-
-    /**
-     * Manages demands to go to an exact angle demanded by the driver
-     */
-    public enum SwerveCardinal {
-        NONE(0),
-        FRONT(0),
-        LEFT(90),
-        RIGHT(-90),
-        BACk(180);
-
-        public final double degrees;
-
-        SwerveCardinal(double degrees) {
-            this.degrees = degrees;
-        }
-    }
+    private static final double TRIGGER_BUTTON_THRESHOLD = 0.3;
 
     private final RobotContainer robot;
     public final XboxController driver;
@@ -77,21 +64,21 @@ public class ControlBoard extends SubsystemBase {
         driver.a.onRising(() -> CommandScheduler.getInstance().schedule(AutoBuilder.pathfindToPose(target[0], new PathConstraints(4, 8, 10, 40))));
         driver.b.onRising(() -> target[0] = robot.drive.getEstimatedPose());
 
-        // Congigure triggers
+        // Configure triggers
         driver.start.onFalling(() -> robot.drive.setRotation(new Rotation2d()));
         driver.back.onFalling(() -> robot.drive.setRotation(new Rotation2d())); // Two buttons to reset gyro so the driver can't get confused
 
-        new Trigger(() -> driver.rightTrigger.get() != 0).whileTrue(new AimAtPointCommand(
+        new Trigger(() -> driver.rightTrigger.isOutside(TRIGGER_BUTTON_THRESHOLD)).whileTrue(new AimAtPointCommand(
                 robot.drive,
                 robot.shooter::getSpeakerPosition
         ));
     }
 
-    public Translation2d getDriveTranslation() {
+    private Translation2d getDriveTranslation() {
         double speed = NTData.DRIVE_SPEED_NORMAL.get();
         if (driver.leftBumper.isPressed())
             speed = NTData.DRIVE_SPEED_SLOW.get();
-        if (driver.leftTrigger.get() != 0)
+        if (driver.leftTrigger.isOutside(TRIGGER_BUTTON_THRESHOLD))
             speed = NTData.DRIVE_SPEED_FAST.get();
 
         Translation2d leftStick = driver.getLeftStick();
@@ -100,7 +87,7 @@ public class ControlBoard extends SubsystemBase {
         return new Translation2d(x, y);
     }
 
-    public double getDriveRotation() {
+    private double getDriveRotation() {
         return -driver.rightStickX.get() * NTData.TURN_SPEED.get();
     }
 
@@ -122,21 +109,28 @@ public class ControlBoard extends SubsystemBase {
                         robot.drive.getEstimatedPose().getRotation()),
                 SwerveModule.DriveRequestType.OpenLoopVoltage);
 
-        robot.intake.set(operator.a.isPressed());
-        robot.indexer.setState(operator.b.isPressed() ? IndexerSubsystem.State.FEED_TO_SHOOTER : IndexerSubsystem.State.TAKE_FROM_INTAKE);
+        IntakeSubsystem.State intakeState = IntakeSubsystem.State.OFF;
+        if (operator.a.isPressed())
+            intakeState = IntakeSubsystem.State.INTAKE;
+        else if (operator.leftTrigger.isOutside(TRIGGER_BUTTON_THRESHOLD))
+            intakeState = IntakeSubsystem.State.EJECT;
 
-        AmpArmSubsystem.Position armPosition = AmpArmSubsystem.Position.STOW;
-        AmpIntakeSubsystem.State intakeState = AmpIntakeSubsystem.State.OFF;
+        // Indexer uses the intake state also
+        robot.intake.set(intakeState);
+        robot.indexer.setFeedToShooter(operator.b.isPressed());
+
+        AmpArmSubsystem.Position ampArmPosition = AmpArmSubsystem.Position.STOW;
+        AmpIntakeSubsystem.State ampIntakeState = AmpIntakeSubsystem.State.OFF;
         if (operator.x.isPressed()) {
-            armPosition = AmpArmSubsystem.Position.PICKUP;
-            intakeState = AmpIntakeSubsystem.State.INTAKE;
+            ampArmPosition = AmpArmSubsystem.Position.PICKUP;
+            ampIntakeState = AmpIntakeSubsystem.State.INTAKE;
         } else if (operator.y.isPressed()) {
-            armPosition = AmpArmSubsystem.Position.SCORE;
-            if (operator.rightTrigger.get() != 0) {
-                intakeState = AmpIntakeSubsystem.State.OUTTAKE;
+            ampArmPosition = AmpArmSubsystem.Position.SCORE;
+            if (operator.rightTrigger.isOutside(TRIGGER_BUTTON_THRESHOLD)) {
+                ampIntakeState = AmpIntakeSubsystem.State.OUTTAKE;
             }
         }
-        robot.ampArm.setPosition(armPosition);
-        robot.ampIntake.setState(intakeState);
+        robot.ampArm.setPosition(ampArmPosition);
+        robot.ampIntake.setState(ampIntakeState);
     }
 }

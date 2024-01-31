@@ -13,6 +13,12 @@ import edu.wpi.first.wpilibj.motorcontrol.PWMTalonSRX;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public final class IntakeSubsystem extends SubsystemBase {
+    public enum State {
+        INTAKE,
+        EJECT,
+        OFF
+    }
+
     private static final double motorToIntakeRatio = 2; // FIXME: Probably is not 2:1
 
     private final SparkMaxWithSim actuatorMotor = SparkMaxWithSim.create(
@@ -23,7 +29,7 @@ public final class IntakeSubsystem extends SubsystemBase {
             0.005);
     private final PWMTalonSRX spinMotor;
 
-    private boolean active;
+    private State state;
     private boolean hasCalibrated;
     private Debouncer actuatorStillDebounce;
 
@@ -38,19 +44,27 @@ public final class IntakeSubsystem extends SubsystemBase {
         // The hard-stop the calibration relies on does not exist in simulation
         // The position is already correct anyway because the sim starts in a known state
         hasCalibrated = RobotBase.isSimulation();
+        state = State.OFF;
     }
 
-    public void set(boolean active) {
-        this.active = active;
+    public void set(State state) {
+        this.state = state;
         if (!hasCalibrated)
             return;
 
-        actuatorMotor.setPosition(active ? NTData.INTAKE_RANGE.get() / 360 : 0);
-        spinMotor.set(active ? NTData.INTAKE_SPEED.get() : 0);
+        boolean extend = state != State.OFF;
+        double speed = switch (state) {
+            case INTAKE -> NTData.INTAKE_SPEED.get();
+            case EJECT -> -NTData.INTAKE_EJECT_SPEED.get();
+            case OFF -> 0;
+        };
+
+        actuatorMotor.setPosition(extend ? NTData.INTAKE_RANGE.get() / 360 : 0);
+        spinMotor.set(speed);
     }
 
-    public boolean isActive() {
-        return active;
+    public State getState() {
+        return state;
     }
 
     @Override
@@ -69,7 +83,6 @@ public final class IntakeSubsystem extends SubsystemBase {
             actuatorStillDebounce = new Debouncer(NTData.INTAKE_CALIBRATE_DEBOUNCE.get(), Debouncer.DebounceType.kBoth);
         }
 
-        System.out.println("Calibration: encoder velocity = " + actuatorMotor.getEncoderVelocity());
         boolean isStill = Math.abs(actuatorMotor.getEncoderVelocity()) < NTData.INTAKE_CALIBRATE_STALL_THRESHOLD.get();
         if (actuatorStillDebounce.calculate(isStill)) {
             hasCalibrated = true;
@@ -78,7 +91,7 @@ public final class IntakeSubsystem extends SubsystemBase {
             // Slightly negative so the motor doesn't stall on the hard-stop
             // when retracting
             actuatorMotor.setEncoderPosition(-5);
-            set(active);
+            set(state);
         } else {
             actuatorMotor.setVoltage(NTData.INTAKE_CALIBRATE_VOLTS.get());
         }
