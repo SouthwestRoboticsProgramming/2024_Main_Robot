@@ -1,67 +1,50 @@
 package com.swrobotics.robot.subsystems.speaker;
 
-import com.ctre.phoenix6.StatusSignal;
-import com.ctre.phoenix6.configs.TalonFXConfiguration;
-import com.ctre.phoenix6.controls.PositionDutyCycle;
-import com.ctre.phoenix6.hardware.CANcoder;
-import com.ctre.phoenix6.signals.InvertedValue;
 import com.revrobotics.CANSparkLowLevel;
 import com.swrobotics.robot.config.IOAllocation;
 import com.swrobotics.robot.config.NTData;
 import com.swrobotics.robot.logging.SimView;
-import com.swrobotics.robot.subsystems.amp.AmpArmSubsystem;
 import com.swrobotics.robot.utils.SparkMaxWithSim;
-import com.swrobotics.robot.utils.TalonFXWithSim;
+import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.system.plant.DCMotor;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.motorcontrol.PWMTalonSRX;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public final class IntakeSubsystem extends SubsystemBase {
     private static final double motorToIntakeRatio = 2; // FIXME: Probably is not 2:1
 
-    private final CANcoder actuatorEncoder = new CANcoder(IOAllocation.CAN.INTAKE_ACTUATOR_CANCODER.id(), IOAllocation.CAN.INTAKE_ACTUATOR_CANCODER.bus());
-//    private final TalonFXWithSim actuatorMotor = new TalonFXWithSim(
-//            IOAllocation.CAN.INTAKE_ACTUATOR_MOTOR.id(),
-//            IOAllocation.CAN.INTAKE_ACTUATOR_MOTOR.bus(),
-//            DCMotor.getFalcon500Foc(1),
-//            motorToIntakeRatio,
-//            0.005)
-//            .attachCanCoder(actuatorEncoder);
     private final SparkMaxWithSim actuatorMotor = SparkMaxWithSim.create(
             IOAllocation.CAN.INTAKE_ACTUATOR_MOTOR,
             CANSparkLowLevel.MotorType.kBrushless,
             DCMotor.getNEO(1),
             motorToIntakeRatio,
-            0.005)
-            .attachCanCoder(actuatorEncoder);
+            0.005);
     private final PWMTalonSRX spinMotor;
 
-    private final StatusSignal<Double> encoderPosition;
-
     private boolean active;
+    private boolean hasCalibrated;
+    private Debouncer actuatorStillDebounce;
 
     public IntakeSubsystem() {
-//        TalonFXConfiguration config = new TalonFXConfiguration();
-//        config.Slot0.kP = 0.15;
-//        config.Slot0.kI = 0;
-//        config.Slot0.kD = 1;
-//        config.MotorOutput.Inverted = InvertedValue.Clockwise_Positive; // FIXME: Which one?
-//        config.Feedback.SensorToMechanismRatio = motorToIntakeRatio;
-//        actuatorMotor.getConfigurator().apply(config);
-
         actuatorMotor.setPID(NTData.INTAKE_KP, NTData.INTAKE_KI, NTData.INTAKE_KD);
         actuatorMotor.setRotorToMechanismRatio(motorToIntakeRatio);
         actuatorMotor.setInverted(false); // FIXME
 
-        encoderPosition = actuatorEncoder.getAbsolutePosition();
         spinMotor = new PWMTalonSRX(IOAllocation.RIO.PWM_INTAKE_MOTOR);
+        actuatorStillDebounce = null;
 
-        // Assume intake is retracted (as it should be at the start of a match)
-        actuatorMotor.setPosition(getPositionWithCanCoder());
+        // The hard-stop the calibration relies on does not exist in simulation
+        // The position is already correct anyway because the sim starts in a known state
+        hasCalibrated = RobotBase.isSimulation();
     }
 
     public void set(boolean active) {
         this.active = active;
+        if (!hasCalibrated)
+            return;
+
         actuatorMotor.setPosition(active ? NTData.INTAKE_RANGE.get() / 360 : 0);
         spinMotor.set(active ? NTData.INTAKE_SPEED.get() : 0);
     }
@@ -72,9 +55,32 @@ public final class IntakeSubsystem extends SubsystemBase {
 
     @Override
     public void periodic() {
-        if (NTData.INTAKE_CALIBRATE.get()) {
-            NTData.INTAKE_CALIBRATE.set(false);
-            calibrateCanCoder();
+        if (NTData.INTAKE_RECALIBRATE.get()) {
+            hasCalibrated = false;
+            actuatorStillDebounce = null;
+        }
+        if (hasCalibrated || DriverStation.isDisabled())
+            return;
+
+        // Defer debouncer initialization until now so the first edge still applies
+        if (actuatorStillDebounce == null) {
+            // Defaults to false, which gives the motor a little time to start
+            // moving before we stop
+            actuatorStillDebounce = new Debouncer(NTData.INTAKE_CALIBRATE_DEBOUNCE.get(), Debouncer.DebounceType.kBoth);
+        }
+
+        System.out.println("Calibration: encoder velocity = " + actuatorMotor.getEncoderVelocity());
+        boolean isStill = Math.abs(actuatorMotor.getEncoderVelocity()) < NTData.INTAKE_CALIBRATE_STALL_THRESHOLD.get();
+        if (actuatorStillDebounce.calculate(isStill)) {
+            hasCalibrated = true;
+
+            // Fully retracted now, set position
+            // Slightly negative so the motor doesn't stall on the hard-stop
+            // when retracting
+            actuatorMotor.setEncoderPosition(-5);
+            set(active);
+        } else {
+            actuatorMotor.setVoltage(NTData.INTAKE_CALIBRATE_VOLTS.get());
         }
     }
 
@@ -82,19 +88,5 @@ public final class IntakeSubsystem extends SubsystemBase {
     public void simulationPeriodic() {
         actuatorMotor.updateSim(12);
         SimView.updateIntake(actuatorMotor.getEncoderPosition());
-    }
-
-    private double getPositionWithCanCoder() {
-        encoderPosition.refresh();
-        return encoderPosition.getValue() + NTData.INTAKE_CANCODER_OFFSET.get();
-    }
-
-    // Assumes intake is fully up
-    private void calibrateCanCoder() {
-        encoderPosition.refresh();
-        double currentPosition = encoderPosition.getValue();
-        double expectedPosition = 0;
-
-        NTData.INTAKE_CANCODER_OFFSET.set(expectedPosition - currentPosition);
     }
 }

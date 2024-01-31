@@ -2,6 +2,7 @@ package com.swrobotics.robot.subsystems.amp;
 
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
+import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.PositionDutyCycle;
 import com.ctre.phoenix6.hardware.CANcoder;
@@ -36,13 +37,18 @@ public final class AmpArmSubsystem extends SubsystemBase {
     private final StatusSignal<Double> encoderPosition;
 
     public AmpArmSubsystem() {
+        // TODO: Do we want a feedforward to account for gravity?
+
         TalonFXConfiguration motorConfig = new TalonFXConfiguration();
-        motorConfig.Slot0.kP = 0.05;
-        motorConfig.Slot0.kI = 0;
-        motorConfig.Slot0.kD = 0;
+        motorConfig.Slot0.kP = NTData.AMP_ARM_KP.get();
+        motorConfig.Slot0.kI = NTData.AMP_ARM_KI.get();
+        motorConfig.Slot0.kD = NTData.AMP_ARM_KD.get();
         motorConfig.MotorOutput.Inverted = InvertedValue.Clockwise_Positive; // FIXME
         motorConfig.Feedback.SensorToMechanismRatio = motorToArmRatio;
         motor.getConfigurator().apply(motorConfig);
+        NTData.AMP_ARM_KP.onChange(this::updatePID);
+        NTData.AMP_ARM_KI.onChange(this::updatePID);
+        NTData.AMP_ARM_KD.onChange(this::updatePID);
 
         CANcoderConfiguration encoderConfig = new CANcoderConfiguration();
         encoderConfig.MagnetSensor.MagnetOffset = 0;
@@ -53,6 +59,14 @@ public final class AmpArmSubsystem extends SubsystemBase {
         encoderPosition = absoluteEncoder.getAbsolutePosition();
 
         motor.setPosition(getPositionWithCanCoder());
+    }
+
+    private void updatePID(double ignored) {
+        Slot0Configs configs = new Slot0Configs();
+        configs.kP = NTData.AMP_ARM_KP.get();
+        configs.kI = NTData.AMP_ARM_KI.get();
+        configs.kD = NTData.AMP_ARM_KD.get();
+        motor.getConfigurator().apply(configs);
     }
 
     public void setPosition(Position position) {

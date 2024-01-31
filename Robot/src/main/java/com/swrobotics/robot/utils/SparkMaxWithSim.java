@@ -44,9 +44,9 @@ public interface SparkMaxWithSim {
 
     // Mechanism position
     double getEncoderPosition();
-
     void setEncoderPosition(double mechanismPos);
 
+    double getEncoderVelocity();
 
     // Sim specific
     void updateSim(double supplyVolts);
@@ -64,6 +64,7 @@ public interface SparkMaxWithSim {
             encoder = spark.getEncoder();
 
             rotorToMechanismRatio = 1;
+            encoder.setPositionConversionFactor(1);
             encoder.setVelocityConversionFactor(1);
         }
 
@@ -115,6 +116,12 @@ public interface SparkMaxWithSim {
         }
 
         @Override
+        public double getEncoderVelocity() {
+            // To RPS
+            return encoder.getVelocity() / 60.0;
+        }
+
+        @Override
         public void updateSim(double supplyVolts) {
             // Not a sim
         }
@@ -129,11 +136,12 @@ public interface SparkMaxWithSim {
     // Falcon in sim because rev
     final class Falcon implements SparkMaxWithSim {
         private final TalonFXWithSim fx;
-        private final StatusSignal<Double> positionStatus;
+        private final StatusSignal<Double> positionStatus, velocityStatus;
 
         public Falcon(IOAllocation.CanId id, DCMotor motor, double ratio, double moi) {
             fx = new TalonFXWithSim(id, motor, ratio, moi);
             positionStatus = fx.getPosition();
+            velocityStatus = fx.getVelocity();
         }
 
         @Override
@@ -202,9 +210,15 @@ public interface SparkMaxWithSim {
         }
 
         @Override
+        public double getEncoderVelocity() {
+            return velocityStatus.getValue();
+        }
+
+        @Override
         public void updateSim(double supplyVolts) {
             fx.updateSim(supplyVolts);
             positionStatus.refresh();
+            velocityStatus.refresh();
         }
 
         @Override

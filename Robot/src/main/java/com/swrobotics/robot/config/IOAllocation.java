@@ -52,9 +52,8 @@ public final class IOAllocation {
         public static final CanId SHOOTER_PIVOT_CANCODER = new CanId(4, RIO);
 
         public static final CanId INTAKE_ACTUATOR_MOTOR = new CanId(5, RIO); // neo
-        public static final CanId INTAKE_ACTUATOR_CANCODER = new CanId(6, RIO);
 
-        public static final CanId AMP_ARM_CANCODER = new CanId(7, RIO);
+        public static final CanId AMP_ARM_CANCODER = new CanId(6, RIO);
 
         public static final CanId PDP = new CanId(62, RIO);
     }

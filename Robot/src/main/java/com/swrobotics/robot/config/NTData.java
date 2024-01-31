@@ -23,8 +23,10 @@ public final class NTData {
 
     public static final NTEntry<Double> INTAKE_RANGE = new NTDouble("Intake/Range (degrees)", 90).setPersistent();
     public static final NTEntry<Double> INTAKE_SPEED = new NTDouble("Intake/Speed", 0.3).setPersistent();
-    public static final NTEntry<Boolean> INTAKE_CALIBRATE = new NTBoolean("Intake/Calibrate (put UP)", false);
-    public static final NTEntry<Double> INTAKE_CANCODER_OFFSET = new NTDouble("Intake/CanCoder Offset", 0).setPersistent();
+    public static final NTEntry<Double> INTAKE_CALIBRATE_VOLTS = new NTDouble("Intake/Calibration/Output (volts)", 4).setPersistent();
+    public static final NTEntry<Double> INTAKE_CALIBRATE_DEBOUNCE = new NTDouble("Intake/Calibration/Debounce Time (secs)", 0.5).setPersistent();
+    public static final NTEntry<Double> INTAKE_CALIBRATE_STALL_THRESHOLD = new NTDouble("Intake/Calibration/Stall Threshold (rot/s)", 0.2).setPersistent();
+    public static final NTEntry<Boolean> INTAKE_RECALIBRATE = new NTBoolean("Intake/Calibration/Recalibrate", false);
     public static final NTEntry<Double> INTAKE_KP = new NTDouble("Intake/PID/kP", 0).setPersistent();
     public static final NTEntry<Double> INTAKE_KI = new NTDouble("Intake/PID/kI", 0).setPersistent();
     public static final NTEntry<Double> INTAKE_KD = new NTDouble("Intake/PID/kD", 0).setPersistent();
@@ -40,6 +42,9 @@ public final class NTData {
     public static final NTEntry<Double> AMP_ARM_STOW_ANGLE = new NTDouble("Amp/Arm/Stow Angle (degrees)", 135).setPersistent();
     public static final NTEntry<Double> AMP_ARM_PICKUP_ANGLE = new NTDouble("Amp/Arm/Pickup Angle (degrees)", -45).setPersistent();
     public static final NTEntry<Double> AMP_ARM_SCORE_ANGLE = new NTDouble("Amp/Arm/Score Angle (degrees)", 45).setPersistent();
+    public static final NTEntry<Double> AMP_ARM_KP = new NTDouble("Amp/Arm/PID/kP", 0.05).setPersistent();
+    public static final NTEntry<Double> AMP_ARM_KI = new NTDouble("Amp/Arm/PID/kI", 0).setPersistent();
+    public static final NTEntry<Double> AMP_ARM_KD = new NTDouble("Amp/Arm/PID/kD", 0).setPersistent();
 
     public static final NTEntry<Double> AMP_INTAKE_INTAKE_SPEED = new NTDouble("Amp/Intake/Intake Speed", 0.5).setPersistent();
     public static final NTEntry<Double> AMP_INTAKE_OUTTAKE_SPEED = new NTDouble("Amp/Intake/Outtake Speed", 0.5).setPersistent();

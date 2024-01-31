@@ -37,9 +37,8 @@ public class ControlBoard extends SubsystemBase {
      * Y: amp score
      * Right trigger: amp eject
      *
-     * Up: recalibrate shot higher
-     * Down: recalibrate shot lower
-     * Left trigger: recalibrate small step
+     * Dpad up: climber up
+     * Dpad down: climber down
      */
 
     private static final double DEADBAND = 0.15;
