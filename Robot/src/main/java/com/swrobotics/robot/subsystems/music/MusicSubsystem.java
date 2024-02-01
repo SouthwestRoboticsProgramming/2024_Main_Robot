@@ -1,6 +1,8 @@
 package com.swrobotics.robot.subsystems.music;
 
 import com.ctre.phoenix6.Orchestra;
+import com.ctre.phoenix6.configs.AudioConfigs;
+import com.ctre.phoenix6.hardware.TalonFX;
 import com.swrobotics.robot.RobotContainer;
 import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -31,19 +33,29 @@ public final class MusicSubsystem extends SubsystemBase {
     public MusicSubsystem(RobotContainer robot) {
         orchestra = new Orchestra();
 
-        orchestra.addInstrument(robot.drive.modules[0].getDriveMotor());
-        orchestra.addInstrument(robot.drive.modules[1].getDriveMotor());
-        orchestra.addInstrument(robot.drive.modules[2].getDriveMotor());
-        orchestra.addInstrument(robot.drive.modules[3].getDriveMotor());
-        orchestra.addInstrument(robot.drive.modules[0].getSteerMotor());
-        orchestra.addInstrument(robot.drive.modules[1].getSteerMotor());
-        orchestra.addInstrument(robot.drive.modules[2].getSteerMotor());
-        orchestra.addInstrument(robot.drive.modules[3].getSteerMotor());
-        orchestra.addInstrument(robot.climber.leftArm.motor);
-        orchestra.addInstrument(robot.climber.rightArm.motor);
-        orchestra.addInstrument(robot.ampArm.motor);
-        orchestra.addInstrument(robot.shooter.flywheelMotor1);
-        orchestra.addInstrument(robot.shooter.flywheelMotor2);
+        addInstrument(robot.drive.modules[0].getDriveMotor());
+        addInstrument(robot.drive.modules[1].getDriveMotor());
+        addInstrument(robot.drive.modules[2].getDriveMotor());
+        addInstrument(robot.drive.modules[3].getDriveMotor());
+        addInstrument(robot.drive.modules[0].getSteerMotor());
+        addInstrument(robot.drive.modules[1].getSteerMotor());
+        addInstrument(robot.drive.modules[2].getSteerMotor());
+        addInstrument(robot.drive.modules[3].getSteerMotor());
+        addInstrument(robot.climber.leftArm.motor);
+        addInstrument(robot.climber.rightArm.motor);
+        addInstrument(robot.ampArm.motor);
+        addInstrument(robot.shooter.flywheelMotor1);
+        addInstrument(robot.shooter.flywheelMotor2);
+    }
+
+    private void addInstrument(TalonFX fx) {
+        AudioConfigs conf = new AudioConfigs();
+        conf.BeepOnBoot = true;
+        conf.BeepOnConfig = false;
+        conf.AllowMusicDurDisable = true;
+        fx.getConfigurator().apply(conf);
+        
+        orchestra.addInstrument(fx);
     }
 
     public void beginSong(String file) {

@@ -1,5 +1,6 @@
 package com.swrobotics.robot.subsystems.swerve;
 
+import com.ctre.phoenix6.StatusSignal;
 import com.swrobotics.messenger.client.MessengerClient;
 import com.swrobotics.robot.config.IOAllocation;
 import com.swrobotics.robot.config.NTData;
@@ -185,8 +186,27 @@ public final class SwerveDrive extends SubsystemBase {
             currentTurnRequest = request;
     }
 
+    private void calibrate() {
+        for (int i = 0; i < INFOS.length; i++) {
+            SwerveModule.Info info = INFOS[i];
+
+            StatusSignal<Double> position = modules[i].getCANcoder().getAbsolutePosition();
+            position.refresh();
+
+            info.offset().set(info.offset().get() - position.getValue());
+        }
+    }
+
     @Override
     public void periodic() {
+        if (NTData.DRIVE_CALIBRATE.get()) {
+            NTData.DRIVE_CALIBRATE.set(false);
+            calibrate();
+            for (int i = 0; i < 10; i++) {
+                DriverStation.reportError("RESTART ROBOT CODE NOW", false);
+            }
+        }
+
         if (DriverStation.isDisabled())
             return;
 
