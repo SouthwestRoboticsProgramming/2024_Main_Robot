@@ -11,7 +11,6 @@ import com.swrobotics.robot.commands.AimAtPointCommand;
 import com.swrobotics.robot.config.NTData;
 import com.swrobotics.robot.subsystems.amp.AmpArmSubsystem;
 import com.swrobotics.robot.subsystems.amp.AmpIntakeSubsystem;
-import com.swrobotics.robot.subsystems.speaker.IndexerSubsystem;
 import com.swrobotics.robot.subsystems.speaker.IntakeSubsystem;
 import com.swrobotics.robot.subsystems.swerve.SwerveDrive;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -101,7 +100,7 @@ public class ControlBoard extends SubsystemBase {
         Rotation2d rotation = new Rotation2d(MathUtil.TAU * rawRotation);
 
         robot.drive.driveAndTurn(
-                SwerveDrive.DEFAULT_PRIORITY,
+                SwerveDrive.DRIVER_PRIORITY,
                 ChassisSpeeds.fromFieldRelativeSpeeds(
                         translation.getX(),
                         translation.getY(),

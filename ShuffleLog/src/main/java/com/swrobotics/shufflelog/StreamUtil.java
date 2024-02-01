@@ -9,6 +9,10 @@ public final class StreamUtil {
             throw new IOException("Resource not found: " + res);
         }
 
+        return readToByteArray(in);
+    }
+
+    public static byte[] readToByteArray(InputStream in) throws IOException {
         ByteArrayOutputStream b = new ByteArrayOutputStream();
 
         byte[] buffer = new byte[1024];

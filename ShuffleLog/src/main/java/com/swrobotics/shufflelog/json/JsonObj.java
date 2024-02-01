@@ -35,6 +35,11 @@ public final class JsonObj {
         return obj.get(key).getAsDouble();
     }
 
+    public String getString(String key, String def) {
+        if (obj == null || !obj.has(key)) return def;
+        return obj.get(key).getAsString();
+    }
+
     public Set<String> keySet() {
         return obj == null ? Collections.emptySet() : obj.keySet();
     }

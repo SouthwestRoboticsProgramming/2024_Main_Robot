@@ -39,7 +39,7 @@ import static com.swrobotics.robot.subsystems.swerve.SwerveConstants.SWERVE_MODU
 
 @SuppressWarnings("unused")
 public final class SwerveDrive extends SubsystemBase {
-    public static final int DEFAULT_PRIORITY = 0;
+    public static final int DRIVER_PRIORITY = 0;
     public static final int AUTO_PRIORITY = 1;
     public static final int AIM_PRIORITY = 2;
 
