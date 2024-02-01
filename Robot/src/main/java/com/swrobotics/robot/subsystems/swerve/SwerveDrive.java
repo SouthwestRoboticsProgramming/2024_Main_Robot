@@ -54,12 +54,13 @@ public final class SwerveDrive extends SubsystemBase {
     private static final DriveRequest NULL_DRIVE = new DriveRequest(Integer.MIN_VALUE, new Translation2d(0, 0), DriveRequestType.OpenLoopVoltage);
     private static final TurnRequest NULL_TURN = new TurnRequest(Integer.MIN_VALUE, new Rotation2d(0));
 
-    private static final double HALF_SPACING = Units.inchesToMeters(27 - 2.625 * 2); // Perimeter - MK4i inset // TODO: Set
+    private static final double HALF_SPACING_X = 55.3 / 100 / 2;
+    private static final double HALF_SPACING_Y = 63.0 / 100 / 2;
     private static final SwerveModule.Info[] INFOS = {
-            new SwerveModule.Info(IOAllocation.CAN.SWERVE_FL, HALF_SPACING, HALF_SPACING, NTData.DRIVE_FL_OFFSET, "Front Left"),
-            new SwerveModule.Info(IOAllocation.CAN.SWERVE_FR, HALF_SPACING, -HALF_SPACING, NTData.DRIVE_FR_OFFSET, "Front Right"),
-            new SwerveModule.Info(IOAllocation.CAN.SWERVE_BL, -HALF_SPACING, HALF_SPACING, NTData.DRIVE_BL_OFFSET, "Back Left"),
-            new SwerveModule.Info(IOAllocation.CAN.SWERVE_BR, -HALF_SPACING, -HALF_SPACING, NTData.DRIVE_BR_OFFSET, "Back Right")
+            new SwerveModule.Info(IOAllocation.CAN.SWERVE_FL, HALF_SPACING_X, HALF_SPACING_Y, NTData.DRIVE_FL_OFFSET, "Front Left"),
+            new SwerveModule.Info(IOAllocation.CAN.SWERVE_FR, HALF_SPACING_X, -HALF_SPACING_Y, NTData.DRIVE_FR_OFFSET, "Front Right"),
+            new SwerveModule.Info(IOAllocation.CAN.SWERVE_BL, -HALF_SPACING_X, HALF_SPACING_Y, NTData.DRIVE_BL_OFFSET, "Back Left"),
+            new SwerveModule.Info(IOAllocation.CAN.SWERVE_BR, -HALF_SPACING_X, -HALF_SPACING_Y, NTData.DRIVE_BR_OFFSET, "Back Right")
     };
 
     /**
@@ -118,7 +119,7 @@ public final class SwerveDrive extends SubsystemBase {
                 (speeds) ->
                     driveAndTurn(AUTO_PRIORITY, speeds, DriveRequestType.Velocity),
                 new HolonomicPathFollowerConfig(
-                        new PIDConstants(8.0), new PIDConstants(4.0, 0.0), MAX_LINEAR_SPEED, Math.hypot(HALF_SPACING, HALF_SPACING), new ReplanningConfig(), 0.020),
+                        new PIDConstants(8.0), new PIDConstants(4.0, 0.0), MAX_LINEAR_SPEED, Math.hypot(HALF_SPACING_X, HALF_SPACING_X), new ReplanningConfig(), 0.020),
                 () -> DriverStation.getAlliance().orElse(DriverStation.Alliance.Blue) == DriverStation.Alliance.Red,
                 this);
 
