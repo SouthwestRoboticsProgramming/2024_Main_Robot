@@ -5,6 +5,6 @@
     "name": "Pathfinding"
   },
   "robot_radius": 0.6202230647076,
-  "tolerance": 0.1,
+  "tolerance": 0.2,
   "env_file": "crescendo.json"
 }
