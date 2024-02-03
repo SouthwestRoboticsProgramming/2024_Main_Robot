@@ -81,18 +81,17 @@ public class SwerveModule extends com.ctre.phoenix6.mechanisms.swerve.SwerveModu
 
     @Override
     public SwerveModulePosition getCachedPosition() {
-//        if (RobotBase.isSimulation())
-//            return new SwerveModulePosition(simDistance, targetState.angle);
+        if (RobotBase.isSimulation())
+            return new SwerveModulePosition(simDistance, targetState.angle);
 
         return super.getCachedPosition();
     }
 
     @Override
     public SwerveModulePosition getPosition(boolean refresh) {
-//        if (RobotBase.isSimulation()) {
-//            // For some reason the back-right module gets goofy with CTRE sim
-//            return new SwerveModulePosition(simDistance, targetState.angle);
-//        }
+        if (RobotBase.isSimulation()) {
+            return new SwerveModulePosition(simDistance, targetState.angle);
+        }
 
         SwerveModulePosition pos = super.getPosition(refresh);
 
@@ -105,8 +104,8 @@ public class SwerveModule extends com.ctre.phoenix6.mechanisms.swerve.SwerveModu
     }
 
     public SwerveModuleState getCurrentState() {
-//        if (RobotBase.isSimulation())
-//            return targetState;
+        if (RobotBase.isSimulation())
+            return targetState;
 
         return new SwerveModuleState(getDriveMotor().getVelocity().getValue() / driveRotationsPerMeter, Rotation2d.fromRotations(getSteerMotor().getPosition().getValue()));
     }
