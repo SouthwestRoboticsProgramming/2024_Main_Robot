@@ -1,6 +1,12 @@
 {
   "version": 1.0,
-  "startingPose": null,
+  "startingPose": {
+    "position": {
+      "x": 1.8384715971711143,
+      "y": 5.531335051274091
+    },
+    "rotation": -179.85689038796517
+  },
   "command": {
     "type": "sequential",
     "data": {
@@ -8,13 +14,13 @@
         {
           "type": "path",
           "data": {
-            "pathName": "To Barrier Cube"
+            "pathName": "Grab Short Center"
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "Score From Center"
+            "pathName": "Grab Long A"
           }
         }
       ]
