@@ -36,6 +36,9 @@ import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
+import com.swrobotics.lib.net.NTEntry;
+import com.swrobotics.lib.net.NTDouble;
+
 import static com.swrobotics.robot.subsystems.swerve.SwerveConstants.SWERVE_MODULE_BUILDER;
 
 @SuppressWarnings("unused")
@@ -66,7 +69,7 @@ public final class SwerveDrive extends SubsystemBase {
     /**
      * Meters per second
      */
-    public static final double MAX_LINEAR_SPEED = 3.78; // TODO: Measure emperically
+    public static final double MAX_LINEAR_SPEED = Units.feetToMeters(16.5); // TODO: Measure emperically
 
     private final FieldInfo fieldInfo;
 
@@ -173,7 +176,7 @@ public final class SwerveDrive extends SubsystemBase {
     }
 
     public void driveAndTurn(int priority, ChassisSpeeds speeds, DriveRequestType type) {
-        drive(new DriveRequest(priority, new Translation2d(speeds.vxMetersPerSecond, speeds.vyMetersPerSecond), DriveRequestType.OpenLoopVoltage));
+        drive(new DriveRequest(priority, new Translation2d(speeds.vxMetersPerSecond, speeds.vyMetersPerSecond), type));
         turn(new TurnRequest(priority, new Rotation2d(speeds.omegaRadiansPerSecond)));
     }
 
@@ -197,6 +200,9 @@ public final class SwerveDrive extends SubsystemBase {
             info.offset().set(info.offset().get() - position.getValue());
         }
     }
+
+    private final NTEntry<Double> mod0Measurement = new NTDouble("Drive/Debug/Velocity measurement", 0);
+    private final NTEntry<Double> mod0Setpoint = new NTDouble("Drive/Debug/Velocity setpoint", 0);
 
     @Override
     public void periodic() {
@@ -225,6 +231,9 @@ public final class SwerveDrive extends SubsystemBase {
         for (int i = 0; i < modules.length; i++) {
             modules[i].apply(targetStates[i], currentDriveRequest.type, SteerRequestType.MotionMagic);
         }
+
+        mod0Measurement.set(modules[0].getCurrentState().speedMetersPerSecond);
+        mod0Setpoint.set(modules[0].getTargetState().speedMetersPerSecond);
 
         // Update estimator
         // Do refresh here, so we get the most up-to-date data

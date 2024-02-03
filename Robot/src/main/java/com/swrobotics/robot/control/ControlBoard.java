@@ -1,6 +1,7 @@
 package com.swrobotics.robot.control;
 
 import com.ctre.phoenix6.mechanisms.swerve.SwerveModule;
+import com.ctre.phoenix6.mechanisms.swerve.SwerveModule.DriveRequestType;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.path.PathConstraints;
 import com.swrobotics.lib.input.XboxController;
@@ -60,7 +61,7 @@ public class ControlBoard extends SubsystemBase {
         // Pathing test
         Pose2d[] target = new Pose2d[1];
         target[0] = new Pose2d(10, 4, new Rotation2d(0));
-        driver.a.onRising(() -> CommandScheduler.getInstance().schedule(AutoBuilder.pathfindToPose(target[0], new PathConstraints(4, 8, 10, 40))));
+        driver.a.onRising(() -> CommandScheduler.getInstance().schedule(AutoBuilder.pathfindToPose(target[0], new PathConstraints(3, 8, 10, 40))));
         driver.b.onRising(() -> target[0] = robot.drive.getEstimatedPose());
 
         // Configure triggers
@@ -73,21 +74,27 @@ public class ControlBoard extends SubsystemBase {
         ));
     }
 
+    private double squareWithSign(double value) {
+        double squared = value * value;
+        return Math.copySign(squared, value);
+    }
+
     private Translation2d getDriveTranslation() {
         double speed = NTData.DRIVE_SPEED_NORMAL.get();
         if (driver.leftBumper.isPressed())
             speed = NTData.DRIVE_SPEED_SLOW.get();
         if (driver.leftTrigger.isOutside(TRIGGER_BUTTON_THRESHOLD))
-            speed = NTData.DRIVE_SPEED_FAST.get();
+            speed = SwerveDrive.MAX_LINEAR_SPEED;
+//            speed = NTData.DRIVE_SPEED_FAST.get();
 
         Translation2d leftStick = driver.getLeftStick();
-        double x = -leftStick.getY() * speed;
-        double y = -leftStick.getX() * speed;
+        double x = -squareWithSign(leftStick.getY()) * speed;
+        double y = -squareWithSign(leftStick.getX()) * speed;
         return new Translation2d(x, y);
     }
 
     private double getDriveRotation() {
-        return -driver.rightStickX.get() * NTData.TURN_SPEED.get();
+        return -squareWithSign(driver.rightStickX.get()) * NTData.TURN_SPEED.get();
     }
 
     @Override
@@ -106,7 +113,7 @@ public class ControlBoard extends SubsystemBase {
                         translation.getY(),
                         rotation.getRadians(),
                         robot.drive.getEstimatedPose().getRotation()),
-                SwerveModule.DriveRequestType.OpenLoopVoltage);
+                DriveRequestType.Velocity);
 
         IntakeSubsystem.State intakeState = IntakeSubsystem.State.OFF;
         if (operator.a.isPressed())

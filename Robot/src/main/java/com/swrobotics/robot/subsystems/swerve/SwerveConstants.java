@@ -41,9 +41,9 @@ public class SwerveConstants {
     // This may need to be tuned to your individual robot
     private static final double coupleRatio = 3.5;
 
-    private static final double driveGearRatio = 7.363636364;
-    private static final double steerGearRatio = 15.42857143;
-    private static final double wheelRadiusInches = 2.167; // Estimated at first, then fudge-factored to make odom match record
+    private static final double driveGearRatio = 6.12;
+    private static final double steerGearRatio = 150.0 / 7;
+    private static final double wheelRadiusInches = 1.9; // Estimated at first, then fudge-factored to make odom match record
 
     private static final boolean steerMotorReversed = true;
 

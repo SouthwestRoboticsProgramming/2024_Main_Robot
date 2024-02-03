@@ -1,6 +1,12 @@
 {
   "version": 1.0,
-  "startingPose": null,
+  "startingPose": {
+    "position": {
+      "x": 1.8384715971711143,
+      "y": 5.55472336015897
+    },
+    "rotation": 179.2042764472607
+  },
   "command": {
     "type": "sequential",
     "data": {
@@ -8,13 +14,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "To Barrier Cube"
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "Score From Center"
+            "pathName": "Three Piece Short"
           }
         }
       ]

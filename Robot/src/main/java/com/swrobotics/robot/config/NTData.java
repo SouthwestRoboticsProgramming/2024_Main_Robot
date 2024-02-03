@@ -8,7 +8,7 @@ import com.swrobotics.robot.subsystems.swerve.SwerveDrive;
 public final class NTData {
     public static final NTEntry<Double> DRIVE_SPEED_SLOW = new NTDouble("Drive/Slow Speed", 1.5).setPersistent();
     public static final NTEntry<Double> DRIVE_SPEED_NORMAL = new NTDouble("Drive/Normal Speed", 3).setPersistent();
-    public static final NTEntry<Double> DRIVE_SPEED_FAST = new NTDouble("Drive/Fast Speed", SwerveDrive.MAX_LINEAR_SPEED).setPersistent();
+//    public static final NTEntry<Double> DRIVE_SPEED_FAST = new NTDouble("Drive/Fast Speed", SwerveDrive.MAX_LINEAR_SPEED).setPersistent();
     public static final NTEntry<Double> TURN_SPEED = new NTDouble("Drive/Turn Speed (rot/s)", 2).setPersistent();
 
     public static final NTEntry<Double> DRIVE_AIM_KP = new NTDouble("Drive/Aim/PID/kP", 6).setPersistent();
