@@ -3,11 +3,7 @@
 //   If inside obstacle, find a way out first
 //   OPTIMIZATION: Use bidirectional Dijkstra for fast
 
-use std::{
-    error::Error,
-    sync::{Arc, Mutex},
-    time::Instant,
-};
+use std::{error::Error, time::Instant};
 
 use bytes::{Buf, BufMut, BytesMut};
 use itertools::Itertools;
@@ -20,7 +16,11 @@ mod geom;
 mod math;
 mod obstacle;
 
+#[cfg(feature = "graphics")]
 mod gui;
+
+#[cfg(feature = "graphics")]
+use std::sync::{Arc, Mutex};
 
 const MSG_SET_ENDPOINTS: &str = "Pathfinder:SetEndpoints";
 const MSG_PATH: &str = "Pathfinder:Path";
@@ -40,27 +40,29 @@ async fn main() -> Result<(), Box<dyn Error>> {
         .map(|(_, o)| o.clone().into_obstacle())
         .collect_vec();
 
-    let field = Arc::new(geom::Field::generate(
-        &obstacles,
-        conf.robot_radius + conf.tolerance,
-    ));
+    let field = geom::Field::generate(&obstacles, conf.robot_radius + conf.tolerance);
+    #[cfg(feature = "graphics")]
+    let field = Arc::new(field);
 
     let mut start = Vec2f::new(1.0, 1.0);
     let mut goal = Vec2f::new(1.2, 1.2);
 
-    let gui_state = Arc::new(Mutex::new(gui::GraphicsState {
-        start,
-        goal,
-        calc_time: 0.0,
-        path: None,
-    }));
-    gui::show_graphics_window(
-        Vec2f::new(environment.width, environment.height),
-        conf.robot_radius,
-        obstacles,
-        field.clone(),
-        gui_state.clone(),
-    );
+    #[cfg(feature = "graphics")]
+    {
+        let gui_state = Arc::new(Mutex::new(gui::GraphicsState {
+            start,
+            goal,
+            calc_time: 0.0,
+            path: None,
+        }));
+        gui::show_graphics_window(
+            Vec2f::new(environment.width, environment.height),
+            conf.robot_radius,
+            obstacles,
+            field.clone(),
+            gui_state.clone(),
+        );
+    }
 
     loop {
         let mut needs_recalc = false;
@@ -92,6 +94,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
             let calc_end = Instant::now();
             let calc_time = calc_end.duration_since(calc_start).as_secs_f64();
 
+            #[cfg(feature = "graphics")]
             if let Ok(mut state) = gui_state.lock() {
                 state.start = start;
                 state.goal = goal;
@@ -111,6 +114,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                         buf.put_f64(point.y);
                     }
 
+                    #[cfg(feature = "graphics")]
                     if let Ok(mut state) = gui_state.lock() {
                         state.path = Some((path, bezier_pts));
                     }
@@ -118,6 +122,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                     buf
                 }
                 None => {
+                    #[cfg(feature = "graphics")]
                     if let Ok(mut state) = gui_state.lock() {
                         state.path = None;
                     }

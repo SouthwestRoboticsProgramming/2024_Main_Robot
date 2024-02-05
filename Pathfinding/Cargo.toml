@@ -10,10 +10,13 @@ arrayvec = "0.7.4"
 bytes = "1.5.0"
 itertools = "0.12.0"
 lerp = "0.5.0"
-macroquad = "0.4.4"
+macroquad = { version = "0.4.4", optional = true }
 messenger-client = { path = "../Messenger/messenger-client" }
 ordered-float = "4.2.0"
 serde = { version = "1.0.195", features = [ "derive" ] }
 serde_json = "1.0"
 tokio = { version = "1.34.0", features = [ "rt-multi-thread", "fs" ] }
 uuid = { version = "1.6.1", features = [ "v4", "fast-rng", "serde" ] }
+
+[features]
+graphics = ["dep:macroquad"]
