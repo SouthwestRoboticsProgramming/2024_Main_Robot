@@ -1,6 +1,7 @@
 package com.swrobotics.robot.subsystems.swerve;
 
 import com.ctre.phoenix6.StatusSignal;
+import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.swrobotics.messenger.client.MessengerClient;
 import com.swrobotics.robot.config.IOAllocation;
 import com.swrobotics.robot.config.NTData;
@@ -198,6 +199,10 @@ public final class SwerveDrive extends SubsystemBase {
             position.refresh();
 
             info.offset().set(info.offset().get() - position.getValue());
+
+            CANcoderConfiguration cancoderConfigs = new CANcoderConfiguration();
+            cancoderConfigs.MagnetSensor.MagnetOffset = info.offset().get();
+            modules[i].getCANcoder().getConfigurator().apply(cancoderConfigs);
         }
     }
 
