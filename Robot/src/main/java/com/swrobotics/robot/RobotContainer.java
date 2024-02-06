@@ -40,8 +40,7 @@ import java.io.File;
  */
 public class RobotContainer {
     // Configuration for our Raspberry Pi communication service
-//    private static final String MESSENGER_HOST_ROBOT = "10.21.29.3";
-    private static final String MESSENGER_HOST_ROBOT = "10.21.29.144"; // FIXME: This is driverstation
+    private static final String MESSENGER_HOST_ROBOT = "10.21.29.3";
     private static final String MESSENGER_HOST_SIM = "localhost";
     private static final int MESSENGER_PORT = 5805;
     private static final String MESSENGER_NAME = "Robot";

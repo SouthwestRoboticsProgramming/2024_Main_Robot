@@ -61,7 +61,7 @@ public class ControlBoard extends SubsystemBase {
         // Pathing test
         Pose2d[] target = new Pose2d[1];
         target[0] = new Pose2d(10, 4, new Rotation2d(0));
-        driver.a.onRising(() -> CommandScheduler.getInstance().schedule(AutoBuilder.pathfindToPose(target[0], new PathConstraints(3, 8, 10, 40))));
+        driver.a.onRising(() -> CommandScheduler.getInstance().schedule(AutoBuilder.pathfindToPose(target[0], new PathConstraints(0.5, 8, 10, 40))));
         driver.b.onRising(() -> target[0] = robot.drive.getEstimatedPose());
 
         // Configure triggers

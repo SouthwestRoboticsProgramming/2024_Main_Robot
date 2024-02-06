@@ -32,8 +32,11 @@ public final class SwerveEstimator {
         tagTracker = new TagTrackerInput(
                 field,
                 new TagTrackerInput.CameraInfo(
-                        "laptop",
-                        new Pose3d(new Translation3d(0, 0, 0), new Rotation3d(0, 0, 0)))
+                        "front",
+                        new Pose3d(new Translation3d(0, 0, 0), new Rotation3d(0, 0, 0))),
+		new TagTrackerInput.CameraInfo(
+			"back",
+			new Pose3d(new Translation3d(0, 0, 0), new Rotation3d(0, 0, 0)))
         );
         latestPose = new Pose2d();
         basePose = new Pose2d();
