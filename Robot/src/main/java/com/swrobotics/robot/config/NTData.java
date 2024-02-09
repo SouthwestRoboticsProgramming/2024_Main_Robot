@@ -3,18 +3,17 @@ package com.swrobotics.robot.config;
 import com.swrobotics.lib.net.NTBoolean;
 import com.swrobotics.lib.net.NTDouble;
 import com.swrobotics.lib.net.NTEntry;
-import com.swrobotics.robot.subsystems.swerve.SwerveDrive;
 
 public final class NTData {
     public static final NTEntry<Double> DRIVE_SPEED_SLOW = new NTDouble("Drive/Slow Speed", 1.5).setPersistent();
     public static final NTEntry<Double> DRIVE_SPEED_NORMAL = new NTDouble("Drive/Normal Speed", 3).setPersistent();
-//    public static final NTEntry<Double> DRIVE_SPEED_FAST = new NTDouble("Drive/Fast Speed", SwerveDrive.MAX_LINEAR_SPEED).setPersistent();
-    public static final NTEntry<Double> TURN_SPEED = new NTDouble("Drive/Turn Speed (rot/s)", 2).setPersistent();
+    public static final NTEntry<Double> TURN_SPEED = new NTDouble("Drive/Turn Speed (rot per sec)", 2).setPersistent();
 
     public static final NTEntry<Double> DRIVE_AIM_KP = new NTDouble("Drive/Aim/PID/kP", 6).setPersistent();
     public static final NTEntry<Double> DRIVE_AIM_KI = new NTDouble("Drive/Aim/PID/kI", 0).setPersistent();
     public static final NTEntry<Double> DRIVE_AIM_KD = new NTDouble("Drive/Aim/PID/kD", 0).setPersistent();
-    public static final NTEntry<Double> DRIVE_AIM_MAX_TURN = new NTDouble("Drive/Aim/Max Turn Speed (rot/s)", 2).setPersistent();
+    public static final NTEntry<Double> DRIVE_AIM_MAX_TURN = new NTDouble("Drive/Aim/Max Turn Speed (rot per sec)", 2).setPersistent();
+    public static final NTEntry<Double> DRIVE_AIM_TOLERANCE = new NTDouble("Drive/Aim/Tolerance (rot)", 0.05).setPersistent();
 
     public static final NTEntry<Boolean> DRIVE_CALIBRATE = new NTBoolean("Drive/Modules/Calibrate", false);
     public static final NTEntry<Double> DRIVE_FL_OFFSET = new NTDouble("Drive/Modules/Front Left Offset", 0).setPersistent();
@@ -27,7 +26,7 @@ public final class NTData {
     public static final NTEntry<Double> INTAKE_EJECT_SPEED = new NTDouble("Intake/Eject Speed", 0.5).setPersistent();
     public static final NTEntry<Double> INTAKE_CALIBRATE_VOLTS = new NTDouble("Intake/Calibration/Output (volts)", 4).setPersistent();
     public static final NTEntry<Double> INTAKE_CALIBRATE_DEBOUNCE = new NTDouble("Intake/Calibration/Debounce Time (secs)", 0.5).setPersistent();
-    public static final NTEntry<Double> INTAKE_CALIBRATE_STALL_THRESHOLD = new NTDouble("Intake/Calibration/Stall Threshold (rot/s)", 0.2).setPersistent();
+    public static final NTEntry<Double> INTAKE_CALIBRATE_STALL_THRESHOLD = new NTDouble("Intake/Calibration/Stall Threshold (rot per sec)", 0.2).setPersistent();
     public static final NTEntry<Boolean> INTAKE_RECALIBRATE = new NTBoolean("Intake/Calibration/Recalibrate", false);
     public static final NTEntry<Double> INTAKE_KP = new NTDouble("Intake/PID/kP", 0).setPersistent();
     public static final NTEntry<Double> INTAKE_KI = new NTDouble("Intake/PID/kI", 0).setPersistent();
@@ -42,7 +41,8 @@ public final class NTData {
     // Angle of bottom segment relative to horizontal
     public static final NTEntry<Double> AMP_ARM_STOW_ANGLE = new NTDouble("Amp/Arm/Stow Angle (degrees)", 135).setPersistent();
     public static final NTEntry<Double> AMP_ARM_PICKUP_ANGLE = new NTDouble("Amp/Arm/Pickup Angle (degrees)", -45).setPersistent();
-    public static final NTEntry<Double> AMP_ARM_SCORE_ANGLE = new NTDouble("Amp/Arm/Score Angle (degrees)", 45).setPersistent();
+    public static final NTEntry<Double> AMP_ARM_AMP_SCORE_ANGLE = new NTDouble("Amp/Arm/Amp Score Angle (degrees)", 45).setPersistent();
+    public static final NTEntry<Double> AMP_ARM_TRAP_SCORE_ANGLE = new NTDouble("Amp/Arm/Trap Score Angle (degrees)", 50).setPersistent();
     public static final NTEntry<Double> AMP_ARM_KP = new NTDouble("Amp/Arm/PID/kP", 0.05).setPersistent();
     public static final NTEntry<Double> AMP_ARM_KI = new NTDouble("Amp/Arm/PID/kI", 0).setPersistent();
     public static final NTEntry<Double> AMP_ARM_KD = new NTDouble("Amp/Arm/PID/kD", 0).setPersistent();
@@ -56,6 +56,7 @@ public final class NTData {
     public static final NTEntry<Double> INDEXER_TOP_TAKE_SPEED = new NTDouble("Indexer/Top/Take Speed", 0.3).setPersistent();
     public static final NTEntry<Double> INDEXER_TOP_FEED_SPEED = new NTDouble("Indexer/Top/Feed Speed", 0.6).setPersistent();
     public static final NTEntry<Double> INDEXER_TOP_EJECT_SPEED = new NTDouble("Indexer/Top/Eject Speed", 0.4).setPersistent();
+    public static final NTEntry<Double> INDEXER_FEED_TIME = new NTDouble("Indexer/Feed Time (s)", 0.5).setPersistent();
 
     public static final NTEntry<Double> SHOOTER_IDLE_SPEED = new NTDouble("Shooter/Idle Speed", 0.1).setPersistent();
     public static final NTEntry<Double> SHOOTER_FULL_SPEED_DISTANCE = new NTDouble("Shooter/Full Speed Distance (m)", 6).setPersistent();

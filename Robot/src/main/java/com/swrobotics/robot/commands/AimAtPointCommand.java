@@ -48,4 +48,15 @@ public final class AimAtPointCommand extends Command {
 
         drive.turn(new SwerveDrive.TurnRequest(SwerveDrive.AIM_PRIORITY, new Rotation2d(output)));
     }
+
+    public boolean isInTolerance(double tolRotations) {
+        Pose2d robotPose = drive.getEstimatedPose();
+        Translation2d robotPos = robotPose.getTranslation();
+        Translation2d target = targetSupplier.get();
+
+        double angleToTarget = target.minus(robotPos).getAngle().getRadians();
+        double currentAngle = MathUtil.wrap(robotPose.getRotation().getRadians(), -Math.PI, Math.PI);
+
+        return MathUtil.absDiffRad(currentAngle, angleToTarget) < tolRotations * MathUtil.TAU;
+    }
 }

@@ -1,6 +1,5 @@
 package com.swrobotics.robot.control;
 
-import com.ctre.phoenix6.mechanisms.swerve.SwerveModule;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveModule.DriveRequestType;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.path.PathConstraints;
@@ -131,7 +130,7 @@ public class ControlBoard extends SubsystemBase {
             ampArmPosition = AmpArmSubsystem.Position.PICKUP;
             ampIntakeState = AmpIntakeSubsystem.State.INTAKE;
         } else if (operator.y.isPressed()) {
-            ampArmPosition = AmpArmSubsystem.Position.SCORE;
+            ampArmPosition = AmpArmSubsystem.Position.SCORE_AMP;
             if (operator.rightTrigger.isOutside(TRIGGER_BUTTON_THRESHOLD)) {
                 ampIntakeState = AmpIntakeSubsystem.State.OUTTAKE;
             }

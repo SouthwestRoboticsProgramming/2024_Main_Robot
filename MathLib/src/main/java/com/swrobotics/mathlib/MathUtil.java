@@ -151,4 +151,15 @@ public final class MathUtil {
     public static double signedPercentError(double measured, double target) {
         return (measured - target) / target;
     }
+
+    public static double absDiffRad(double a, double b) {
+        double wrapA = wrap(a, 0, TAU);
+        double wrapB = wrap(b, 0, TAU);
+
+        double diff = wrapB - wrapA;
+        double direct = Math.abs(diff);
+        double wrapped = TAU - direct;
+
+        return Math.min(direct, wrapped);
+    }
 }

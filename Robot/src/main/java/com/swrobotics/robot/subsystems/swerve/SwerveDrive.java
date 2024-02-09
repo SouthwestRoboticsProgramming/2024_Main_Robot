@@ -70,7 +70,7 @@ public final class SwerveDrive extends SubsystemBase {
     /**
      * Meters per second
      */
-    public static final double MAX_LINEAR_SPEED = Units.feetToMeters(16.5); // TODO: Measure emperically
+    public static final double MAX_LINEAR_SPEED = Units.feetToMeters(18.9); // TODO: Measure emperically
 
     private final FieldInfo fieldInfo;
 

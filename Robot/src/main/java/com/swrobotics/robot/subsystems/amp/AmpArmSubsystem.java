@@ -8,6 +8,7 @@ import com.ctre.phoenix6.controls.PositionDutyCycle;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.SensorDirectionValue;
+import com.swrobotics.lib.net.NTEntry;
 import com.swrobotics.robot.config.IOAllocation;
 import com.swrobotics.robot.config.NTData;
 import com.swrobotics.robot.logging.SimView;
@@ -17,13 +18,19 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public final class AmpArmSubsystem extends SubsystemBase {
     public enum Position {
-        STOW,
-        PICKUP,
-        SCORE
-        // TODO: Does trap need a unique position?
+        STOW(NTData.AMP_ARM_STOW_ANGLE),
+        PICKUP(NTData.AMP_ARM_PICKUP_ANGLE),
+        SCORE_AMP(NTData.AMP_ARM_AMP_SCORE_ANGLE),
+        SCORE_TRAP(NTData.AMP_ARM_TRAP_SCORE_ANGLE);
+
+        private final NTEntry<Double> position;
+
+        Position(NTEntry<Double> position) {
+            this.position = position;
+        }
     }
 
-    private static final double motorToArmRatio = 2; // FIXME: not 2:1
+    private static final double motorToArmRatio = 50;
 
     private final CANcoder absoluteEncoder = new CANcoder(IOAllocation.CAN.AMP_ARM_CANCODER.id(), IOAllocation.CAN.AMP_ARM_CANCODER.bus());
     public final TalonFXWithSim motor = new TalonFXWithSim(
@@ -46,6 +53,7 @@ public final class AmpArmSubsystem extends SubsystemBase {
         motorConfig.MotorOutput.Inverted = InvertedValue.Clockwise_Positive; // FIXME
         motorConfig.Feedback.SensorToMechanismRatio = motorToArmRatio;
         motor.getConfigurator().apply(motorConfig);
+
         NTData.AMP_ARM_KP.onChange(this::updatePID);
         NTData.AMP_ARM_KI.onChange(this::updatePID);
         NTData.AMP_ARM_KD.onChange(this::updatePID);
@@ -79,11 +87,7 @@ public final class AmpArmSubsystem extends SubsystemBase {
     }
 
     private double getTarget(Position position) {
-        return (switch (position) {
-            case STOW -> NTData.AMP_ARM_STOW_ANGLE;
-            case PICKUP -> NTData.AMP_ARM_PICKUP_ANGLE;
-            case SCORE -> NTData.AMP_ARM_SCORE_ANGLE;
-        }).get() / 360.0;
+        return position.position.get() / 360.0;
     }
 
     private double getPositionWithCanCoder() {
