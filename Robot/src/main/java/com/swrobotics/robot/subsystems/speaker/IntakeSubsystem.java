@@ -9,8 +9,10 @@ import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotBase;
+import edu.wpi.first.wpilibj.motorcontrol.PWMSparkMax;
 import edu.wpi.first.wpilibj.motorcontrol.PWMTalonSRX;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import org.littletonrobotics.junction.Logger;
 
 public final class IntakeSubsystem extends SubsystemBase {
     public enum State {
@@ -19,7 +21,7 @@ public final class IntakeSubsystem extends SubsystemBase {
         OFF
     }
 
-    private static final double motorToIntakeRatio = 2; // FIXME: Probably is not 2:1
+    private static final double motorToIntakeRatio = 25 * (36 / 16.0);
 
     private final SparkMaxWithSim actuatorMotor = SparkMaxWithSim.create(
             IOAllocation.CAN.INTAKE_ACTUATOR_MOTOR,
@@ -27,7 +29,7 @@ public final class IntakeSubsystem extends SubsystemBase {
             DCMotor.getNEO(1),
             motorToIntakeRatio,
             0.005);
-    private final PWMTalonSRX spinMotor;
+    private final PWMSparkMax spinMotor;
 
     private State state;
     private boolean hasCalibrated;
@@ -38,7 +40,8 @@ public final class IntakeSubsystem extends SubsystemBase {
         actuatorMotor.setRotorToMechanismRatio(motorToIntakeRatio);
         actuatorMotor.setInverted(false); // FIXME
 
-        spinMotor = new PWMTalonSRX(IOAllocation.RIO.PWM_INTAKE_MOTOR);
+        spinMotor = new PWMSparkMax(IOAllocation.RIO.PWM_INTAKE_MOTOR);
+        spinMotor.setInverted(true);
         actuatorStillDebounce = null;
 
         // The hard-stop the calibration relies on does not exist in simulation
@@ -59,6 +62,9 @@ public final class IntakeSubsystem extends SubsystemBase {
             case OFF -> 0;
         };
 
+        Logger.recordOutput("intake setpoint", extend ? NTData.INTAKE_RANGE.get() / 360 : 0);
+        Logger.recordOutput("intake current", actuatorMotor.getEncoderPosition());
+
         actuatorMotor.setPosition(extend ? NTData.INTAKE_RANGE.get() / 360 : 0);
         spinMotor.set(speed);
     }
@@ -70,6 +76,7 @@ public final class IntakeSubsystem extends SubsystemBase {
     @Override
     public void periodic() {
         if (NTData.INTAKE_RECALIBRATE.get()) {
+            NTData.INTAKE_RECALIBRATE.set(false);
             hasCalibrated = false;
             actuatorStillDebounce = null;
         }
@@ -90,10 +97,12 @@ public final class IntakeSubsystem extends SubsystemBase {
             // Fully retracted now, set position
             // Slightly negative so the motor doesn't stall on the hard-stop
             // when retracting
-            actuatorMotor.setEncoderPosition(-5);
+            actuatorMotor.setEncoderPosition(-NTData.INTAKE_CALIBRATE_SETPOINT.get() / 360.0);
             set(state);
+            NTData.INTAKE_CALIBRATING.set(false);
         } else {
-            actuatorMotor.setVoltage(NTData.INTAKE_CALIBRATE_VOLTS.get());
+            actuatorMotor.setVoltage(-NTData.INTAKE_CALIBRATE_VOLTS.get());
+            NTData.INTAKE_CALIBRATING.set(true);
         }
     }
 

@@ -12,6 +12,7 @@ import com.swrobotics.lib.net.NTEntry;
 import com.swrobotics.robot.config.IOAllocation;
 import com.swrobotics.robot.config.NTData;
 import com.swrobotics.robot.logging.SimView;
+import com.swrobotics.robot.utils.CANcoderPositionCalc;
 import com.swrobotics.robot.utils.TalonFXWithSim;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -31,6 +32,7 @@ public final class AmpArmSubsystem extends SubsystemBase {
     }
 
     private static final double motorToArmRatio = 50;
+    private static final double cancoderToArmRatio = 2;
 
     private final CANcoder absoluteEncoder = new CANcoder(IOAllocation.CAN.AMP_ARM_CANCODER.id(), IOAllocation.CAN.AMP_ARM_CANCODER.bus());
     public final TalonFXWithSim motor = new TalonFXWithSim(
@@ -39,9 +41,7 @@ public final class AmpArmSubsystem extends SubsystemBase {
             motorToArmRatio,
             0.01)
             .attachCanCoder(absoluteEncoder);
-
-    private final StatusSignal<Double> motorPosition;
-    private final StatusSignal<Double> encoderPosition;
+    private final CANcoderPositionCalc position;
 
     public AmpArmSubsystem() {
         // TODO: Do we want a feedforward to account for gravity?
@@ -63,10 +63,18 @@ public final class AmpArmSubsystem extends SubsystemBase {
         encoderConfig.MagnetSensor.SensorDirection = SensorDirectionValue.Clockwise_Positive; // FIXME: Should match motor direction
         absoluteEncoder.getConfigurator().apply(encoderConfig);
 
-        motorPosition = motor.getPosition();
-        encoderPosition = absoluteEncoder.getAbsolutePosition();
-
-        motor.setPosition(getPositionWithCanCoder());
+        StatusSignal<Double> motorPosition = motor.getPosition();
+        position = new CANcoderPositionCalc(
+                absoluteEncoder,
+                () -> {
+                    motorPosition.refresh();
+                    return motorPosition.getValue();
+                },
+                NTData.AMP_ARM_CANCODER_OFFSET,
+                new CANcoderPositionCalc.PositionOverlapResolver(
+                        cancoderToArmRatio, 0, 1
+                )
+        );
     }
 
     private void updatePID(double ignored) {
@@ -78,37 +86,23 @@ public final class AmpArmSubsystem extends SubsystemBase {
     }
 
     public void setPosition(Position position) {
-        motor.setControl(new PositionDutyCycle(getTarget(position)));
+        motor.setControl(new PositionDutyCycle(this.position.getRelativeForAbsolute(getTarget(position))));
     }
 
     public boolean isAtPosition(Position position) {
-        motorPosition.refresh();
-        return Math.abs(motorPosition.getValue() - getTarget(position)) < NTData.AMP_ARM_TOLERANCE.get() / 360.0;
+        return Math.abs(this.position.getAbsolute() - getTarget(position)) < NTData.AMP_ARM_TOLERANCE.get() / 360.0;
     }
 
     private double getTarget(Position position) {
         return position.position.get() / 360.0;
     }
 
-    private double getPositionWithCanCoder() {
-        encoderPosition.refresh();
-        return encoderPosition.getValue() + NTData.AMP_ARM_CANCODER_OFFSET.get();
-    }
-
-    // Assumes arm is physically in STOW position
-    private void calibrateCanCoder() {
-        encoderPosition.refresh();
-        double currentPosition = encoderPosition.getValue();
-        double expectedPosition = getTarget(Position.STOW);
-
-        NTData.AMP_ARM_CANCODER_OFFSET.set(expectedPosition - currentPosition);
-    }
-
     @Override
     public void periodic() {
         if (NTData.AMP_ARM_CALIBRATE.get()) {
             NTData.AMP_ARM_CALIBRATE.set(false);
-            calibrateCanCoder();
+            // Assume arm is physically in STOW position
+            position.calibrateCanCoder(getTarget(Position.STOW));
         }
     }
 

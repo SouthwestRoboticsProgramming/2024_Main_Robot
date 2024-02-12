@@ -6,7 +6,6 @@ import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.*;
 import com.ctre.phoenix6.hardware.CANcoder;
-import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.signals.SensorDirectionValue;
 import com.revrobotics.CANSparkBase;
@@ -16,6 +15,7 @@ import com.swrobotics.robot.config.IOAllocation;
 import com.swrobotics.robot.config.NTData;
 import com.swrobotics.robot.logging.SimView;
 import com.swrobotics.robot.subsystems.swerve.SwerveDrive;
+import com.swrobotics.robot.utils.CANcoderPositionCalc;
 import com.swrobotics.robot.utils.SparkMaxWithSim;
 import com.swrobotics.robot.utils.TalonFXWithSim;
 import edu.wpi.first.math.filter.Debouncer;
@@ -36,24 +36,22 @@ public final class ShooterSubsystem extends SubsystemBase {
     private final SwerveDrive drive;
     private final IndexerSubsystem indexer;
 
-//    private final TalonFX flywheelMotor1 = new TalonFX(IOAllocation.CAN.SHOOTER_MOTOR_1.id(), IOAllocation.CAN.SHOOTER_MOTOR_1.bus());
-//    private final TalonFX flywheelMotor2 = new TalonFX(IOAllocation.CAN.SHOOTER_MOTOR_2.id(), IOAllocation.CAN.SHOOTER_MOTOR_2.bus());
+    private static TalonFXWithSim createFlywheel(IOAllocation.CanId id) {
+        return new TalonFXWithSim(
+                id,
+                DCMotor.getFalcon500Foc(1),
+                1,
+                0.001
+        );
+    }
 
-    public final TalonFXWithSim flywheelMotor1 = new TalonFXWithSim(
-            IOAllocation.CAN.SHOOTER_MOTOR_1,
-            DCMotor.getFalcon500Foc(1),
-            1,
-            0.001
-    );
-    public final TalonFXWithSim flywheelMotor2 = new TalonFXWithSim(
-            IOAllocation.CAN.SHOOTER_MOTOR_2,
-            DCMotor.getFalcon500Foc(1),
-            1,
-            0.001
-    );
+    public final TalonFXWithSim flywheelMotor1 = createFlywheel(IOAllocation.CAN.SHOOTER_MOTOR_1);
+    public final TalonFXWithSim flywheelMotor2 = createFlywheel(IOAllocation.CAN.SHOOTER_MOTOR_2);
+    private final StatusSignal<Double> flywheelVelocity1, flywheelVelocity2;
 
-//    private final TalonFX pivotMotor = new TalonFX(IOAllocation.CAN.SHOOTER_PIVOT_MOTOR.id(), IOAllocation.CAN.SHOOTER_PIVOT_MOTOR.bus());
-    private final CANcoder pivotEncoder = new CANcoder(IOAllocation.CAN.SHOOTER_PIVOT_CANCODER.id(), IOAllocation.CAN.SHOOTER_PIVOT_CANCODER.bus());
+    private final CANcoder pivotEncoder = new CANcoder(
+            IOAllocation.CAN.SHOOTER_PIVOT_CANCODER.id(),
+            IOAllocation.CAN.SHOOTER_PIVOT_CANCODER.bus());
     private final SparkMaxWithSim pivotMotor = SparkMaxWithSim.create(
             IOAllocation.CAN.SHOOTER_PIVOT_MOTOR,
             CANSparkLowLevel.MotorType.kBrushless,
@@ -61,11 +59,9 @@ public final class ShooterSubsystem extends SubsystemBase {
             motorToPivotRatio,
             0.01
     ).attachCanCoder(pivotEncoder);
+    private final CANcoderPositionCalc pivotPosition;
 
     private Debouncer afterShootDelay;
-    private final StatusSignal<Double> encoderPosition;
-
-    private final StatusSignal<Double> flywheelVelocity1, flywheelVelocity2;
     private boolean isPreparing;
     private double targetVelocity;
 
@@ -78,6 +74,8 @@ public final class ShooterSubsystem extends SubsystemBase {
         flywheelConfig.MotorOutput.NeutralMode = NeutralModeValue.Coast;
         flywheelMotor1.getConfigurator().apply(flywheelConfig);
         flywheelMotor2.getConfigurator().apply(flywheelConfig);
+        flywheelVelocity1 = flywheelMotor1.getVelocity();
+        flywheelVelocity2 = flywheelMotor2.getVelocity();
 
         pivotMotor.setPID(NTData.SHOOTER_PIVOT_KP, NTData.SHOOTER_PIVOT_KI, NTData.SHOOTER_PIVOT_KD);
         pivotMotor.setIdleMode(CANSparkBase.IdleMode.kBrake);
@@ -87,15 +85,9 @@ public final class ShooterSubsystem extends SubsystemBase {
         CANcoderConfiguration encoderConfig = new CANcoderConfiguration();
         encoderConfig.MagnetSensor.SensorDirection = SensorDirectionValue.Clockwise_Positive; // FIXME
         pivotEncoder.getConfigurator().apply(encoderConfig);
-
-        encoderPosition = pivotEncoder.getAbsolutePosition();
-        pivotMotor.setPosition(getPivotPositionWithCanCoder());
-
-        flywheelVelocity1 = flywheelMotor1.getVelocity();
-        flywheelVelocity2 = flywheelMotor2.getVelocity();
+        pivotPosition = new CANcoderPositionCalc(pivotEncoder, pivotMotor::getEncoderPosition, NTData.SHOOTER_PIVOT_CANCODER_OFFSET);
 
         NTData.SHOOTER_AFTER_DELAY.nowAndOnChange((delay) -> afterShootDelay = new Debouncer(delay, Debouncer.DebounceType.kFalling));
-
         NTData.SHOOTER_FLYWHEEL_KP.onChange(this::updatePIDV);
         NTData.SHOOTER_FLYWHEEL_KI.onChange(this::updatePIDV);
         NTData.SHOOTER_FLYWHEEL_KD.onChange(this::updatePIDV);
@@ -128,26 +120,15 @@ public final class ShooterSubsystem extends SubsystemBase {
 
     private void setPivotTarget(double angleRot) {
         angleRot = Math.max(angleRot, hardStopAngle);
-//        pivotMotor.setControl(new PositionDutyCycle(angleRot));
-        pivotMotor.setPosition(angleRot);
+        pivotMotor.setPosition(pivotPosition.getRelativeForAbsolute(angleRot));
     }
 
     private void setFlywheelTarget(double velocityRPS) {
+        // TODO: Torque/FOC?
+
         targetVelocity = velocityRPS;
         flywheelMotor1.setControl(new VelocityVoltage(velocityRPS));
         flywheelMotor2.setControl(new VelocityVoltage(velocityRPS));
-    }
-
-    private double getPivotPositionWithCanCoder() {
-        encoderPosition.refresh();
-        return encoderPosition.getValue() + NTData.SHOOTER_PIVOT_CANCODER_OFFSET.get();
-    }
-
-    // Assumes arm is physically at hard-stop position
-    private void calibrateCanCoder() {
-        encoderPosition.refresh();
-        double currentPosition = encoderPosition.getValue();
-        NTData.SHOOTER_PIVOT_CANCODER_OFFSET.set(hardStopAngle - currentPosition);
     }
 
     @Override
@@ -159,7 +140,7 @@ public final class ShooterSubsystem extends SubsystemBase {
 
         if (NTData.SHOOTER_PIVOT_CALIBRATE.get()) {
             NTData.SHOOTER_PIVOT_CALIBRATE.set(false);
-            calibrateCanCoder();
+            pivotPosition.calibrateCanCoder(hardStopAngle);
         }
 
         isPreparing = false;
@@ -169,7 +150,6 @@ public final class ShooterSubsystem extends SubsystemBase {
             if (distToSpeaker < NTData.SHOOTER_FULL_SPEED_DISTANCE.get()) {
                 Aim aim = calculateAim(distToSpeaker);
 
-                // TODO: Torque/FOC?
                 isPreparing = true;
                 setFlywheelTarget(aim.flywheelVelocity);
                 setPivotTarget(aim.pivotAngle / MathUtil.TAU);

@@ -1,16 +1,22 @@
 {
   "version": 1.0,
-  "startingPose": {
-    "position": {
-      "x": 1.8384715971711143,
-      "y": 5.531335051274091
-    },
-    "rotation": -179.85689038796517
-  },
+  "startingPose": null,
   "command": {
     "type": "sequential",
     "data": {
       "commands": [
+        {
+          "type": "named",
+          "data": {
+            "name": "Intake On"
+          }
+        },
+        {
+          "type": "wait",
+          "data": {
+            "waitTime": 1.0
+          }
+        },
         {
           "type": "path",
           "data": {
@@ -21,6 +27,12 @@
           "type": "path",
           "data": {
             "pathName": "Grab Long A"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Intake Off"
           }
         }
       ]

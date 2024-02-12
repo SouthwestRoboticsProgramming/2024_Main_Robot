@@ -19,6 +19,9 @@ public final class IndexerSubsystem extends SubsystemBase {
 
     public IndexerSubsystem(IntakeSubsystem intake) {
         this.intake = intake;
+
+        sidesMotor.setInverted(true);
+
         feedToShooter = false;
     }
 

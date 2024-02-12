@@ -30,6 +30,48 @@ public class ControlBoard extends SubsystemBase {
      * Left trigger: fast mode
      * Right trigger: aim at speaker
      *
+     *
+     *
+     *
+     *
+     *
+     *
+     *
+     *
+     *
+     *
+     *
+     * Operator:
+     *
+     *
+     * Things to do:
+     * Climber extend
+     * Climber retract
+     * Amp intake
+     * Amp score amp
+     * Amp score trap
+     * Amp eject
+     * Speaker intake
+     * Speaker eject
+     * Shoot
+     *
+     * scoot things around
+     *
+     *
+     *
+     *
+     *
+     *
+     *
+     *
+     *
+     *
+     *
+     *
+     *
+     *
+     *
+     *
      * Operator:
      * A: intake
      * B: shoot

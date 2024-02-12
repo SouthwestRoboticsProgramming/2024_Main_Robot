@@ -27,7 +27,9 @@ public final class NTData {
     public static final NTEntry<Double> INTAKE_CALIBRATE_VOLTS = new NTDouble("Intake/Calibration/Output (volts)", 4).setPersistent();
     public static final NTEntry<Double> INTAKE_CALIBRATE_DEBOUNCE = new NTDouble("Intake/Calibration/Debounce Time (secs)", 0.5).setPersistent();
     public static final NTEntry<Double> INTAKE_CALIBRATE_STALL_THRESHOLD = new NTDouble("Intake/Calibration/Stall Threshold (rot per sec)", 0.2).setPersistent();
+    public static final NTEntry<Double> INTAKE_CALIBRATE_SETPOINT = new NTDouble("Intake/Calibration/Setpoint (deg)", 5).setPersistent();
     public static final NTEntry<Boolean> INTAKE_RECALIBRATE = new NTBoolean("Intake/Calibration/Recalibrate", false);
+    public static final NTEntry<Boolean> INTAKE_CALIBRATING = new NTBoolean("Intake/Is Calibrating", false);
     public static final NTEntry<Double> INTAKE_KP = new NTDouble("Intake/PID/kP", 0).setPersistent();
     public static final NTEntry<Double> INTAKE_KI = new NTDouble("Intake/PID/kI", 0).setPersistent();
     public static final NTEntry<Double> INTAKE_KD = new NTDouble("Intake/PID/kD", 0).setPersistent();
