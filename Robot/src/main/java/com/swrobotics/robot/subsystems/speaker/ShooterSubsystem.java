@@ -31,8 +31,6 @@ public final class ShooterSubsystem extends SubsystemBase {
     private static final double motorToPivotRatio = 10; // FIXME
     private static final double hardStopAngle = 30 / 360.0; // FIXME
 
-    private static final record Aim(double flywheelVelocity, double pivotAngle) {}
-
     private final SwerveDrive drive;
     private final IndexerSubsystem indexer;
 
@@ -52,7 +50,7 @@ public final class ShooterSubsystem extends SubsystemBase {
     private final CANcoder pivotEncoder = new CANcoder(
             IOAllocation.CAN.SHOOTER_PIVOT_CANCODER.id(),
             IOAllocation.CAN.SHOOTER_PIVOT_CANCODER.bus());
-    private final SparkMaxWithSim pivotMotor = SparkMaxWithSim.create(
+    private final SparkMaxWithSim pivotMotor = SparkMaxWithSim.create( // FIXME: this is falcon
             IOAllocation.CAN.SHOOTER_PIVOT_MOTOR,
             CANSparkLowLevel.MotorType.kBrushless,
             DCMotor.getNEO(1),
@@ -64,6 +62,7 @@ public final class ShooterSubsystem extends SubsystemBase {
     private Debouncer afterShootDelay;
     private boolean isPreparing;
     private double targetVelocity;
+    private AimCalculator.Aim targetAim;
 
     public ShooterSubsystem(SwerveDrive drive, IndexerSubsystem indexer) {
         this.drive = drive;
@@ -108,12 +107,6 @@ public final class ShooterSubsystem extends SubsystemBase {
         flywheelMotor2.getConfigurator().apply(configs);
     }
 
-    // TODO: Maybe account for velocity to shoot on the move
-    private Aim calculateAim(double distToSpeaker) {
-        // TODO
-        return new Aim(4000/60.0, Math.PI / 4);
-    }
-
     public Translation2d getSpeakerPosition() {
         return drive.getFieldInfo().flipPoseForAlliance(blueSpeakerPose).getTranslation();
     }
@@ -129,6 +122,10 @@ public final class ShooterSubsystem extends SubsystemBase {
         targetVelocity = velocityRPS;
         flywheelMotor1.setControl(new VelocityVoltage(velocityRPS));
         flywheelMotor2.setControl(new VelocityVoltage(velocityRPS));
+    }
+
+    private double flywheelVelocityForShotVelocity(double shotVelocityMetersPerSec) {
+        return 0; // TODO
     }
 
     @Override
@@ -147,19 +144,22 @@ public final class ShooterSubsystem extends SubsystemBase {
         if (afterShootDelay.calculate(indexer.hasPiece())) {
             double distToSpeaker = getSpeakerPosition().getDistance(drive.getEstimatedPose().getTranslation());
 
-            if (distToSpeaker < NTData.SHOOTER_FULL_SPEED_DISTANCE.get()) {
-                Aim aim = calculateAim(distToSpeaker);
-
+            AimCalculator.Aim aim = AimCalculator.calculateAim(distToSpeaker);
+            if (aim != null) {
+                targetAim = aim;
                 isPreparing = true;
-                setFlywheelTarget(aim.flywheelVelocity);
-                setPivotTarget(aim.pivotAngle / MathUtil.TAU);
+                System.out.println("Pivot angle: " + Math.toDegrees(aim.pivotAngle()));
+                setFlywheelTarget(flywheelVelocityForShotVelocity(aim.flywheelVelocity()));
+                setPivotTarget(aim.pivotAngle() / MathUtil.TAU);
             } else {
+                targetAim = null;
                 DutyCycleOut cmd = new DutyCycleOut(NTData.SHOOTER_IDLE_SPEED.get());
                 flywheelMotor1.setControl(cmd);
                 flywheelMotor2.setControl(cmd);
                 setPivotTarget(NTData.SHOOTER_PIVOT_IDLE_ANGLE.get() / 360.0);
             }
         } else {
+            targetAim = null;
             flywheelMotor1.setControl(new NeutralOut());
             flywheelMotor2.setControl(new NeutralOut());
             pivotMotor.stop();
@@ -171,7 +171,11 @@ public final class ShooterSubsystem extends SubsystemBase {
         flywheelMotor1.updateSim(12);
         flywheelMotor2.updateSim(12);
         pivotMotor.updateSim(12);
-        SimView.updateShooter(pivotMotor.getEncoderPosition());
+        SimView.updateShooter(pivotPosition.getAbsolute());
+        if (targetAim == null)
+            SimView.targetTrajectory.clear();
+        else
+            SimView.targetTrajectory.update(targetAim);
     }
 
     public boolean isPreparing() {

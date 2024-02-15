@@ -1,9 +1,8 @@
 package com.swrobotics.robot.logging;
 
-import edu.wpi.first.wpilibj.smartdashboard.Mechanism2d;
-import edu.wpi.first.wpilibj.smartdashboard.MechanismLigament2d;
-import edu.wpi.first.wpilibj.smartdashboard.MechanismRoot2d;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import com.swrobotics.mathlib.MathUtil;
+import com.swrobotics.robot.subsystems.speaker.AimCalculator;
+import edu.wpi.first.wpilibj.smartdashboard.*;
 import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj.util.Color8Bit;
 
@@ -11,7 +10,7 @@ import edu.wpi.first.wpilibj.util.Color8Bit;
 public final class SimView {
     // Drawn as side view such that robot facing to the right
 
-    private static final Mechanism2d view = new Mechanism2d(2, 2);
+    private static final Mechanism2d view = new Mechanism2d(20, 10);
     private static final double originX = 1;
     private static final double originY = 0.5;
 
@@ -42,6 +41,11 @@ public final class SimView {
         shooter.append(shooterPivot);
     }
 
+    public static final ShooterTrajectoryView targetTrajectory = new ShooterTrajectoryView(
+            view.getRoot("Target Trajectory", originX, originY + 0.4),
+            new Color8Bit(Color.kYellow)
+    );
+
     public static void publish() {
         SmartDashboard.putData("Robot", view);
     }
@@ -61,6 +65,60 @@ public final class SimView {
     }
 
     public static void updateShooter(double pivotRot) {
+        System.out.println("Sim pivot angle: " + (pivotRot * 360));
         shooterPivot.setAngle(pivotRot * 360);
+    }
+
+    // Do not use on real robot ever! This is very inefficient and only for debugging sim
+    public static final class ShooterTrajectoryView {
+        private static final double maxTime = 1;
+        private static final int segments = 32;
+
+        private final MechanismLigament2d[] ligaments;
+
+        public ShooterTrajectoryView(MechanismRoot2d source, Color8Bit color) {
+            ligaments = new MechanismLigament2d[segments];
+
+            // Make a big line of ligaments
+            MechanismLigament2d prev = new MechanismLigament2d("Segment 0", 0, 0, 2, color);
+            ligaments[0] = prev;
+            source.append(prev);
+            for (int i = 1; i < segments; i++) {
+                MechanismLigament2d ligament = new MechanismLigament2d("Segment " + i, 0, 0, 2, color);
+                prev.append(ligament);
+                ligaments[i] = ligament;
+                prev = ligament;
+            }
+        }
+
+        public void clear() {
+            for (MechanismLigament2d ligament : ligaments) {
+                ligament.setLength(0);
+            }
+        }
+
+        public void update(AimCalculator.Aim aim) {
+            double vx = aim.flywheelVelocity() * Math.cos(aim.pivotAngle());
+            double vy = aim.flywheelVelocity() * Math.sin(aim.pivotAngle());
+
+            double px = 0, py = 0;
+            double pa = 0;
+            for (int i = 0; i < segments; i++) {
+                double time = maxTime * (i + 1) / segments;
+
+                double x = vx * time;
+                double y = vy * time - 0.5 * MathUtil.G_ACCEL * time * time;
+                double dx = x - px;
+                double dy = y - py;
+                px = x;
+                py = y;
+
+                double angle = Math.toDegrees(Math.atan2(dy, dx));
+                MechanismLigament2d ligament = ligaments[i];
+                ligament.setLength(Math.hypot(dx, dy));
+                ligament.setAngle(angle - pa);
+                pa = angle;
+            }
+        }
     }
 }

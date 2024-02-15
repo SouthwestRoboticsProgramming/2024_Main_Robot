@@ -61,7 +61,6 @@ public final class NTData {
     public static final NTEntry<Double> INDEXER_FEED_TIME = new NTDouble("Indexer/Feed Time (s)", 0.5).setPersistent();
 
     public static final NTEntry<Double> SHOOTER_IDLE_SPEED = new NTDouble("Shooter/Idle Speed", 0.1).setPersistent();
-    public static final NTEntry<Double> SHOOTER_FULL_SPEED_DISTANCE = new NTDouble("Shooter/Full Speed Distance (m)", 6).setPersistent();
     public static final NTEntry<Double> SHOOTER_AFTER_DELAY = new NTDouble("Shooter/After Shoot Delay (s)", 1).setPersistent();
     public static final NTEntry<Double> SHOOTER_ALLOWABLE_PCT_ERR = new NTDouble("Shooter/Allowable Pct Error", 0.05).setPersistent();
     public static final NTEntry<Double> SHOOTER_FLYWHEEL_KP = new NTDouble("Shooter/Flywheel PIDV/kP", 0).setPersistent();
