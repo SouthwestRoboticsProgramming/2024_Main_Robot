@@ -67,12 +67,15 @@ public final class NTData {
     public static final NTEntry<Double> SHOOTER_FLYWHEEL_KI = new NTDouble("Shooter/Flywheel PIDV/kI", 0).setPersistent();
     public static final NTEntry<Double> SHOOTER_FLYWHEEL_KD = new NTDouble("Shooter/Flywheel PIDV/kD", 0).setPersistent();
     public static final NTEntry<Double> SHOOTER_FLYWHEEL_KV = new NTDouble("Shooter/Flywheel PIDV/kV", 0).setPersistent();
-    public static final NTEntry<Boolean> SHOOTER_PIVOT_CALIBRATE = new NTBoolean("Shooter/Calibrate (put fully down)", false).setPersistent();
-    public static final NTEntry<Double> SHOOTER_PIVOT_CANCODER_OFFSET = new NTDouble("Shooter/Pivot CanCoder Offset", 0).setPersistent();
     public static final NTEntry<Double> SHOOTER_PIVOT_IDLE_ANGLE = new NTDouble("Shooter/Pivot Idle Angle (degrees)", 35).setPersistent();
     public static final NTEntry<Double> SHOOTER_PIVOT_KP = new NTDouble("Shooter/Pivot PID/kP", 0).setPersistent();
     public static final NTEntry<Double> SHOOTER_PIVOT_KI = new NTDouble("Shooter/Pivot PID/kI", 0).setPersistent();
     public static final NTEntry<Double> SHOOTER_PIVOT_KD = new NTDouble("Shooter/Pivot PID/kD", 0).setPersistent();
+    public static final NTEntry<Boolean> SHOOTER_PIVOT_RECALIBRATE = new NTBoolean("Shooter/Pivot Calibration/Recalibrate", false);
+    public static final NTEntry<Double> SHOOTER_PIVOT_RECALIBRATE_DEBOUNCE = new NTDouble("Shooter/Pivot Calibration/Debounce Time (s)", 0.2).setPersistent();
+    public static final NTEntry<Double> SHOOTER_PIVOT_STALL_THRESHOLD = new NTDouble("Shooter/Pivot Calibration/Stall Threshold (rot per sec)", 1).setPersistent();
+    public static final NTEntry<Double> SHOOTER_PIVOT_CALIBRATE_VOLTS = new NTDouble("Shooter/Pivot Calibration/Output (volts)", 2).setPersistent();
+    public static final NTEntry<Boolean> SHOOTER_PIVOT_CALIBRATING = new NTBoolean("Shooter/Pivot Calibration/Is Calibrating", false);
 
     private NTData() {
         throw new AssertionError();

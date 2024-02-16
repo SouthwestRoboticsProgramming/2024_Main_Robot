@@ -95,8 +95,6 @@ public final class IntakeSubsystem extends SubsystemBase {
             hasCalibrated = true;
 
             // Fully retracted now, set position
-            // Slightly negative so the motor doesn't stall on the hard-stop
-            // when retracting
             actuatorMotor.setEncoderPosition(-NTData.INTAKE_CALIBRATE_SETPOINT.get() / 360.0);
             set(state);
             NTData.INTAKE_CALIBRATING.set(false);

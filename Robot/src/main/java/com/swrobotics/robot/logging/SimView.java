@@ -10,7 +10,7 @@ import edu.wpi.first.wpilibj.util.Color8Bit;
 public final class SimView {
     // Drawn as side view such that robot facing to the right
 
-    private static final Mechanism2d view = new Mechanism2d(20, 10);
+    private static final Mechanism2d view = new Mechanism2d(2, 2);
     private static final double originX = 1;
     private static final double originY = 0.5;
 

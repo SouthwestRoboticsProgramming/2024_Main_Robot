@@ -49,7 +49,6 @@ public final class IOAllocation {
         public static final CanId SHOOTER_MOTOR_1 = new CanId(1, RIO); // falcon -> kraken
         public static final CanId SHOOTER_MOTOR_2 = new CanId(2, RIO); // falcon -> kraken
         public static final CanId SHOOTER_PIVOT_MOTOR = new CanId(3, RIO); // neo
-        public static final CanId SHOOTER_PIVOT_CANCODER = new CanId(4, RIO);
 
         public static final CanId INTAKE_ACTUATOR_MOTOR = new CanId(5, RIO); // neo
 
