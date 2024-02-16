@@ -148,7 +148,6 @@ public final class ShooterSubsystem extends SubsystemBase {
             if (aim != null) {
                 targetAim = aim;
                 isPreparing = true;
-                System.out.println("Pivot angle: " + Math.toDegrees(aim.pivotAngle()));
                 setFlywheelTarget(flywheelVelocityForShotVelocity(aim.flywheelVelocity()));
                 setPivotTarget(aim.pivotAngle() / MathUtil.TAU);
             } else {

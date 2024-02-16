@@ -168,17 +168,17 @@ public final class FieldViewTool extends ViewportTool {
 
             float scale;
             if (normalScale > rotatedScale) {
-                cameraRotY.set(0);
+//                cameraRotY.set(0);
                 scale = normalScale;
             } else {
-                cameraRotY.set((float) -Math.PI / 2);
+//                cameraRotY.set((float) -Math.PI / 2);
                 scale = rotatedScale;
             }
-            cameraRotX.set(0);
+//            cameraRotX.set(0);
             cameraDist.set(8);
-            cameraTargetX.set((float) WIDTH / 2);
-            cameraTargetY.set((float) HEIGHT / 2);
-            cameraTargetZ.set(0);
+//            cameraTargetX.set((float) WIDTH / 2);
+//            cameraTargetY.set((float) HEIGHT / 2);
+//            cameraTargetZ.set(0);
 
             orthoCameraRotYTarget = cameraRotY.getTarget();
             orthoScale = scale;
@@ -316,7 +316,7 @@ public final class FieldViewTool extends ViewportTool {
                     cameraTargetY.set(cameraTargetY.getTarget() - delta.y);
                 }
 
-                if (viewMode.get() == MODE_3D) {
+//                if (viewMode.get() == MODE_3D) {
                     if (io.getMouseDown(ImGuiMouseButton.Left)) {
                         // Turn
 
@@ -327,10 +327,12 @@ public final class FieldViewTool extends ViewportTool {
                         cameraRotY.set(cameraRotY.getTarget() - deltaX * 0.007f);
                     }
 
-                    float scroll = io.getMouseWheel();
-                    float scale = 1 + scroll * -0.05f;
-                    cameraDist.set(cameraDist.getTarget() * scale);
-                }
+                    if (viewMode.get() == MODE_3D) {
+                        float scroll = io.getMouseWheel();
+                        float scale = 1 + scroll * -0.05f;
+                        cameraDist.set(cameraDist.getTarget() * scale);
+                    }
+//                }
             }
 
             ImGui.tableNextColumn();

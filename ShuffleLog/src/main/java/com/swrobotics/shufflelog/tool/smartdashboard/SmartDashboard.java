@@ -65,6 +65,21 @@ public final class SmartDashboard implements Tool, NTInstanceListener {
         return out;
     }
 
+    public List<Mechanism2dInfo> getAllMechanism2d() {
+        if (table == null) return Collections.emptyList();
+
+        Set<String> avail = table.getSubTables();
+        List<Mechanism2dInfo> out = new ArrayList<>();
+        for (String name : avail) {
+            NetworkTable subTable = table.getSubTable(name);
+            if (subTable.getEntry(".type").getString("unknown").equals("Mechanism2d")) {
+                out.add(new Mechanism2dInfo(name, new Mechanism2dView(subTable)));
+            }
+        }
+
+        return out;
+    }
+
     private Renderer2d createScaledRenderer(double width, double height) {
         ImVec2 pos = ImGui.getWindowPos();
         ImVec2 min = ImGui.getWindowContentRegionMin();
@@ -85,7 +100,7 @@ public final class SmartDashboard implements Tool, NTInstanceListener {
     }
 
     private void showMechanism2dWindow(Mechanism2dView view) {
-        view.render(createScaledRenderer(view.width, view.height));
+        view.render(createScaledRenderer(view.width, view.height), true);
     }
 
     private void showField2dWindow(String name, Field2dView view) {

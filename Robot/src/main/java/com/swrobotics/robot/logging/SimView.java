@@ -65,14 +65,13 @@ public final class SimView {
     }
 
     public static void updateShooter(double pivotRot) {
-        System.out.println("Sim pivot angle: " + (pivotRot * 360));
         shooterPivot.setAngle(pivotRot * 360);
     }
 
     // Do not use on real robot ever! This is very inefficient and only for debugging sim
     public static final class ShooterTrajectoryView {
         private static final double maxTime = 1;
-        private static final int segments = 32;
+        private static final int segments = 16;
 
         private final MechanismLigament2d[] ligaments;
 

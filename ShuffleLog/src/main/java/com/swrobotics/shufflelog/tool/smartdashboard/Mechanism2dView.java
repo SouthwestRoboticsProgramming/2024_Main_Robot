@@ -97,10 +97,12 @@ public final class Mechanism2dView {
     }
 
     // Assumes coordinate system is typical (+X right, +Y up)
-    public void render(Renderer2d r) {
+    public void render(Renderer2d r, boolean drawBackground) {
         r.noStroke();
-        r.setFill(backgroundColor.x, backgroundColor.y, backgroundColor.z);
-        r.rect(0, 0, width, height);
+        if (drawBackground) {
+            r.setFill(backgroundColor.x, backgroundColor.y, backgroundColor.z);
+            r.rect(0, 0, width, height);
+        }
 
         for (Root root : roots) {
             r.pushTransform();

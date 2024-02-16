@@ -34,7 +34,7 @@ public final class AimCalculator {
         double timeSquared = (-b - Math.sqrt(b * b - 4 * a * c)) / (2 * a);
         double time = Math.sqrt(timeSquared);
 
-        double velocityX = targetX / time;
+        double velocityX = targetX / time; // TODO: Account for robot velocity towards speaker
         double angle = Math.acos(velocityX / v);
 
         // TODO: Return null if it's impossible

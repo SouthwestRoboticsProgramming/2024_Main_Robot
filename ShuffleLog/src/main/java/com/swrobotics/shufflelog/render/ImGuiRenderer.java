@@ -29,7 +29,7 @@ public final class ImGuiRenderer implements Renderer2d {
         stroke = false;
         fill = false;
         strokeWidth = 1;
-        transformStack = new Matrix3x2fStack(32);
+        transformStack = new Matrix3x2fStack(64);
         shapeType = null;
         shapeVertices = new ArrayList<>();
     }
