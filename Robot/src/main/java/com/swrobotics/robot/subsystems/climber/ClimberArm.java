@@ -12,6 +12,7 @@ import com.swrobotics.robot.config.IOAllocation;
 import com.swrobotics.robot.config.NTData;
 import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public final class ClimberArm extends SubsystemBase {
@@ -43,7 +44,7 @@ public final class ClimberArm extends SubsystemBase {
         NTData.CLIMBER_KP.onChange(this::applyPID);
         NTData.CLIMBER_KD.onChange(this::applyPID);
 
-        hasCalibrated = false;
+        hasCalibrated = RobotBase.isSimulation();
         calibrationDebounce = null;
         targetState = State.RETRACTED_IDLE;
     }

@@ -46,7 +46,7 @@ public final class LightsSubsystem extends SubsystemBase {
         if (robot.shooter.isReadyToShoot()) {
             applySolid(Color.kWhite);
         } else {
-            double pct = robot.shooter.getPercentOfTarget();
+            double pct = robot.shooter.getFlywheelPercentOfTarget();
             if (pct < 1) {
                 applyStripes(
                         0,

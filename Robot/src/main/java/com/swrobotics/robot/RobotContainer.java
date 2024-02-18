@@ -103,7 +103,6 @@ public class RobotContainer {
         NamedCommands.registerCommand("Example Named Command", new InstantCommand());
         NamedCommands.registerCommand("Intake On", new IntakeSetCommand(intake, IntakeSubsystem.State.INTAKE));
         NamedCommands.registerCommand("Intake Off", new IntakeSetCommand(intake, IntakeSubsystem.State.OFF));
-        NamedCommands.registerCommand("Intake Eject", new IntakeSetCommand(intake, IntakeSubsystem.State.EJECT));
         NamedCommands.registerCommand("Shoot", AimAndShootCommand.create(this));
 
         // Create a chooser to select the autonomous

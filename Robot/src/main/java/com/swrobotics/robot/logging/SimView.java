@@ -64,7 +64,7 @@ public final class SimView {
         ampIntake.setAngle(intakeRot * 360 - 180);
     }
 
-    public static void updateShooter(double pivotRot) {
+    public static void updateShooterPivot(double pivotRot) {
         shooterPivot.setAngle(pivotRot * 360);
     }
 

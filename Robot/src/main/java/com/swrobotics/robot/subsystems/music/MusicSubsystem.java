@@ -44,14 +44,15 @@ public final class MusicSubsystem extends SubsystemBase {
         addInstrument(robot.climber.leftArm.motor);
         addInstrument(robot.climber.rightArm.motor);
         addInstrument(robot.ampArm.motor);
-        addInstrument(robot.shooter.flywheelMotor1);
-        addInstrument(robot.shooter.flywheelMotor2);
+        addInstrument(robot.shooter.getLeftFlywheelMotor());
+        addInstrument(robot.shooter.getRightFlywheelMotor());
+        addInstrument(robot.shooter.getPivotMotor());
     }
 
     private void addInstrument(TalonFX fx) {
         AudioConfigs conf = new AudioConfigs();
         conf.BeepOnBoot = true;
-        conf.BeepOnConfig = false;
+        conf.BeepOnConfig = true;
         conf.AllowMusicDurDisable = true;
         fx.getConfigurator().apply(conf);
         
