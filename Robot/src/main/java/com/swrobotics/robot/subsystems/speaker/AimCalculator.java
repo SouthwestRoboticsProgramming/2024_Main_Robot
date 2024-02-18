@@ -1,9 +1,12 @@
 package com.swrobotics.robot.subsystems.speaker;
 
+import com.swrobotics.lib.net.NTDouble;
+import com.swrobotics.lib.net.NTEntry;
+
 import static com.swrobotics.mathlib.MathUtil.G_ACCEL;
 
 public final class AimCalculator {
-    private static final double velocity = 20; // TODO: Measure on real robot
+    public static final double velocity = 9.97557;
 
     private static final double gSquaredQuarter = G_ACCEL * G_ACCEL / 4;
 
@@ -16,6 +19,10 @@ public final class AimCalculator {
     private static final double releaseHeight = 0.25; // TODO: Measure in CAD
     private static final double targetY = (speakerBottom + speakerTop) / 2 - releaseHeight;
     private static final double targetXOffset = -speakerWidth / 2;
+
+    // Slight correction for fun
+//    private static final double angleOffset = 0; // TODO: NT
+    private static final NTEntry<Double> angleOffset = new NTDouble("Shooter/Aim Offset", 0).setPersistent();
 
     // Flywheel velocity is in meters/second
     // Pivot angle is in radians
@@ -38,6 +45,12 @@ public final class AimCalculator {
         double angle = Math.acos(velocityX / v);
 
         // TODO: Return null if it's impossible
-        return new Aim(v, angle);
+//        return new Aim(v, angle + Math.toRadians(angleOffset.get()));
+        logDistance.set(distToSpeaker);
+        return new Aim(tuneVelocity.get(), Math.toRadians(tunePivotAngle.get()));
     }
+
+    static NTDouble tunePivotAngle = new NTDouble("Shooter/Tuning/Pivot Angle (deg)", 30);
+    static NTDouble tuneVelocity = new NTDouble("Shooter/Tuning/Flywheel Velocity (rps)", 3000);
+    static NTDouble logDistance = new NTDouble("Shooter/Tuning/Est Distance (m)", 0);
 }

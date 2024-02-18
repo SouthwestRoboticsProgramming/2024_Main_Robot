@@ -40,19 +40,16 @@ public final class IOAllocation {
         public static final SwerveIDs SWERVE_BL = new SwerveIDs(11, 7, 3); // falcon + kraken
         public static final SwerveIDs SWERVE_BR = new SwerveIDs(12, 8, 4); // falcon + kraken
 
-        public static final CanId CLIMBER_L_MOTOR = new CanId(14, GERALD); // falcon
-        public static final CanId CLIMBER_R_MOTOR = new CanId(15, GERALD); // falcon
-
-        public static final CanId AMP_ARM_MOTOR = new CanId(16, GERALD); // falcon
-
         // RIO
         public static final CanId SHOOTER_MOTOR_1 = new CanId(1, RIO); // falcon -> kraken
         public static final CanId SHOOTER_MOTOR_2 = new CanId(2, RIO); // falcon -> kraken
         public static final CanId SHOOTER_PIVOT_MOTOR = new CanId(3, RIO); // neo
-
         public static final CanId INTAKE_ACTUATOR_MOTOR = new CanId(5, RIO); // neo
+        public static final CanId AMP_ARM_CANCODER = new CanId(5, RIO);
+        public static final CanId CLIMBER_L_MOTOR = new CanId(6, RIO); // falcon
+        public static final CanId CLIMBER_R_MOTOR = new CanId(7, RIO); // falcon
 
-        public static final CanId AMP_ARM_CANCODER = new CanId(6, RIO);
+        public static final CanId AMP_ARM_MOTOR = new CanId(16, RIO); // falcon
 
         public static final CanId PDP = new CanId(62, RIO);
     }

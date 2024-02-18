@@ -31,12 +31,12 @@ public final class SwerveEstimator {
     public SwerveEstimator(FieldInfo field) {
         tagTracker = new TagTrackerInput(
                 field,
-                new TagTrackerInput.CameraInfo(
+                new TagTrackerInput.CameraInfo( // 16 ft + 1
                         "front",
-                        new Pose3d(new Translation3d(0, 0, 0), new Rotation3d(0, 0, 0))),
-		new TagTrackerInput.CameraInfo(
-			"back",
-			new Pose3d(new Translation3d(0, 0, 0), new Rotation3d(0, 0, 0)))
+                        new Pose3d(new Translation3d(0.34, -0.225, 0), new Rotation3d(Math.PI, Math.toRadians(90-67), 0)))
+//		new TagTrackerInput.CameraInfo(
+//			"back",
+//			new Pose3d(new Translation3d(0, 0, 0), new Rotation3d(0, 0, 0)))
         );
         latestPose = new Pose2d();
         basePose = new Pose2d();

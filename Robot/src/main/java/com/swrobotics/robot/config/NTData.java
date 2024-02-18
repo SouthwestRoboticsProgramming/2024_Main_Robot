@@ -59,6 +59,7 @@ public final class NTData {
     public static final NTEntry<Double> INDEXER_TOP_FEED_SPEED = new NTDouble("Indexer/Top/Feed Speed", 0.6).setPersistent();
     public static final NTEntry<Double> INDEXER_TOP_EJECT_SPEED = new NTDouble("Indexer/Top/Eject Speed", 0.4).setPersistent();
     public static final NTEntry<Double> INDEXER_FEED_TIME = new NTDouble("Indexer/Feed Time (s)", 0.5).setPersistent();
+    public static final NTEntry<Boolean> INDEXER_HAS_PIECE = new NTBoolean("Indexer/Has Piece", false);
 
     public static final NTEntry<Double> SHOOTER_IDLE_SPEED = new NTDouble("Shooter/Idle Speed", 0.1).setPersistent();
     public static final NTEntry<Double> SHOOTER_AFTER_DELAY = new NTDouble("Shooter/After Shoot Delay (s)", 1).setPersistent();
@@ -71,6 +72,7 @@ public final class NTData {
     public static final NTEntry<Double> SHOOTER_PIVOT_KP = new NTDouble("Shooter/Pivot PID/kP", 0).setPersistent();
     public static final NTEntry<Double> SHOOTER_PIVOT_KI = new NTDouble("Shooter/Pivot PID/kI", 0).setPersistent();
     public static final NTEntry<Double> SHOOTER_PIVOT_KD = new NTDouble("Shooter/Pivot PID/kD", 0).setPersistent();
+    public static final NTEntry<Double> SHOOTER_PIVOT_KV = new NTDouble("Shooter/Pivot PID/kV", 0).setPersistent();
     public static final NTEntry<Boolean> SHOOTER_PIVOT_RECALIBRATE = new NTBoolean("Shooter/Pivot Calibration/Recalibrate", false);
     public static final NTEntry<Double> SHOOTER_PIVOT_RECALIBRATE_DEBOUNCE = new NTDouble("Shooter/Pivot Calibration/Debounce Time (s)", 0.2).setPersistent();
     public static final NTEntry<Double> SHOOTER_PIVOT_STALL_THRESHOLD = new NTDouble("Shooter/Pivot Calibration/Stall Threshold (rot per sec)", 1).setPersistent();

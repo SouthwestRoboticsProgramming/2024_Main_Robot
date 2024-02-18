@@ -6,9 +6,12 @@ import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.*;
 import com.ctre.phoenix6.hardware.CANcoder;
+import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.signals.SensorDirectionValue;
 import com.revrobotics.CANSparkBase;
+import com.swrobotics.lib.net.NTBoolean;
+import com.swrobotics.lib.net.NTDouble;
 import com.swrobotics.mathlib.MathUtil;
 import com.swrobotics.robot.config.IOAllocation;
 import com.swrobotics.robot.config.NTData;
@@ -27,8 +30,8 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public final class ShooterSubsystem extends SubsystemBase {
     private static final Pose2d blueSpeakerPose = new Pose2d(0, 5.5475, new Rotation2d(0));
-    private static final double motorToPivotRatio = 10; // FIXME
-    private static final double hardStopAngle = 30 / 360.0; // FIXME
+    private static final double motorToPivotRatio = 10;
+    private static final double hardStopAngle = 18 / 360.0;
 
     private final SwerveDrive drive;
     private final IndexerSubsystem indexer;
@@ -70,7 +73,9 @@ public final class ShooterSubsystem extends SubsystemBase {
         TalonFXConfiguration flywheelConfig = new TalonFXConfiguration();
         applyFlywheelPIDV(flywheelConfig.Slot0);
         flywheelConfig.MotorOutput.NeutralMode = NeutralModeValue.Coast;
+        flywheelConfig.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
         flywheelMotor1.getConfigurator().apply(flywheelConfig);
+        flywheelConfig.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
         flywheelMotor2.getConfigurator().apply(flywheelConfig);
         flywheelVelocity1 = flywheelMotor1.getVelocity();
         flywheelVelocity2 = flywheelMotor2.getVelocity();
@@ -79,6 +84,9 @@ public final class ShooterSubsystem extends SubsystemBase {
         applyPivotPID(pivotConfig.Slot0);
         pivotConfig.Feedback.SensorToMechanismRatio = motorToPivotRatio;
         pivotConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+        pivotConfig.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
+        pivotConfig.MotorOutput.PeakForwardDutyCycle = 0.5;
+        pivotConfig.MotorOutput.PeakReverseDutyCycle = -0.5;
         pivotMotor.getConfigurator().apply(pivotConfig);
         pivotPosition = pivotMotor.getPosition();
         pivotVelocity = pivotMotor.getVelocity();
@@ -91,6 +99,7 @@ public final class ShooterSubsystem extends SubsystemBase {
         NTData.SHOOTER_PIVOT_KP.onChange(this::updatePivotPID);
         NTData.SHOOTER_PIVOT_KI.onChange(this::updatePivotPID);
         NTData.SHOOTER_PIVOT_KD.onChange(this::updatePivotPID);
+        NTData.SHOOTER_PIVOT_KV.onChange(this::updatePivotPID);
 
         hasCalibrated = RobotBase.isSimulation();
         calibrationDebounce = null;
@@ -115,6 +124,7 @@ public final class ShooterSubsystem extends SubsystemBase {
         config.kP = NTData.SHOOTER_PIVOT_KP.get();
         config.kI = NTData.SHOOTER_PIVOT_KI.get();
         config.kD = NTData.SHOOTER_PIVOT_KD.get();
+        config.kV = NTData.SHOOTER_PIVOT_KV.get();
     }
 
     private void updatePivotPID(double ignored) {
@@ -128,8 +138,12 @@ public final class ShooterSubsystem extends SubsystemBase {
     }
 
     private void setPivotTarget(double angleRot) {
-        angleRot = Math.max(angleRot, hardStopAngle);
+        if (Double.isNaN(angleRot) || !Double.isFinite(angleRot))
+            angleRot = 0; // Make it finite
+        angleRot = Math.max(angleRot, hardStopAngle + 3 / 360.0);
         System.out.println("Pivot control req: " + angleRot + ", curr: " + pivotPosition.getValue());
+        pivotSetpoint.set(angleRot * 360);
+        pivotCurrent.set(pivotPosition.getValue() * 360);
         pivotMotor.setControl(new PositionVoltage(angleRot));
     }
 
@@ -142,11 +156,17 @@ public final class ShooterSubsystem extends SubsystemBase {
     }
 
     private double flywheelVelocityForShotVelocity(double shotVelocityMetersPerSec) {
-        return 0; // TODO
+        return shotVelocityMetersPerSec; // FIXME
+//        return shotVelocityMetersPerSec / AimCalculator.velocity * 3000 / 60.0;
     }
 
     @Override
     public void periodic() {
+//        flywheelMotor1.setControl(new NeutralOut());
+//        flywheelMotor2.setControl(new NeutralOut());
+//        pivotMotor.setControl(new DutyCycleOut(0.8));
+//        if (true) return;
+
         StatusSignal.refreshAll(flywheelVelocity1, flywheelVelocity2, pivotPosition);
         if (DriverStation.isDisabled())
             return;
@@ -158,24 +178,27 @@ public final class ShooterSubsystem extends SubsystemBase {
         }
 
         if (!hasCalibrated) {
-            if (calibrationDebounce == null) {
-                calibrationDebounce = new Debouncer(NTData.SHOOTER_PIVOT_RECALIBRATE_DEBOUNCE.get(), Debouncer.DebounceType.kBoth);
-            }
-
-            pivotVelocity.refresh();
-            boolean isStill = Math.abs(pivotVelocity.getValue()) < NTData.SHOOTER_PIVOT_STALL_THRESHOLD.get();
-            if (calibrationDebounce.calculate(isStill)) {
+//            if (calibrationDebounce == null) {
+//                calibrationDebounce = new Debouncer(NTData.SHOOTER_PIVOT_RECALIBRATE_DEBOUNCE.get(), Debouncer.DebounceType.kBoth);
+//            }
+//
+//            pivotVelocity.refresh();
+//            boolean isStill = Math.abs(pivotVelocity.getValue()) < NTData.SHOOTER_PIVOT_STALL_THRESHOLD.get();
+//            if (calibrationDebounce.calculate(isStill)) {
                 hasCalibrated = true;
-
+//
                 pivotMotor.setPosition(hardStopAngle);
-                pivotMotor.setControl(new NeutralOut());
-            } else {
-                pivotMotor.setControl(new VoltageOut(-NTData.SHOOTER_PIVOT_CALIBRATE_VOLTS.get()));
-                NTData.SHOOTER_PIVOT_CALIBRATING.set(true);
-            }
-
-            return;
+//                pivotMotor.setControl(new NeutralOut());
+//                NTData.SHOOTER_PIVOT_CALIBRATING.set(false);
+//            } else {
+//                pivotMotor.setControl(new VoltageOut(-NTData.SHOOTER_PIVOT_CALIBRATE_VOLTS.get()));
+//                NTData.SHOOTER_PIVOT_CALIBRATING.set(true);
+//            }
+//
+//            return;
         }
+
+//        setFlywheelTarget(flywheelVelocityForShotVelocity(134891324));
 
         isPreparing = false;
         if (afterShootDelay.calculate(indexer.hasPiece())) {
@@ -200,7 +223,19 @@ public final class ShooterSubsystem extends SubsystemBase {
             flywheelMotor2.setControl(new NeutralOut());
             pivotMotor.setControl(new NeutralOut());
         }
+
+        ready.set(isReadyToShoot());
+        pctErr.set(getPctErr());
+        velSetpoint.set(targetVelocity);
+        velCurrent.set(flywheelVelocity1.getValue());
     }
+
+    NTBoolean ready = new NTBoolean("Shooter/Debug/Flywheel Ready", false);
+    NTDouble pctErr = new NTDouble("Shooter/Debug/Percent Error", 0);
+    NTDouble velSetpoint = new NTDouble("Shooter/Debug/Velocity Setpoint", 0);
+    NTDouble velCurrent = new NTDouble("Shooter/Debug/Velocity Current", 0);
+    NTDouble pivotSetpoint = new NTDouble("Shooter/Debug/Pivot Setpoint (deg)", 0);
+    NTDouble pivotCurrent = new NTDouble("Shooter/Debug/Pivot Current (deg)", 0);
 
     @Override
     public void simulationPeriodic() {
@@ -225,13 +260,13 @@ public final class ShooterSubsystem extends SubsystemBase {
         return min / targetVelocity;
     }
 
-    private double getSignedPercentErr() {
-        double err1 = MathUtil.signedPercentError(flywheelVelocity1.getValue(), targetVelocity);
-        double err2 = MathUtil.signedPercentError(flywheelVelocity2.getValue(), targetVelocity);
+    private double getPctErr() {
+        double err1 = Math.abs(MathUtil.signedPercentError(flywheelVelocity1.getValue(), targetVelocity));
+        double err2 = Math.abs(MathUtil.signedPercentError(flywheelVelocity2.getValue(), targetVelocity));
         return Math.min(err1, err2);
     }
 
     public boolean isReadyToShoot() {
-        return Math.abs(getSignedPercentErr()) < NTData.SHOOTER_ALLOWABLE_PCT_ERR.get();
+        return isPreparing && getPctErr() < NTData.SHOOTER_ALLOWABLE_PCT_ERR.get();
     }
 }

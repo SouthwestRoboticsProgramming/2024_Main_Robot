@@ -37,6 +37,8 @@ public final class IndexerSubsystem extends SubsystemBase {
 
     @Override
     public void periodic() {
+        NTData.INDEXER_HAS_PIECE.set(hasPiece());
+
         if (DriverStation.isDisabled())
             return;
 

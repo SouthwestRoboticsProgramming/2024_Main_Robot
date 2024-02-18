@@ -11,6 +11,7 @@ import com.swrobotics.robot.commands.AimAtPointCommand;
 import com.swrobotics.robot.config.NTData;
 import com.swrobotics.robot.subsystems.amp.AmpArmSubsystem;
 import com.swrobotics.robot.subsystems.amp.AmpIntakeSubsystem;
+import com.swrobotics.robot.subsystems.climber.ClimberSubsystem;
 import com.swrobotics.robot.subsystems.speaker.IntakeSubsystem;
 import com.swrobotics.robot.subsystems.swerve.SwerveDrive;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -140,10 +141,16 @@ public class ControlBoard extends SubsystemBase {
 
     @Override
     public void periodic() {
-        if (!DriverStation.isTeleop())
+        if (!DriverStation.isTeleop()) {
+            robot.climber.setState(ClimberSubsystem.ArmState.HOLD);
             return;
+        }
 
         Translation2d translation = getDriveTranslation();
+        if (DriverStation.getAlliance().orElse(DriverStation.Alliance.Blue) == DriverStation.Alliance.Red) {
+            translation = translation.rotateBy(Rotation2d.fromDegrees(180));
+        }
+
         double rawRotation = getDriveRotation();
         Rotation2d rotation = new Rotation2d(MathUtil.TAU * rawRotation);
 
@@ -179,5 +186,12 @@ public class ControlBoard extends SubsystemBase {
         }
         robot.ampArm.setPosition(ampArmPosition);
         robot.ampIntake.setState(ampIntakeState);
+
+        ClimberSubsystem.ArmState climberState = ClimberSubsystem.ArmState.HOLD;
+        if (operator.dpad.up.isPressed())
+            climberState = ClimberSubsystem.ArmState.EXTENDING;
+        if (operator.dpad.down.isPressed())
+            climberState = ClimberSubsystem.ArmState.RETRACTING;
+        robot.climber.setState(climberState);
     }
 }
