@@ -129,11 +129,9 @@ public class RobotContainer {
             int lastIdx = song.lastIndexOf(File.separatorChar);
 
             String option = song.substring(lastIdx + 1);
-            if (option.equals("caramell-bert-expanded.chrp"))
-                musicChooser.setDefaultOption(option, song);
-            else
-                musicChooser.addOption(option, song);
+            musicChooser.addOption(option, song);
         }
+        musicChooser.setDefaultOption("None", "None");
         musicSelector = new LoggedDashboardChooser<>("Victory Music Selection", musicChooser);
     }
 
@@ -142,8 +140,9 @@ public class RobotContainer {
     public void disabledInit() {
         lights.disabledInit();
 
-        if (hasDoneFirstInit)
-            CommandScheduler.getInstance().schedule(musicCommand = new PlaySongCommand(music, musicSelector.get()));
+        String song = musicSelector.get();
+        if (hasDoneFirstInit && !song.equals("None"))
+            CommandScheduler.getInstance().schedule(musicCommand = new PlaySongCommand(music, song));
         hasDoneFirstInit = true;
     }
 

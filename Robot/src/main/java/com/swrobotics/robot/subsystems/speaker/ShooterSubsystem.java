@@ -1,23 +1,21 @@
 package com.swrobotics.robot.subsystems.speaker;
 
 import com.ctre.phoenix6.StatusSignal;
-import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.*;
-import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
-import com.ctre.phoenix6.signals.SensorDirectionValue;
-import com.revrobotics.CANSparkBase;
 import com.swrobotics.lib.net.NTBoolean;
 import com.swrobotics.lib.net.NTDouble;
 import com.swrobotics.mathlib.MathUtil;
 import com.swrobotics.robot.config.IOAllocation;
 import com.swrobotics.robot.config.NTData;
 import com.swrobotics.robot.logging.SimView;
+import com.swrobotics.robot.subsystems.speaker.aim.AimCalculator;
+import com.swrobotics.robot.subsystems.speaker.aim.ManualAimCalculator;
+import com.swrobotics.robot.subsystems.speaker.aim.TableAimCalculator;
 import com.swrobotics.robot.subsystems.swerve.SwerveDrive;
-import com.swrobotics.robot.utils.CANcoderPositionCalc;
 import com.swrobotics.robot.utils.TalonFXWithSim;
 import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -28,10 +26,12 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
+// TODO: Split flywheel and pivot
 public final class ShooterSubsystem extends SubsystemBase {
     private static final Pose2d blueSpeakerPose = new Pose2d(0, 5.5475, new Rotation2d(0));
     private static final double motorToPivotRatio = 10;
     private static final double hardStopAngle = 18 / 360.0;
+    private static final double maxAngle = 60 / 360.0; // TODO find
 
     private final SwerveDrive drive;
     private final IndexerSubsystem indexer;
@@ -65,10 +65,14 @@ public final class ShooterSubsystem extends SubsystemBase {
 
     private double targetVelocity;
     private AimCalculator.Aim targetAim;
+    private final AimCalculator aimCalculator;
 
     public ShooterSubsystem(SwerveDrive drive, IndexerSubsystem indexer) {
         this.drive = drive;
         this.indexer = indexer;
+
+        aimCalculator = new ManualAimCalculator();
+//        aimCalculator = new TableAimCalculator();
 
         TalonFXConfiguration flywheelConfig = new TalonFXConfiguration();
         applyFlywheelPIDV(flywheelConfig.Slot0);
@@ -93,11 +97,9 @@ public final class ShooterSubsystem extends SubsystemBase {
 
         NTData.SHOOTER_AFTER_DELAY.nowAndOnChange((delay) -> afterShootDelay = new Debouncer(delay, Debouncer.DebounceType.kFalling));
         NTData.SHOOTER_FLYWHEEL_KP.onChange(this::updateFlywheelPIDV);
-        NTData.SHOOTER_FLYWHEEL_KI.onChange(this::updateFlywheelPIDV);
         NTData.SHOOTER_FLYWHEEL_KD.onChange(this::updateFlywheelPIDV);
         NTData.SHOOTER_FLYWHEEL_KV.onChange(this::updateFlywheelPIDV);
         NTData.SHOOTER_PIVOT_KP.onChange(this::updatePivotPID);
-        NTData.SHOOTER_PIVOT_KI.onChange(this::updatePivotPID);
         NTData.SHOOTER_PIVOT_KD.onChange(this::updatePivotPID);
         NTData.SHOOTER_PIVOT_KV.onChange(this::updatePivotPID);
 
@@ -108,7 +110,6 @@ public final class ShooterSubsystem extends SubsystemBase {
     // TODO: Find a better way to do this (maybe TalonFXWithSim has helper?)
     private void applyFlywheelPIDV(Slot0Configs config) {
         config.kP = NTData.SHOOTER_FLYWHEEL_KP.get();
-        config.kI = NTData.SHOOTER_FLYWHEEL_KI.get();
         config.kD = NTData.SHOOTER_FLYWHEEL_KD.get();
         config.kV = NTData.SHOOTER_FLYWHEEL_KV.get();
     }
@@ -122,7 +123,6 @@ public final class ShooterSubsystem extends SubsystemBase {
 
     private void applyPivotPID(Slot0Configs config) {
         config.kP = NTData.SHOOTER_PIVOT_KP.get();
-        config.kI = NTData.SHOOTER_PIVOT_KI.get();
         config.kD = NTData.SHOOTER_PIVOT_KD.get();
         config.kV = NTData.SHOOTER_PIVOT_KV.get();
     }
@@ -204,7 +204,7 @@ public final class ShooterSubsystem extends SubsystemBase {
         if (afterShootDelay.calculate(indexer.hasPiece())) {
             double distToSpeaker = getSpeakerPosition().getDistance(drive.getEstimatedPose().getTranslation());
 
-            AimCalculator.Aim aim = AimCalculator.calculateAim(distToSpeaker);
+            AimCalculator.Aim aim = aimCalculator.calculateAim(distToSpeaker);
             if (aim != null) {
                 targetAim = aim;
                 isPreparing = true;

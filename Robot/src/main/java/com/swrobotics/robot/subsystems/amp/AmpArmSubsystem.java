@@ -48,14 +48,13 @@ public final class AmpArmSubsystem extends SubsystemBase {
 
         TalonFXConfiguration motorConfig = new TalonFXConfiguration();
         motorConfig.Slot0.kP = NTData.AMP_ARM_KP.get();
-        motorConfig.Slot0.kI = NTData.AMP_ARM_KI.get();
+        motorConfig.Slot0.kI = 0;
         motorConfig.Slot0.kD = NTData.AMP_ARM_KD.get();
         motorConfig.MotorOutput.Inverted = InvertedValue.Clockwise_Positive; // FIXME
         motorConfig.Feedback.SensorToMechanismRatio = motorToArmRatio;
         motor.getConfigurator().apply(motorConfig);
 
         NTData.AMP_ARM_KP.onChange(this::updatePID);
-        NTData.AMP_ARM_KI.onChange(this::updatePID);
         NTData.AMP_ARM_KD.onChange(this::updatePID);
 
         CANcoderConfiguration encoderConfig = new CANcoderConfiguration();
@@ -80,7 +79,7 @@ public final class AmpArmSubsystem extends SubsystemBase {
     private void updatePID(double ignored) {
         Slot0Configs configs = new Slot0Configs();
         configs.kP = NTData.AMP_ARM_KP.get();
-        configs.kI = NTData.AMP_ARM_KI.get();
+        configs.kI = 0;
         configs.kD = NTData.AMP_ARM_KD.get();
         motor.getConfigurator().apply(configs);
     }

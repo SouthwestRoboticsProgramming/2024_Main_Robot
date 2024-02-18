@@ -125,7 +125,7 @@ public final class SwerveDrive extends SubsystemBase {
                 new HolonomicPathFollowerConfig(
                         new PIDConstants(8.0), new PIDConstants(
                                 NTData.DRIVE_AIM_KP.get(),
-                        NTData.DRIVE_AIM_KI.get(),
+                        0, // kI
                         NTData.DRIVE_AIM_KD.get()
                 ), MAX_LINEAR_SPEED, Math.hypot(HALF_SPACING_X, HALF_SPACING_X), new ReplanningConfig(), 0.020),
                 () -> DriverStation.getAlliance().orElse(DriverStation.Alliance.Blue) == DriverStation.Alliance.Red,

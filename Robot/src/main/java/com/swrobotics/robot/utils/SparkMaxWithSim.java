@@ -32,7 +32,7 @@ public interface SparkMaxWithSim {
 
     void setIdleMode(CANSparkBase.IdleMode mode);
 
-    void setPID(NTEntry<Double> kP, NTEntry<Double> kI, NTEntry<Double> kD);
+    void setPID(NTEntry<Double> kP, NTEntry<Double> kD);
 
     void setRotorToMechanismRatio(double ratio);
 
@@ -81,9 +81,8 @@ public interface SparkMaxWithSim {
         }
 
         @Override
-        public void setPID(NTEntry<Double> kP, NTEntry<Double> kI, NTEntry<Double> kD) {
+        public void setPID(NTEntry<Double> kP, NTEntry<Double> kD) {
             kP.nowAndOnChange(pid::setP);
-            kI.nowAndOnChange(pid::setI);
             kD.nowAndOnChange(pid::setD);
         }
 
@@ -162,19 +161,16 @@ public interface SparkMaxWithSim {
         }
 
         @Override
-        public void setPID(NTEntry<Double> kP, NTEntry<Double> kI, NTEntry<Double> kD) {
-            kP.onChange((p) -> updatePID(kP, kI, kD));
-            kI.onChange((i) -> updatePID(kP, kI, kD));
-            kD.onChange((d) -> updatePID(kP, kI, kD));
-            updatePID(kP, kI, kD);
+        public void setPID(NTEntry<Double> kP, NTEntry<Double> kD) {
+            kP.onChange((p) -> updatePID(kP, kD));
+            kD.onChange((d) -> updatePID(kP, kD));
         }
 
-        private void updatePID(NTEntry<Double> kP, NTEntry<Double> kI, NTEntry<Double> kD) {
+        private void updatePID(NTEntry<Double> kP, NTEntry<Double> kD) {
             // TODO: Rev units to CTRE units conversion
 
             Slot0Configs config = new Slot0Configs();
             config.kP = kP.get();
-            config.kI = kI.get();
             config.kD = kD.get();
             fx.getConfigurator().apply(config);
         }

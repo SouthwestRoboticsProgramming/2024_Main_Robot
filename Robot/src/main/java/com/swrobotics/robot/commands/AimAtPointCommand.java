@@ -22,7 +22,7 @@ public final class AimAtPointCommand extends Command {
         this.drive = drive;
         this.targetSupplier = targetSupplier;
 
-        pid = NTUtil.tunablePID(NTData.DRIVE_AIM_KP, NTData.DRIVE_AIM_KI, NTData.DRIVE_AIM_KD);
+        pid = NTUtil.tunablePID(NTData.DRIVE_AIM_KP, NTData.DRIVE_AIM_KD);
         pid.enableContinuousInput(-Math.PI, Math.PI);
     }
 

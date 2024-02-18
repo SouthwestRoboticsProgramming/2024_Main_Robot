@@ -1,7 +1,7 @@
 package com.swrobotics.robot.logging;
 
 import com.swrobotics.mathlib.MathUtil;
-import com.swrobotics.robot.subsystems.speaker.AimCalculator;
+import com.swrobotics.robot.subsystems.speaker.aim.AimCalculator;
 import edu.wpi.first.wpilibj.smartdashboard.*;
 import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj.util.Color8Bit;

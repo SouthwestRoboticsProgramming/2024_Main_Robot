@@ -4,7 +4,6 @@ import com.swrobotics.robot.config.IOAllocation;
 import com.swrobotics.robot.config.NTData;
 import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.wpilibj.DigitalInput;
-import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.motorcontrol.PWMTalonSRX;
 import edu.wpi.first.wpilibj.motorcontrol.PWMVictorSPX;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -39,26 +38,14 @@ public final class IndexerSubsystem extends SubsystemBase {
     public void periodic() {
         NTData.INDEXER_HAS_PIECE.set(hasPiece());
 
-        if (DriverStation.isDisabled())
-            return;
-
         double sides = 0, top = 0;
-
         if (feedToShooter) {
             sides = NTData.INDEXER_SIDES_FEED_SPEED.get();
             top = NTData.INDEXER_TOP_FEED_SPEED.get();
         } else {
-            switch (intake.getState()) {
-                case INTAKE:
-                    if (!hasPiece()) {
-                        sides = NTData.INDEXER_SIDES_TAKE_SPEED.get();
-                        top = NTData.INDEXER_TOP_TAKE_SPEED.get();
-                    }
-                    break;
-                case EJECT:
-                    sides = -NTData.INDEXER_SIDES_EJECT_SPEED.get();
-                    top = -NTData.INDEXER_TOP_EJECT_SPEED.get();
-                    break;
+            if (intake.getState() == IntakeSubsystem.State.INTAKE && !hasPiece()) {
+                sides = NTData.INDEXER_SIDES_TAKE_SPEED.get();
+                top = NTData.INDEXER_TOP_TAKE_SPEED.get();
             }
         }
 
