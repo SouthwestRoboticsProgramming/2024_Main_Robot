@@ -33,17 +33,17 @@ public final class MusicSubsystem extends SubsystemBase {
     public MusicSubsystem(RobotContainer robot) {
         orchestra = new Orchestra();
 
-        addInstrument(robot.drive.modules[0].getDriveMotor());
-        addInstrument(robot.drive.modules[1].getDriveMotor());
-        addInstrument(robot.drive.modules[2].getDriveMotor());
-        addInstrument(robot.drive.modules[3].getDriveMotor());
-        addInstrument(robot.drive.modules[0].getSteerMotor());
-        addInstrument(robot.drive.modules[1].getSteerMotor());
-        addInstrument(robot.drive.modules[2].getSteerMotor());
-        addInstrument(robot.drive.modules[3].getSteerMotor());
-        addInstrument(robot.climber.leftArm.motor);
-        addInstrument(robot.climber.rightArm.motor);
-        addInstrument(robot.ampArm.motor);
+        addInstrument(robot.drive.getDriveMotor(0));
+        addInstrument(robot.drive.getDriveMotor(1));
+        addInstrument(robot.drive.getDriveMotor(2));
+        addInstrument(robot.drive.getDriveMotor(3));
+        addInstrument(robot.drive.getTurnMotor(0));
+        addInstrument(robot.drive.getTurnMotor(1));
+        addInstrument(robot.drive.getTurnMotor(2));
+        addInstrument(robot.drive.getTurnMotor(3));
+        addInstrument(robot.climber.getLeftMotor());
+        addInstrument(robot.climber.getRightMotor());
+        addInstrument(robot.ampArm.getMotor());
         addInstrument(robot.shooter.getLeftFlywheelMotor());
         addInstrument(robot.shooter.getRightFlywheelMotor());
         addInstrument(robot.shooter.getPivotMotor());

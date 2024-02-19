@@ -6,7 +6,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.ParallelDeadlineGroup;
 
-public final class AimAndShootCommand {
+public final class RobotCommands {
     public static Command create(RobotContainer robot) {
         AimAtPointCommand aim = new AimAtPointCommand(robot.drive, robot.shooter::getSpeakerPosition);
         Command shootSeq = Commands.sequence(

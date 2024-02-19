@@ -22,7 +22,7 @@ public final class ClimberArm extends SubsystemBase {
         RETRACTED_HOLD
     }
 
-    public final TalonFX motor;
+    private final TalonFX motor;
     private final StatusSignal<Double> motorVelocity;
 
     private boolean hasCalibrated;
@@ -108,5 +108,9 @@ public final class ClimberArm extends SubsystemBase {
         config.kI = 0;
         config.kD = NTData.CLIMBER_KD.get();
         motor.getConfigurator().apply(config);
+    }
+
+    public TalonFX getMotor() {
+        return motor;
     }
 }

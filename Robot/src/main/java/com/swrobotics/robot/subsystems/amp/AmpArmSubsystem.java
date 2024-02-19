@@ -6,6 +6,7 @@ import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.PositionDutyCycle;
 import com.ctre.phoenix6.hardware.CANcoder;
+import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.SensorDirectionValue;
 import com.swrobotics.lib.net.NTEntry;
@@ -35,7 +36,7 @@ public final class AmpArmSubsystem extends SubsystemBase {
     private static final double cancoderToArmRatio = 2;
 
     private final CANcoder absoluteEncoder = new CANcoder(IOAllocation.CAN.AMP_ARM_CANCODER.id(), IOAllocation.CAN.AMP_ARM_CANCODER.bus());
-    public final TalonFXWithSim motor = new TalonFXWithSim(
+    private final TalonFXWithSim motor = new TalonFXWithSim(
             IOAllocation.CAN.AMP_ARM_MOTOR,
             DCMotor.getFalcon500Foc(1),
             motorToArmRatio,
@@ -109,5 +110,9 @@ public final class AmpArmSubsystem extends SubsystemBase {
     public void simulationPeriodic() {
         motor.updateSim(12);
         SimView.updateAmpArm(motor.getPosition().getValue());
+    }
+
+    public TalonFX getMotor() {
+        return motor;
     }
 }
