@@ -30,6 +30,7 @@ public class ControlBoard extends SubsystemBase {
      * Left stick: translation
      * Right stick X: rotation
      * Left trigger: fast mode
+     * Left bumper: robot relative
      * Right trigger: aim at speaker
      *
      * Operator:
