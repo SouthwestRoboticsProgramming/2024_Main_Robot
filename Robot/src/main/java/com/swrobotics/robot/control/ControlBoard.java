@@ -37,10 +37,9 @@ public class ControlBoard extends SubsystemBase {
      * B: shoot
      * X: amp intake
      * Y: amp score
-     * Left bumper: intake through shooter
-     * Right trigger: amp eject
-     * Dpad up: climber extend
-     * Dpad down: climber hold
+     * Left trigger: amp eject
+     * Right bumper: toggle climber extend/retract
+     * Right trigger: retract with feedforward
      */
 
     private static final double DEADBAND = 0.15;
@@ -49,6 +48,8 @@ public class ControlBoard extends SubsystemBase {
     private final RobotContainer robot;
     public final XboxController driver;
     public final XboxController operator;
+
+    private ClimberArm.State climberState;
 
     public ControlBoard(RobotContainer robot) {
         this.robot = robot;
@@ -71,6 +72,8 @@ public class ControlBoard extends SubsystemBase {
                 robot.drive,
                 robot.shooter::getSpeakerPosition
         ));
+
+        climberState = ClimberArm.State.RETRACTED_IDLE;
     }
 
     private double squareWithSign(double value) {
@@ -98,8 +101,10 @@ public class ControlBoard extends SubsystemBase {
 
     @Override
     public void periodic() {
-        if (!DriverStation.isTeleop())
+        if (!DriverStation.isTeleop()) {
+            climberState = ClimberArm.State.RETRACTED_IDLE;
             return;
+        }
 
         Translation2d translation = getDriveTranslation();
         if (DriverStation.getAlliance().orElse(DriverStation.Alliance.Blue) == DriverStation.Alliance.Red) {
@@ -133,18 +138,20 @@ public class ControlBoard extends SubsystemBase {
             ampIntakeState = AmpIntakeSubsystem.State.INTAKE;
         } else if (operator.y.isPressed()) {
             ampArmPosition = AmpArmSubsystem.Position.SCORE_AMP;
-            if (operator.rightTrigger.isOutside(TRIGGER_BUTTON_THRESHOLD)) {
+            if (operator.leftTrigger.isOutside(TRIGGER_BUTTON_THRESHOLD)) {
                 ampIntakeState = AmpIntakeSubsystem.State.OUTTAKE;
             }
         }
         robot.ampArm.setPosition(ampArmPosition);
         robot.ampIntake.setState(ampIntakeState);
 
-        ClimberArm.State climberState = ClimberArm.State.RETRACTED_IDLE;
-        if (operator.dpad.up.isPressed())
-            climberState = ClimberArm.State.EXTENDED;
-        if (operator.dpad.down.isPressed())
+        if (operator.rightBumper.isRising()) {
+            boolean extended = climberState == ClimberArm.State.EXTENDED;
+            climberState = extended ? ClimberArm.State.RETRACTED_IDLE : ClimberArm.State.EXTENDED;
+        }
+        if (operator.rightTrigger.isOutside(TRIGGER_BUTTON_THRESHOLD)) {
             climberState = ClimberArm.State.RETRACTED_HOLD;
+        }
         robot.climber.setState(climberState);
     }
 }
