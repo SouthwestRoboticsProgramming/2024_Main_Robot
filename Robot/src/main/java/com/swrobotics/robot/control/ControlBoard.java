@@ -7,12 +7,11 @@ import com.swrobotics.lib.input.XboxController;
 import com.swrobotics.mathlib.MathUtil;
 import com.swrobotics.robot.RobotContainer;
 
-import com.swrobotics.robot.commands.AimAtPointCommand;
+import com.swrobotics.robot.commands.AimTowardsSpeakerCommand;
 import com.swrobotics.robot.config.NTData;
 import com.swrobotics.robot.subsystems.amp.AmpArmSubsystem;
 import com.swrobotics.robot.subsystems.amp.AmpIntakeSubsystem;
 import com.swrobotics.robot.subsystems.climber.ClimberArm;
-import com.swrobotics.robot.subsystems.climber.ClimberSubsystem;
 import com.swrobotics.robot.subsystems.speaker.IntakeSubsystem;
 import com.swrobotics.robot.subsystems.swerve.SwerveDrive;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -68,9 +67,9 @@ public class ControlBoard extends SubsystemBase {
         driver.start.onFalling(() -> robot.drive.setRotation(new Rotation2d()));
         driver.back.onFalling(() -> robot.drive.setRotation(new Rotation2d())); // Two buttons to reset gyro so the driver can't get confused
 
-        new Trigger(() -> driver.rightTrigger.isOutside(TRIGGER_BUTTON_THRESHOLD)).whileTrue(new AimAtPointCommand(
+        new Trigger(() -> driver.rightTrigger.isOutside(TRIGGER_BUTTON_THRESHOLD)).whileTrue(new AimTowardsSpeakerCommand(
                 robot.drive,
-                robot.shooter::getSpeakerPosition
+                robot.shooter
         ));
 
         climberState = ClimberArm.State.RETRACTED_IDLE;

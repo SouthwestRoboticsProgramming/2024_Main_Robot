@@ -280,6 +280,19 @@ public final class SwerveDrive extends SubsystemBase {
         return kinematics.toChassisSpeeds(getCurrentModuleStates());
     }
 
+    public ChassisSpeeds getFieldRelativeSpeeds() {
+        ChassisSpeeds robotRel = getRobotRelativeSpeeds();
+
+        Rotation2d facing = getEstimatedPose().getRotation();
+        Translation2d tx = new Translation2d(robotRel.vxMetersPerSecond, robotRel.vyMetersPerSecond)
+                .rotateBy(facing);
+
+        return new ChassisSpeeds(
+                tx.getX(), tx.getY(),
+                robotRel.omegaRadiansPerSecond
+        );
+    }
+
     @Override
     public void simulationPeriodic() {
         for (SwerveModule module : modules) {

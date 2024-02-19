@@ -17,7 +17,6 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
-// TODO: Split flywheel and pivot
 public final class ShooterSubsystem extends SubsystemBase {
     private static final Pose2d blueSpeakerPose = new Pose2d(0, 5.5475, new Rotation2d(0));
 
@@ -30,7 +29,7 @@ public final class ShooterSubsystem extends SubsystemBase {
     private Debouncer afterShootDelay;
     private boolean isPreparing;
 
-    private AimCalculator.Aim targetAim;
+    private AimCalculator.Aim targetAim; // Target aim is null if not currently aiming
     private final AimCalculator aimCalculator;
 
     public ShooterSubsystem(SwerveDrive drive, IndexerSubsystem indexer) {
@@ -52,26 +51,24 @@ public final class ShooterSubsystem extends SubsystemBase {
 
     @Override
     public void periodic() {
+        double distToSpeaker = getSpeakerPosition().getDistance(drive.getEstimatedPose().getTranslation());
+        AimCalculator.Aim aim = aimCalculator.calculateAim(distToSpeaker);
+        targetAim = aim;
+
         if (DriverStation.isDisabled() || !pivot.hasCalibrated())
             return;
 
         isPreparing = false;
         if (afterShootDelay.calculate(indexer.hasPiece())) {
-            double distToSpeaker = getSpeakerPosition().getDistance(drive.getEstimatedPose().getTranslation());
-
-            AimCalculator.Aim aim = aimCalculator.calculateAim(distToSpeaker);
             if (aim != null) {
-                targetAim = aim;
                 isPreparing = true;
                 flywheel.setTargetVelocity(aim.flywheelVelocity());
                 pivot.setTargetAngle(aim.pivotAngle() / MathUtil.TAU);
             } else {
-                targetAim = null;
                 flywheel.setIdle();
                 pivot.setIdle();
             }
         } else {
-            targetAim = null;
             flywheel.setNeutral();
             pivot.setNeutral();
         }
@@ -85,10 +82,10 @@ public final class ShooterSubsystem extends SubsystemBase {
 
     @Override
     public void simulationPeriodic() {
-        if (targetAim == null)
-            SimView.targetTrajectory.clear();
-        else
+        if (isPreparing)
             SimView.targetTrajectory.update(targetAim);
+        else
+            SimView.targetTrajectory.clear();
     }
 
     public boolean isPreparing() {
@@ -101,6 +98,10 @@ public final class ShooterSubsystem extends SubsystemBase {
 
     public double getFlywheelPercentOfTarget() {
         return flywheel.getPercentOfTarget();
+    }
+
+    public AimCalculator.Aim getTargetAim() {
+        return targetAim;
     }
 
     public TalonFX getLeftFlywheelMotor() {
