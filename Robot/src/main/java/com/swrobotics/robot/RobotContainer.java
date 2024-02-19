@@ -5,7 +5,7 @@ import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 import com.swrobotics.lib.field.FieldInfo;
 import com.swrobotics.messenger.client.MessengerClient;
-import com.swrobotics.robot.commands.AimAndShootCommand;
+import com.swrobotics.robot.commands.RobotCommands;
 import com.swrobotics.robot.commands.IntakeSetCommand;
 import com.swrobotics.robot.commands.PlaySongCommand;
 import com.swrobotics.robot.control.ControlBoard;
@@ -103,8 +103,7 @@ public class RobotContainer {
         NamedCommands.registerCommand("Example Named Command", new InstantCommand());
         NamedCommands.registerCommand("Intake On", new IntakeSetCommand(intake, IntakeSubsystem.State.INTAKE));
         NamedCommands.registerCommand("Intake Off", new IntakeSetCommand(intake, IntakeSubsystem.State.OFF));
-        NamedCommands.registerCommand("Intake Eject", new IntakeSetCommand(intake, IntakeSubsystem.State.EJECT));
-        NamedCommands.registerCommand("Shoot", AimAndShootCommand.create(this));
+        NamedCommands.registerCommand("Shoot", RobotCommands.create(this));
 
         // Create a chooser to select the autonomous
         autoSelector = new LoggedDashboardChooser<>("Auto Selection", AutoBuilder.buildAutoChooser());
@@ -129,11 +128,9 @@ public class RobotContainer {
             int lastIdx = song.lastIndexOf(File.separatorChar);
 
             String option = song.substring(lastIdx + 1);
-            if (option.equals("caramell-bert-expanded.chrp"))
-                musicChooser.setDefaultOption(option, song);
-            else
-                musicChooser.addOption(option, song);
+            musicChooser.addOption(option, song);
         }
+        musicChooser.setDefaultOption("None", "None");
         musicSelector = new LoggedDashboardChooser<>("Victory Music Selection", musicChooser);
     }
 
@@ -142,8 +139,9 @@ public class RobotContainer {
     public void disabledInit() {
         lights.disabledInit();
 
-        if (hasDoneFirstInit)
-            CommandScheduler.getInstance().schedule(musicCommand = new PlaySongCommand(music, musicSelector.get()));
+        String song = musicSelector.get();
+        if (hasDoneFirstInit && !song.equals("None"))
+            CommandScheduler.getInstance().schedule(musicCommand = new PlaySongCommand(music, song));
         hasDoneFirstInit = true;
     }
 

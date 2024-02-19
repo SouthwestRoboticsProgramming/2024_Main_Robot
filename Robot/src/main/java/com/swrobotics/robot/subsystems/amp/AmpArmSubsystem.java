@@ -6,6 +6,7 @@ import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.PositionDutyCycle;
 import com.ctre.phoenix6.hardware.CANcoder;
+import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.SensorDirectionValue;
 import com.swrobotics.lib.net.NTEntry;
@@ -35,7 +36,7 @@ public final class AmpArmSubsystem extends SubsystemBase {
     private static final double cancoderToArmRatio = 2;
 
     private final CANcoder absoluteEncoder = new CANcoder(IOAllocation.CAN.AMP_ARM_CANCODER.id(), IOAllocation.CAN.AMP_ARM_CANCODER.bus());
-    public final TalonFXWithSim motor = new TalonFXWithSim(
+    private final TalonFXWithSim motor = new TalonFXWithSim(
             IOAllocation.CAN.AMP_ARM_MOTOR,
             DCMotor.getFalcon500Foc(1),
             motorToArmRatio,
@@ -48,14 +49,13 @@ public final class AmpArmSubsystem extends SubsystemBase {
 
         TalonFXConfiguration motorConfig = new TalonFXConfiguration();
         motorConfig.Slot0.kP = NTData.AMP_ARM_KP.get();
-        motorConfig.Slot0.kI = NTData.AMP_ARM_KI.get();
+        motorConfig.Slot0.kI = 0;
         motorConfig.Slot0.kD = NTData.AMP_ARM_KD.get();
         motorConfig.MotorOutput.Inverted = InvertedValue.Clockwise_Positive; // FIXME
         motorConfig.Feedback.SensorToMechanismRatio = motorToArmRatio;
         motor.getConfigurator().apply(motorConfig);
 
         NTData.AMP_ARM_KP.onChange(this::updatePID);
-        NTData.AMP_ARM_KI.onChange(this::updatePID);
         NTData.AMP_ARM_KD.onChange(this::updatePID);
 
         CANcoderConfiguration encoderConfig = new CANcoderConfiguration();
@@ -80,7 +80,7 @@ public final class AmpArmSubsystem extends SubsystemBase {
     private void updatePID(double ignored) {
         Slot0Configs configs = new Slot0Configs();
         configs.kP = NTData.AMP_ARM_KP.get();
-        configs.kI = NTData.AMP_ARM_KI.get();
+        configs.kI = 0;
         configs.kD = NTData.AMP_ARM_KD.get();
         motor.getConfigurator().apply(configs);
     }
@@ -110,5 +110,9 @@ public final class AmpArmSubsystem extends SubsystemBase {
     public void simulationPeriodic() {
         motor.updateSim(12);
         SimView.updateAmpArm(motor.getPosition().getValue());
+    }
+
+    public TalonFX getMotor() {
+        return motor;
     }
 }

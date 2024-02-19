@@ -17,7 +17,6 @@ import org.littletonrobotics.junction.Logger;
 public final class IntakeSubsystem extends SubsystemBase {
     public enum State {
         INTAKE,
-        EJECT,
         OFF
     }
 
@@ -36,7 +35,7 @@ public final class IntakeSubsystem extends SubsystemBase {
     private Debouncer actuatorStillDebounce;
 
     public IntakeSubsystem() {
-        actuatorMotor.setPID(NTData.INTAKE_KP, NTData.INTAKE_KI, NTData.INTAKE_KD);
+        actuatorMotor.setPID(NTData.INTAKE_KP, NTData.INTAKE_KD);
         actuatorMotor.setRotorToMechanismRatio(motorToIntakeRatio);
         actuatorMotor.setInverted(false); // FIXME
 
@@ -58,12 +57,8 @@ public final class IntakeSubsystem extends SubsystemBase {
         boolean extend = state != State.OFF;
         double speed = switch (state) {
             case INTAKE -> NTData.INTAKE_SPEED.get();
-            case EJECT -> -NTData.INTAKE_EJECT_SPEED.get();
             case OFF -> 0;
         };
-
-        Logger.recordOutput("intake setpoint", extend ? NTData.INTAKE_RANGE.get() / 360 : 0);
-        Logger.recordOutput("intake current", actuatorMotor.getEncoderPosition());
 
         actuatorMotor.setPosition(extend ? NTData.INTAKE_RANGE.get() / 360 : 0);
         spinMotor.set(speed);

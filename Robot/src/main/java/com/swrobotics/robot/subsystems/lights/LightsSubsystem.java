@@ -3,6 +3,7 @@ package com.swrobotics.robot.subsystems.lights;
 import com.swrobotics.mathlib.MathUtil;
 import com.swrobotics.robot.RobotContainer;
 import com.swrobotics.robot.config.IOAllocation;
+import com.swrobotics.robot.subsystems.climber.ClimberArm;
 import com.swrobotics.robot.subsystems.swerve.SwerveDrive;
 import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.wpilibj.*;
@@ -42,11 +43,24 @@ public final class LightsSubsystem extends SubsystemBase {
         applySolid(Timer.getFPGATimestamp() % 0.5 > 0.25 ? Color.kRed : Color.kBlack);
     }
 
+    private void showClimberHold() {
+        Color color = Color.kPurple;
+
+        float bright = (float) (0.8 + 0.4 * Math.sin(Timer.getFPGATimestamp() * 2));
+        color = new Color(
+                color.red * bright,
+                color.green * bright,
+                color.blue * bright
+        );
+
+        applySolid(color);
+    }
+
     private void showShooterStatus() {
         if (robot.shooter.isReadyToShoot()) {
             applySolid(Color.kWhite);
         } else {
-            double pct = robot.shooter.getPercentOfTarget();
+            double pct = robot.shooter.getFlywheelPercentOfTarget();
             if (pct < 1) {
                 applyStripes(
                         0,
@@ -93,6 +107,8 @@ public final class LightsSubsystem extends SubsystemBase {
             showLowBattery();
         } else if (DriverStation.isDisabled()) {
             prideSequencer.apply(this);
+        } else if (robot.climber.getCurrentState() == ClimberArm.State.RETRACTED_HOLD) {
+            showClimberHold();
         } else if (robot.shooter.isPreparing()) {
             showShooterStatus();
         } else if (robot.drive.getLastSelectedPriority() == SwerveDrive.AUTO_PRIORITY) {

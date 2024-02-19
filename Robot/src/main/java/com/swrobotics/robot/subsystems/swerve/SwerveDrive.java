@@ -2,6 +2,7 @@ package com.swrobotics.robot.subsystems.swerve;
 
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
+import com.ctre.phoenix6.hardware.TalonFX;
 import com.swrobotics.messenger.client.MessengerClient;
 import com.swrobotics.robot.config.IOAllocation;
 import com.swrobotics.robot.config.NTData;
@@ -75,7 +76,7 @@ public final class SwerveDrive extends SubsystemBase {
     private final FieldInfo fieldInfo;
 
     private final AHRS gyro;
-    public final SwerveModule[] modules;
+    private final SwerveModule[] modules;
     private final SwerveKinematics kinematics;
     private final SwerveEstimator estimator;
 
@@ -125,7 +126,7 @@ public final class SwerveDrive extends SubsystemBase {
                 new HolonomicPathFollowerConfig(
                         new PIDConstants(8.0), new PIDConstants(
                                 NTData.DRIVE_AIM_KP.get(),
-                        NTData.DRIVE_AIM_KI.get(),
+                        0, // kI
                         NTData.DRIVE_AIM_KD.get()
                 ), MAX_LINEAR_SPEED, Math.hypot(HALF_SPACING_X, HALF_SPACING_X), new ReplanningConfig(), 0.020),
                 () -> DriverStation.getAlliance().orElse(DriverStation.Alliance.Blue) == DriverStation.Alliance.Red,
@@ -210,9 +211,6 @@ public final class SwerveDrive extends SubsystemBase {
         }
     }
 
-    private final NTEntry<Double> mod0Measurement = new NTDouble("Drive/Debug/Velocity measurement", 0);
-    private final NTEntry<Double> mod0Setpoint = new NTDouble("Drive/Debug/Velocity setpoint", 0);
-
     @Override
     public void periodic() {
         if (NTData.DRIVE_CALIBRATE.get()) {
@@ -223,26 +221,23 @@ public final class SwerveDrive extends SubsystemBase {
             }
         }
 
-        if (DriverStation.isDisabled())
-            return;
+        // Apply drive request when robot enabled
+        if (!DriverStation.isDisabled()) {
+            ChassisSpeeds requestedSpeeds = new ChassisSpeeds(
+                    currentDriveRequest.robotRelTranslation.getX(),
+                    currentDriveRequest.robotRelTranslation.getY(),
+                    currentTurnRequest.turn.getRadians());
+            lastSelectedPriority = Math.max(currentDriveRequest.priority, currentTurnRequest.priority);
+            currentDriveRequest = NULL_DRIVE;
+            currentTurnRequest = NULL_TURN;
 
-        ChassisSpeeds requestedSpeeds = new ChassisSpeeds(
-                currentDriveRequest.robotRelTranslation.getX(),
-                currentDriveRequest.robotRelTranslation.getY(),
-                currentTurnRequest.turn.getRadians());
-        lastSelectedPriority = Math.max(currentDriveRequest.priority, currentTurnRequest.priority);
-        currentDriveRequest = NULL_DRIVE;
-        currentTurnRequest = NULL_TURN;
-
-        // Apply the drive request
-        ChassisSpeeds robotRelSpeeds = ChassisSpeeds.discretize(requestedSpeeds, 0.020);
-        SwerveModuleState[] targetStates = kinematics.getStates(robotRelSpeeds);
-        for (int i = 0; i < modules.length; i++) {
-            modules[i].apply(targetStates[i], currentDriveRequest.type, SteerRequestType.MotionMagic);
+            // Apply the drive request
+            ChassisSpeeds robotRelSpeeds = ChassisSpeeds.discretize(requestedSpeeds, 0.020);
+            SwerveModuleState[] targetStates = kinematics.getStates(robotRelSpeeds);
+            for (int i = 0; i < modules.length; i++) {
+                modules[i].apply(targetStates[i], currentDriveRequest.type, SteerRequestType.MotionMagic);
+            }
         }
-
-        mod0Measurement.set(modules[0].getCurrentState().speedMetersPerSecond);
-        mod0Setpoint.set(modules[0].getTargetState().speedMetersPerSecond);
 
         // Update estimator
         // Do refresh here, so we get the most up-to-date data
@@ -294,5 +289,13 @@ public final class SwerveDrive extends SubsystemBase {
 
     public int getLastSelectedPriority() {
         return lastSelectedPriority;
+    }
+
+    public TalonFX getDriveMotor(int module) {
+        return modules[module].getDriveMotor();
+    }
+
+    public TalonFX getTurnMotor(int module) {
+        return modules[module].getSteerMotor();
     }
 }

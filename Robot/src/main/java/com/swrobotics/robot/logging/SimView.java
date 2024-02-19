@@ -1,7 +1,7 @@
 package com.swrobotics.robot.logging;
 
 import com.swrobotics.mathlib.MathUtil;
-import com.swrobotics.robot.subsystems.speaker.AimCalculator;
+import com.swrobotics.robot.subsystems.speaker.aim.AimCalculator;
 import edu.wpi.first.wpilibj.smartdashboard.*;
 import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj.util.Color8Bit;
@@ -64,7 +64,7 @@ public final class SimView {
         ampIntake.setAngle(intakeRot * 360 - 180);
     }
 
-    public static void updateShooter(double pivotRot) {
+    public static void updateShooterPivot(double pivotRot) {
         shooterPivot.setAngle(pivotRot * 360);
     }
 

@@ -3,32 +3,6 @@ package com.swrobotics.robot.config;
 import edu.wpi.first.wpilibj.RobotBase;
 
 public final class IOAllocation {
-    public static final class CanId {
-        public static int uniqueifyForSim(int id, String bus) {
-            // CTRE sim doesn't support CANivore, so ids need to be globally unique
-            if (RobotBase.isSimulation() && bus.equals(CAN.GERALD))
-                return id + 32;
-
-            return id;
-        }
-
-        private final int id;
-        private final String bus;
-
-        public CanId(int id, String bus) {
-            this.id = id;
-            this.bus = bus;
-        }
-
-        public int id() {
-            return uniqueifyForSim(id, bus);
-        }
-
-        public String bus() {
-            return bus;
-        }
-    }
-
     public static final class CAN {
         private static final String RIO = "";
         public static final String GERALD = "Gerald";
@@ -41,8 +15,8 @@ public final class IOAllocation {
         public static final SwerveIDs SWERVE_BR = new SwerveIDs(12, 8, 4); // falcon + kraken
 
         // RIO
-        public static final CanId SHOOTER_MOTOR_1 = new CanId(1, RIO); // falcon -> kraken
-        public static final CanId SHOOTER_MOTOR_2 = new CanId(2, RIO); // falcon -> kraken
+        public static final CanId FLYWHEEL_LEFT_MOTOR = new CanId(1, RIO); // falcon -> kraken
+        public static final CanId FLYWHEEL_RIGHT_MOTOR = new CanId(2, RIO); // falcon -> kraken
         public static final CanId SHOOTER_PIVOT_MOTOR = new CanId(3, RIO); // neo
         public static final CanId INTAKE_ACTUATOR_MOTOR = new CanId(5, RIO); // neo
         public static final CanId AMP_ARM_CANCODER = new CanId(5, RIO);
@@ -75,6 +49,32 @@ public final class IOAllocation {
             this.drive = CanId.uniqueifyForSim(drive, CAN.GERALD);
             this.turn = CanId.uniqueifyForSim(turn, CAN.GERALD);
             this.encoder = CanId.uniqueifyForSim(encoder, CAN.GERALD);
+        }
+    }
+
+    public static final class CanId {
+        public static int uniqueifyForSim(int id, String bus) {
+            // CTRE sim doesn't support CANivore, so ids need to be globally unique
+            if (RobotBase.isSimulation() && bus.equals(CAN.GERALD))
+                return id + 32;
+
+            return id;
+        }
+
+        private final int id;
+        private final String bus;
+
+        public CanId(int id, String bus) {
+            this.id = id;
+            this.bus = bus;
+        }
+
+        public int id() {
+            return uniqueifyForSim(id, bus);
+        }
+
+        public String bus() {
+            return bus;
         }
     }
 }
