@@ -6,27 +6,34 @@
     "data": {
       "commands": [
         {
-          "type": "named",
+          "type": "parallel",
           "data": {
-            "name": "Intake On"
-          }
-        },
-        {
-          "type": "wait",
-          "data": {
-            "waitTime": 1.0
+            "commands": [
+              {
+                "type": "named",
+                "data": {
+                  "name": "Shoot"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "Intake On"
+                }
+              }
+            ]
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "Grab Short Center"
+            "pathName": "Short Center"
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "Grab Long A"
+            "pathName": "Amp Note"
           }
         },
         {
@@ -38,6 +45,6 @@
       ]
     }
   },
-  "folder": null,
+  "folder": "Three Piece",
   "choreoAuto": false
 }

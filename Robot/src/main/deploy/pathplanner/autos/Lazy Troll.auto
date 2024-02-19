@@ -2,8 +2,8 @@
   "version": 1.0,
   "startingPose": {
     "position": {
-      "x": 4.878951752205499,
-      "y": 4.081259900411539
+      "x": 1.4298414311114338,
+      "y": 1.600747487209259
     },
     "rotation": 0
   },
@@ -12,14 +12,14 @@
     "data": {
       "commands": [
         {
-          "type": "wait",
+          "type": "path",
           "data": {
-            "waitTime": 10.0
+            "pathName": "Troll"
           }
         }
       ]
     }
   },
-  "folder": null,
+  "folder": "Troll",
   "choreoAuto": false
 }

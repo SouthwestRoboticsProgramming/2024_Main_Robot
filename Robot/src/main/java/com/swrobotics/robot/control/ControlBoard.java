@@ -29,6 +29,7 @@ public class ControlBoard extends SubsystemBase {
      * Left stick: translation
      * Right stick X: rotation
      * Left trigger: fast mode
+     * Left bumper: robot relative
      * Right trigger: aim at speaker
      *
      * Operator:
@@ -98,6 +99,10 @@ public class ControlBoard extends SubsystemBase {
         return -squareWithSign(driver.rightStickX.get()) * NTData.TURN_SPEED.get();
     }
 
+    private boolean getRobotRelativeDrive() {
+        return driver.leftBumper.isPressed();
+    }
+
     @Override
     public void periodic() {
         if (!DriverStation.isTeleop()) {
@@ -113,13 +118,19 @@ public class ControlBoard extends SubsystemBase {
         double rawRotation = getDriveRotation();
         Rotation2d rotation = new Rotation2d(MathUtil.TAU * rawRotation);
 
-        robot.drive.driveAndTurn(
-                SwerveDrive.DRIVER_PRIORITY,
-                ChassisSpeeds.fromFieldRelativeSpeeds(
+        ChassisSpeeds chassisRequest = ChassisSpeeds.fromFieldRelativeSpeeds(
                         translation.getX(),
                         translation.getY(),
                         rotation.getRadians(),
-                        robot.drive.getEstimatedPose().getRotation()),
+                        robot.drive.getEstimatedPose().getRotation());
+
+        if (getRobotRelativeDrive()) {
+            chassisRequest = new ChassisSpeeds(-translation.getX(), -translation.getY(), rotation.getRadians());
+        }
+
+        robot.drive.driveAndTurn(
+                SwerveDrive.DRIVER_PRIORITY,
+                chassisRequest,
                 DriveRequestType.Velocity);
 
         IntakeSubsystem.State intakeState = IntakeSubsystem.State.OFF;
