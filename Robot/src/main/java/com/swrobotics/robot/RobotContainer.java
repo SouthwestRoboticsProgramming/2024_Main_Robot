@@ -107,7 +107,7 @@ public class RobotContainer {
 
         // Create a chooser to select the autonomous
         autoSelector = new LoggedDashboardChooser<>("Auto Selection", AutoBuilder.buildAutoChooser());
-        autoSelector.addOption("Just Shoot", AimAndShootCommand.create(this));
+        autoSelector.addOption("Just Shoot", RobotCommands.create(this));
         autoSelector.addDefaultOption("Drive forward", Commands.run(
                 () -> drive.drive(new DriveRequest(
                         SwerveDrive.AUTO_PRIORITY,
