@@ -1,0 +1,25 @@
+{
+  "version": 1.0,
+  "startingPose": {
+    "position": {
+      "x": 1.4298414311114338,
+      "y": 1.600747487209259
+    },
+    "rotation": 0
+  },
+  "command": {
+    "type": "sequential",
+    "data": {
+      "commands": [
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Troll"
+          }
+        }
+      ]
+    }
+  },
+  "folder": "Troll",
+  "choreoAuto": false
+}
