@@ -7,7 +7,7 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.ParallelDeadlineGroup;
 
 public final class RobotCommands {
-    public static Command create(RobotContainer robot) {
+    public static Command aimAndShoot(RobotContainer robot) {
         AimTowardsSpeakerCommand aim = new AimTowardsSpeakerCommand(robot.drive, robot.shooter);
         Command shootSeq = Commands.sequence(
                 Commands.waitUntil(() -> aim.isInTolerance(NTData.DRIVE_AIM_TOLERANCE.get())),

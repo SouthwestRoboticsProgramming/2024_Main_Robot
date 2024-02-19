@@ -103,11 +103,11 @@ public class RobotContainer {
         NamedCommands.registerCommand("Example Named Command", new InstantCommand());
         NamedCommands.registerCommand("Intake On", new IntakeSetCommand(intake, IntakeSubsystem.State.INTAKE));
         NamedCommands.registerCommand("Intake Off", new IntakeSetCommand(intake, IntakeSubsystem.State.OFF));
-        NamedCommands.registerCommand("Shoot", RobotCommands.create(this));
+        NamedCommands.registerCommand("Shoot", RobotCommands.aimAndShoot(this));
 
         // Create a chooser to select the autonomous
         autoSelector = new LoggedDashboardChooser<>("Auto Selection", AutoBuilder.buildAutoChooser());
-        autoSelector.addOption("Just Shoot", RobotCommands.create(this));
+        autoSelector.addOption("Just Shoot", RobotCommands.aimAndShoot(this));
         autoSelector.addDefaultOption("Drive forward", Commands.run(
                 () -> drive.drive(new DriveRequest(
                         SwerveDrive.AUTO_PRIORITY,
