@@ -1,12 +1,15 @@
 package com.swrobotics.robot.subsystems.speaker;
 
 import com.ctre.phoenix6.StatusSignal;
+import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.NeutralOut;
 import com.ctre.phoenix6.controls.PositionVoltage;
+import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
+import com.ctre.phoenix6.signals.ReverseLimitValue;
 import com.swrobotics.mathlib.MathUtil;
 import com.swrobotics.robot.config.IOAllocation;
 import com.swrobotics.robot.config.NTData;
@@ -17,9 +20,9 @@ import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public final class PivotSubsystem extends SubsystemBase {
-    private static final double motorToPivotRatio = 10;
-    private static final double hardStopAngle = 18 / 360.0;
-    private static final double maxAngle = 60 / 360.0; // TODO find
+    private static final double motorToPivotRatio = 10 * 9 * 4;
+    private static final double hardStopAngle = 22 / 360.0;
+    private static final double maxAngle = (90 - 20) / 360.0;
 
     private final TalonFXWithSim motor = new TalonFXWithSim(
             IOAllocation.CAN.SHOOTER_PIVOT_MOTOR,
@@ -38,8 +41,6 @@ public final class PivotSubsystem extends SubsystemBase {
         config.Feedback.SensorToMechanismRatio = motorToPivotRatio;
         config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
         config.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
-        config.MotorOutput.PeakForwardDutyCycle = 0.5;
-        config.MotorOutput.PeakReverseDutyCycle = -0.5;
 
         motor.getConfigurator().apply(config);
         position = motor.getPosition();
@@ -50,7 +51,7 @@ public final class PivotSubsystem extends SubsystemBase {
 
         hasCalibrated = RobotBase.isSimulation();
 
-        calibration = new AssumeAtHardStop(); // TODO: Limit switch?
+        calibration = new RunUntilLimit();
         calibration.reset();
     }
 
@@ -127,6 +128,39 @@ public final class PivotSubsystem extends SubsystemBase {
         public boolean calibrate() {
             motor.setPosition(hardStopAngle);
             return true;
+        }
+    }
+
+    private final class RunUntilLimit implements CalibrationStrategy {
+        private final StatusSignal<ReverseLimitValue> limitSwitch = motor.getReverseLimit();
+
+        @Override
+        public void reset() {
+            // Don't crunch the shooter
+            CurrentLimitsConfigs config = new CurrentLimitsConfigs();
+            config.StatorCurrentLimitEnable = true;
+            config.StatorCurrentLimit = 5; // Amps
+            motor.getConfigurator().apply(config);
+        }
+
+        @Override
+        public boolean calibrate() {
+            motor.setControl(new VoltageOut(-NTData.SHOOTER_PIVOT_CALIBRATE_VOLTS.get()));
+            limitSwitch.refresh();
+            boolean atLimit = limitSwitch.getValue() == ReverseLimitValue.ClosedToGround;
+
+            if (atLimit) {
+                // Disable the low current limit
+                CurrentLimitsConfigs config = new CurrentLimitsConfigs();
+                config.StatorCurrentLimitEnable = false;
+                motor.getConfigurator().apply(config);
+
+                motor.setPosition(hardStopAngle);
+
+                return true;
+            }
+
+            return false;
         }
     }
 }

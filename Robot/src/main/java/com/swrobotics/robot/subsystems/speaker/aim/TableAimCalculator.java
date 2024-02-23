@@ -10,13 +10,13 @@ public final class TableAimCalculator implements AimCalculator {
 
     public TableAimCalculator() {
         // TODO: More datas (this data may also be incorrect)
-        addCalibrationSample(1.235902, 37, 63);
-        addCalibrationSample(1.846633, 40, 52);
-        addCalibrationSample(3.088702, 50, 34);
-        addCalibrationSample(3.344846, 62, 33);
+        addCalibrationSample(1.1429, 63, 35);
+        addCalibrationSample(1.924, 54, 39);
+        addCalibrationSample(2.765, 41, 45);
+        addCalibrationSample(3.635, 34, 70); // vroom
     }
 
-    private void addCalibrationSample(double distanceM, double velocityRPS, double angleDeg) {
+    private void addCalibrationSample(double distanceM, double angleDeg, double velocityRPS) {
         flywheelVelocityMap.put(distanceM, velocityRPS);
         pivotAngleMap.put(distanceM, Math.toRadians(angleDeg));
     }

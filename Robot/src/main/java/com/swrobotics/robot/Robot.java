@@ -115,13 +115,6 @@ public class Robot extends LoggedRobot {
                         (Command command) -> {
                             logCommandFunction.accept(command, false);
                         });
-
-        // Random alliance in sim (this makes sure that things work on both sides)
-        if (Settings.getMode() == Mode.SIMULATION) {
-            if (new Random().nextBoolean()) {
-                DriverStationSim.setAllianceStationId(AllianceStationID.Blue1);
-            }
-        }
     }
 
     @Override

@@ -78,25 +78,25 @@ public final class IntakeSubsystem extends SubsystemBase {
         if (hasCalibrated || DriverStation.isDisabled())
             return;
 
-        // Defer debouncer initialization until now so the first edge still applies
-        if (actuatorStillDebounce == null) {
-            // Defaults to false, which gives the motor a little time to start
-            // moving before we stop
-            actuatorStillDebounce = new Debouncer(NTData.INTAKE_CALIBRATE_DEBOUNCE.get(), Debouncer.DebounceType.kBoth);
-        }
-
-        boolean isStill = Math.abs(actuatorMotor.getEncoderVelocity()) < NTData.INTAKE_CALIBRATE_STALL_THRESHOLD.get();
-        if (actuatorStillDebounce.calculate(isStill)) {
+//        // Defer debouncer initialization until now so the first edge still applies
+//        if (actuatorStillDebounce == null) {
+//            // Defaults to false, which gives the motor a little time to start
+//            // moving before we stop
+//            actuatorStillDebounce = new Debouncer(NTData.INTAKE_CALIBRATE_DEBOUNCE.get(), Debouncer.DebounceType.kBoth);
+//        }
+//
+//        boolean isStill = Math.abs(actuatorMotor.getEncoderVelocity()) < NTData.INTAKE_CALIBRATE_STALL_THRESHOLD.get();
+//        if (actuatorStillDebounce.calculate(isStill)) {
             hasCalibrated = true;
 
             // Fully retracted now, set position
             actuatorMotor.setEncoderPosition(-NTData.INTAKE_CALIBRATE_SETPOINT.get() / 360.0);
             set(state);
-            NTData.INTAKE_CALIBRATING.set(false);
-        } else {
-            actuatorMotor.setVoltage(-NTData.INTAKE_CALIBRATE_VOLTS.get());
-            NTData.INTAKE_CALIBRATING.set(true);
-        }
+//            NTData.INTAKE_CALIBRATING.set(false);
+//        } else {
+//            actuatorMotor.setVoltage(-NTData.INTAKE_CALIBRATE_VOLTS.get());
+//            NTData.INTAKE_CALIBRATING.set(true);
+//        }
     }
 
     @Override

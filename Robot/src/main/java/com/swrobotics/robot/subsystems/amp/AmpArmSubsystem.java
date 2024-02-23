@@ -4,7 +4,7 @@ import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
-import com.ctre.phoenix6.controls.PositionDutyCycle;
+import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
@@ -16,6 +16,7 @@ import com.swrobotics.robot.logging.SimView;
 import com.swrobotics.robot.utils.CANcoderPositionCalc;
 import com.swrobotics.robot.utils.TalonFXWithSim;
 import edu.wpi.first.math.system.plant.DCMotor;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public final class AmpArmSubsystem extends SubsystemBase {
@@ -42,7 +43,9 @@ public final class AmpArmSubsystem extends SubsystemBase {
             motorToArmRatio,
             0.01)
             .attachCanCoder(absoluteEncoder);
-    private final CANcoderPositionCalc position;
+    private final CANcoderPositionCalc positionCalc;
+
+    private Position targetPosition;
 
     public AmpArmSubsystem() {
         // TODO: Do we want a feedforward to account for gravity?
@@ -64,7 +67,7 @@ public final class AmpArmSubsystem extends SubsystemBase {
         absoluteEncoder.getConfigurator().apply(encoderConfig);
 
         StatusSignal<Double> motorPosition = motor.getPosition();
-        position = new CANcoderPositionCalc(
+        positionCalc = new CANcoderPositionCalc(
                 absoluteEncoder,
                 () -> {
                     motorPosition.refresh();
@@ -75,6 +78,7 @@ public final class AmpArmSubsystem extends SubsystemBase {
                         cancoderToArmRatio, 0, 1
                 )
         );
+        targetPosition = Position.STOW;
     }
 
     private void updatePID(double ignored) {
@@ -86,11 +90,10 @@ public final class AmpArmSubsystem extends SubsystemBase {
     }
 
     public void setPosition(Position position) {
-        motor.setControl(new PositionDutyCycle(this.position.getRelativeForAbsolute(getTarget(position))));
     }
 
     public boolean isAtPosition(Position position) {
-        return Math.abs(this.position.getAbsolute() - getTarget(position)) < NTData.AMP_ARM_TOLERANCE.get() / 360.0;
+        return Math.abs(this.positionCalc.getAbsolute() - getTarget(position)) < NTData.AMP_ARM_TOLERANCE.get() / 360.0;
     }
 
     private double getTarget(Position position) {
@@ -102,7 +105,16 @@ public final class AmpArmSubsystem extends SubsystemBase {
         if (NTData.AMP_ARM_CALIBRATE.get()) {
             NTData.AMP_ARM_CALIBRATE.set(false);
             // Assume arm is physically in STOW position
-            position.calibrateCanCoder(getTarget(Position.STOW));
+            positionCalc.calibrateCanCoder(getTarget(Position.STOW));
+        }
+
+        if (!DriverStation.isDisabled()) {
+            double currentPos = this.positionCalc.getAbsolute();
+            double targetPos = this.positionCalc.getRelativeForAbsolute(getTarget(targetPosition));
+
+            double gravityFF = NTData.AMP_ARM_GRAVITY_AMOUNT.get() * Math.cos(currentPos);
+
+            motor.setControl(new PositionVoltage(targetPos).withFeedForward(gravityFF));
         }
     }
 

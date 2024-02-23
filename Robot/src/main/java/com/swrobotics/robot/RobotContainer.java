@@ -120,8 +120,10 @@ public class RobotContainer {
         FieldView.publish();
 
         char sep = File.separatorChar;
+
+        String whichSong = Math.random() > 0.9 ? "caramell-intro.chrp" : "xp.chrp";
         CommandScheduler.getInstance().schedule(musicCommand = Commands.waitSeconds(5)
-                .andThen(new PlaySongCommand(music, "music" + sep + "xp.chrp")));
+                .andThen(new PlaySongCommand(music, "music" + sep + whichSong)));
 
         SendableChooser<String> musicChooser = new SendableChooser<>();
         for (String song : MusicSubsystem.getAvailableSongs()) {

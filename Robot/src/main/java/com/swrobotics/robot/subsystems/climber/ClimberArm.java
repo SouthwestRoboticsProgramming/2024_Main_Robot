@@ -8,6 +8,7 @@ import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
+import com.swrobotics.lib.net.NTDouble;
 import com.swrobotics.robot.config.IOAllocation;
 import com.swrobotics.robot.config.NTData;
 import edu.wpi.first.math.filter.Debouncer;
@@ -29,6 +30,8 @@ public final class ClimberArm extends SubsystemBase {
     private Debouncer calibrationDebounce;
     private State targetState;
 
+    private final StatusSignal<Double> motorPositionDebug;
+
     public ClimberArm(IOAllocation.CanId id, InvertedValue invert) {
         TalonFXConfiguration config = new TalonFXConfiguration();
         config.MotorOutput.Inverted = invert;
@@ -47,6 +50,9 @@ public final class ClimberArm extends SubsystemBase {
         hasCalibrated = RobotBase.isSimulation();
         calibrationDebounce = null;
         targetState = State.RETRACTED_IDLE;
+
+        motorPositionDebug = motor.getPosition();
+        positionDebug = new NTDouble("Climber/Debug Position (" + id.id() + ")", 0);
     }
 
     public void setState(State state) {
@@ -62,12 +68,17 @@ public final class ClimberArm extends SubsystemBase {
                 ? -NTData.CLIMBER_HOLD_VOLTS.get()
                 : 0;
 
-        motor.setControl(new PositionVoltage(position)
-                .withFeedForward(feedforward));
+//        motor.setControl(new PositionVoltage(position)
+//                .withFeedForward(feedforward));
     }
+
+    NTDouble positionDebug;
 
     @Override
     public void periodic() {
+        motorPositionDebug.refresh();
+        positionDebug.set(motorPositionDebug.getValue());
+
         if (DriverStation.isDisabled())
             return;
 
@@ -92,7 +103,7 @@ public final class ClimberArm extends SubsystemBase {
             } else {
                 NTData.CLIMBER_CALIBRATING.set(true);
 
-                motor.setControl(new VoltageOut(-NTData.CLIMBER_CALIBRATE_VOLTS.get()));
+//                motor.setControl(new VoltageOut(-NTData.CLIMBER_CALIBRATE_VOLTS.get()));
             }
         }
     }

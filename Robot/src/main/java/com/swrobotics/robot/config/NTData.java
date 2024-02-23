@@ -52,6 +52,7 @@ public final class NTData {
     public static final NTEntry<Double> AMP_ARM_TRAP_SCORE_ANGLE = new NTDouble("Amp/Arm/Trap Score Angle (degrees)", 50).setPersistent();
     public static final NTEntry<Double> AMP_ARM_KP = new NTDouble("Amp/Arm/PID/kP", 0.05).setPersistent();
     public static final NTEntry<Double> AMP_ARM_KD = new NTDouble("Amp/Arm/PID/kD", 0).setPersistent();
+    public static final NTEntry<Double> AMP_ARM_GRAVITY_AMOUNT = new NTDouble("Amp/Arm/Gravity (volts at horiz)", 0).setPersistent();
 
     public static final NTEntry<Double> AMP_INTAKE_INTAKE_SPEED = new NTDouble("Amp/Intake/Intake Speed", 0.5).setPersistent();
     public static final NTEntry<Double> AMP_INTAKE_OUTTAKE_SPEED = new NTDouble("Amp/Intake/Outtake Speed", 0.5).setPersistent();
@@ -78,6 +79,7 @@ public final class NTData {
     public static final NTEntry<Double> SHOOTER_PIVOT_KD = new NTDouble("Shooter/Pivot PID/kD", 0).setPersistent();
     public static final NTEntry<Double> SHOOTER_PIVOT_KV = new NTDouble("Shooter/Pivot PID/kV", 0).setPersistent();
     public static final NTEntry<Boolean> SHOOTER_PIVOT_RECALIBRATE = new NTBoolean("Shooter/Pivot Calibration/Recalibrate", false);
+    public static final NTEntry<Double> SHOOTER_PIVOT_CALIBRATE_VOLTS = new NTDouble("Shooter/Pivot Calibration/Applied Volts", 0.5).setPersistent();
 
     private NTData() {
         throw new AssertionError();
