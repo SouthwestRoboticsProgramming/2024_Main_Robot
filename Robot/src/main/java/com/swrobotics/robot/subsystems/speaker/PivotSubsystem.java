@@ -91,6 +91,9 @@ public final class PivotSubsystem extends SubsystemBase {
         if (state == State.CALIBRATING)
             return;
 
+        if (state != State.IDLE)
+            calibrated = false;
+
         motor.setControl(new NeutralOut());
         state = State.IDLE;
     }
@@ -114,6 +117,7 @@ public final class PivotSubsystem extends SubsystemBase {
     }
 
     public boolean hasCalibrated() {
+        // Motor knows position after we leave CALIBRATING
         return state != State.CALIBRATING;
     }
 
