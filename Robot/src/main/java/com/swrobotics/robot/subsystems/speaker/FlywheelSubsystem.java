@@ -13,6 +13,7 @@ import com.swrobotics.robot.config.IOAllocation;
 import com.swrobotics.robot.config.NTData;
 import com.swrobotics.robot.utils.TalonFXWithSim;
 import edu.wpi.first.math.system.plant.DCMotor;
+import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public final class FlywheelSubsystem extends SubsystemBase {
@@ -67,7 +68,7 @@ public final class FlywheelSubsystem extends SubsystemBase {
     }
 
     public boolean isReadyToShoot() {
-        return getPercentErr() < NTData.SHOOTER_FLYWHEEL_ALLOWABLE_PCT_ERR.get();
+        return RobotBase.isSimulation() || getPercentErr() < NTData.SHOOTER_FLYWHEEL_ALLOWABLE_PCT_ERR.get();
     }
 
     @Override

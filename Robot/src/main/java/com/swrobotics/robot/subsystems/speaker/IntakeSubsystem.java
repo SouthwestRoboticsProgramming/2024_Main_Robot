@@ -8,6 +8,7 @@ import com.swrobotics.robot.utils.SparkMaxWithSim;
 import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.motorcontrol.PWMSparkMax;
 import edu.wpi.first.wpilibj.motorcontrol.PWMTalonSRX;
@@ -30,11 +31,16 @@ public final class IntakeSubsystem extends SubsystemBase {
             0.005);
     private final PWMSparkMax spinMotor;
 
+    private final PowerDistribution pdp;
     private State state;
     private boolean hasCalibrated;
     private Debouncer actuatorStillDebounce;
 
-    public IntakeSubsystem() {
+    private boolean reverse;
+
+    public IntakeSubsystem(PowerDistribution pdp) {
+        this.pdp = pdp;
+
         actuatorMotor.setPID(NTData.INTAKE_KP, NTData.INTAKE_KD);
         actuatorMotor.setRotorToMechanismRatio(motorToIntakeRatio);
         actuatorMotor.setInverted(false); // FIXME
@@ -47,6 +53,8 @@ public final class IntakeSubsystem extends SubsystemBase {
         // The position is already correct anyway because the sim starts in a known state
         hasCalibrated = RobotBase.isSimulation();
         state = State.OFF;
+
+        reverse = false;
     }
 
     public void set(State state) {
@@ -59,6 +67,13 @@ public final class IntakeSubsystem extends SubsystemBase {
             case INTAKE -> NTData.INTAKE_SPEED.get();
             case OFF -> 0;
         };
+        if (reverse)
+            speed = -NTData.INTAKE_SPEED.get();
+
+        // Manual voltage compensation
+        double supplyVolts = pdp.getVoltage();
+        double comp = 12.0 / supplyVolts;
+        speed *= comp;
 
         actuatorMotor.setPosition(extend ? NTData.INTAKE_RANGE.get() / 360 : 0);
         spinMotor.set(speed);
@@ -103,5 +118,9 @@ public final class IntakeSubsystem extends SubsystemBase {
     public void simulationPeriodic() {
         actuatorMotor.updateSim(12);
         SimView.updateIntake(actuatorMotor.getEncoderPosition());
+    }
+
+    public void setReverse(boolean reverse) {
+        this.reverse = reverse;
     }
 }

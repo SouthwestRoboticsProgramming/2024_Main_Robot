@@ -3,45 +3,45 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 2.396284537906334,
-        "y": 5.531335051274091
-      },
-      "prevControl": null,
-      "nextControl": {
-        "x": 1.4296311760281815,
-        "y": 5.417216251607919
-      },
-      "isLocked": false,
-      "linkedName": "End of Short Center"
-    },
-    {
-      "anchor": {
         "x": 2.1071123319692173,
         "y": 4.524236478050422
       },
+      "prevControl": null,
+      "nextControl": {
+        "x": 2.4565190623112048,
+        "y": 2.2547620710750893
+      },
+      "isLocked": false,
+      "linkedName": "End of Stage Note"
+    },
+    {
+      "anchor": {
+        "x": 7.9455539286986365,
+        "y": 0.903339894267817
+      },
       "prevControl": {
-        "x": 1.2478648991886374,
-        "y": 4.940434453303515
+        "x": 5.933540376739821,
+        "y": 0.903339894267817
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "End of Stage Note"
+      "linkedName": "Audience Note"
     }
   ],
   "rotationTargets": [],
   "constraintZones": [],
   "eventMarkers": [
     {
-      "name": "Shoot",
-      "waypointRelativePos": 1.0,
+      "name": "New Event Marker",
+      "waypointRelativePos": 0.5,
       "command": {
-        "type": "sequential",
+        "type": "parallel",
         "data": {
           "commands": [
             {
               "type": "named",
               "data": {
-                "name": "Shoot"
+                "name": "Intake On"
               }
             }
           ]
@@ -57,14 +57,14 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 152.10973077514154,
-    "rotateFast": false
+    "rotation": 173.2740025694651,
+    "rotateFast": true
   },
   "reversed": false,
   "folder": null,
   "previewStartingState": {
-    "rotation": -178.91137511276565,
+    "rotation": -177.94397137580054,
     "velocity": 0
   },
-  "useDefaultConstraints": true
+  "useDefaultConstraints": false
 }

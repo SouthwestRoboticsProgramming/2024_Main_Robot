@@ -20,6 +20,12 @@ import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public final class PivotSubsystem extends SubsystemBase {
+    private enum State {
+        CALIBRATING,
+        IDLE,
+        SHOOTING
+    }
+
     private static final double motorToPivotRatio = 10 * 9 * 4;
     private static final double hardStopAngle = 22 / 360.0;
     private static final double maxAngle = (90 - 20) / 360.0;
@@ -32,8 +38,9 @@ public final class PivotSubsystem extends SubsystemBase {
     );
     private final StatusSignal<Double> position;
 
-    private final CalibrationStrategy calibration;
-    private boolean hasCalibrated;
+    private final RunUntilLimit calibration;
+    private State state;
+    private boolean calibrated;
 
     public PivotSubsystem() {
         TalonFXConfiguration config = new TalonFXConfiguration();
@@ -49,44 +56,65 @@ public final class PivotSubsystem extends SubsystemBase {
         NTData.SHOOTER_PIVOT_KD.onChange(this::updatePID);
         NTData.SHOOTER_PIVOT_KV.onChange(this::updatePID);
 
-        hasCalibrated = RobotBase.isSimulation();
+        state = State.CALIBRATING;
+        calibrated = false;
 
-        calibration = new RunUntilLimit();
+        calibration = new RunUntilLimit(); // TODO: Not separate object
         calibration.reset();
     }
 
     public void setTargetAngle(double angleRot) {
+        if (state == State.CALIBRATING)
+            return;
+
         angleRot = MathUtil.clamp(
                 angleRot,
                 hardStopAngle + 2 / 360.0,
                 maxAngle - 2 / 360.0);
 
         motor.setControl(new PositionVoltage(angleRot));
+        state = State.SHOOTING;
     }
 
     public void setIdle() {
+        if (state == State.CALIBRATING)
+            return;
+
+        if (state != State.IDLE)
+            calibrated = false;
+
         setTargetAngle(NTData.SHOOTER_PIVOT_IDLE_ANGLE.get() / 360.0);
+        state = State.IDLE;
     }
 
     public void setNeutral() {
+        if (state == State.CALIBRATING)
+            return;
+
         motor.setControl(new NeutralOut());
+        state = State.IDLE;
     }
 
     @Override
     public void periodic() {
         if (NTData.SHOOTER_PIVOT_RECALIBRATE.get()) {
             NTData.SHOOTER_PIVOT_RECALIBRATE.set(false);
-            hasCalibrated = false;
+            state = State.CALIBRATING;
+            calibrated = false;
             calibration.reset();
         }
 
-        if (!hasCalibrated && calibration.calibrate()) {
-            hasCalibrated = true;
+        if (state != State.SHOOTING && !calibrated) {
+            if (calibration.calibrate()) {
+                calibrated = true;
+                if (state == State.CALIBRATING)
+                    state = State.IDLE;
+            }
         }
     }
 
     public boolean hasCalibrated() {
-        return hasCalibrated;
+        return state != State.CALIBRATING;
     }
 
     @Override
@@ -112,38 +140,17 @@ public final class PivotSubsystem extends SubsystemBase {
         return motor;
     }
 
-    private interface CalibrationStrategy {
-        void reset();
-
-        // Returns true if calibration finished
-        boolean calibrate();
-    }
-
-    private final class AssumeAtHardStop implements CalibrationStrategy {
-        @Override
-        public void reset() {
-        }
-
-        @Override
-        public boolean calibrate() {
-            motor.setPosition(hardStopAngle);
-            return true;
-        }
-    }
-
-    private final class RunUntilLimit implements CalibrationStrategy {
+    private final class RunUntilLimit {
         private final StatusSignal<ReverseLimitValue> limitSwitch = motor.getReverseLimit();
 
-        @Override
         public void reset() {
             // Don't crunch the shooter
-            CurrentLimitsConfigs config = new CurrentLimitsConfigs();
-            config.StatorCurrentLimitEnable = true;
-            config.StatorCurrentLimit = 5; // Amps
-            motor.getConfigurator().apply(config);
+//            CurrentLimitsConfigs config = new CurrentLimitsConfigs();
+//            config.StatorCurrentLimitEnable = true;
+//            config.StatorCurrentLimit = 5; // Amps
+//            motor.getConfigurator().apply(config);
         }
 
-        @Override
         public boolean calibrate() {
             motor.setControl(new VoltageOut(-NTData.SHOOTER_PIVOT_CALIBRATE_VOLTS.get()));
             limitSwitch.refresh();
@@ -151,9 +158,9 @@ public final class PivotSubsystem extends SubsystemBase {
 
             if (atLimit) {
                 // Disable the low current limit
-                CurrentLimitsConfigs config = new CurrentLimitsConfigs();
-                config.StatorCurrentLimitEnable = false;
-                motor.getConfigurator().apply(config);
+//                CurrentLimitsConfigs config = new CurrentLimitsConfigs();
+//                config.StatorCurrentLimitEnable = false;
+//                motor.getConfigurator().apply(config);
 
                 motor.setPosition(hardStopAngle);
 

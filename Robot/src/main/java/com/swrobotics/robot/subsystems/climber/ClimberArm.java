@@ -68,8 +68,8 @@ public final class ClimberArm extends SubsystemBase {
                 ? -NTData.CLIMBER_HOLD_VOLTS.get()
                 : 0;
 
-//        motor.setControl(new PositionVoltage(position)
-//                .withFeedForward(feedforward));
+        motor.setControl(new PositionVoltage(position)
+                .withFeedForward(feedforward));
     }
 
     NTDouble positionDebug;
@@ -103,7 +103,7 @@ public final class ClimberArm extends SubsystemBase {
             } else {
                 NTData.CLIMBER_CALIBRATING.set(true);
 
-//                motor.setControl(new VoltageOut(-NTData.CLIMBER_CALIBRATE_VOLTS.get()));
+                motor.setControl(new VoltageOut(-NTData.CLIMBER_CALIBRATE_VOLTS.get()));
             }
         }
     }

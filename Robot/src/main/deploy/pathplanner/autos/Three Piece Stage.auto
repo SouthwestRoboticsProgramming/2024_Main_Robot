@@ -6,6 +6,12 @@
     "data": {
       "commands": [
         {
+          "type": "wait",
+          "data": {
+            "waitTime": 1.0
+          }
+        },
+        {
           "type": "parallel",
           "data": {
             "commands": [
@@ -41,10 +47,40 @@
           "data": {
             "pathName": "Stage Note"
           }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Shoot"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Intake Off"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Grab B Long Go to note"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Grab B Long Go back"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Shoot"
+          }
         }
       ]
     }
   },
-  "folder": "Three Piece",
+  "folder": null,
   "choreoAuto": false
 }

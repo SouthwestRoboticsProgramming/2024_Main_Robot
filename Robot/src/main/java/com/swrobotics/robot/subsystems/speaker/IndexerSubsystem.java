@@ -16,6 +16,7 @@ public final class IndexerSubsystem extends SubsystemBase {
 
     private final IntakeSubsystem intake;
     private boolean feedToShooter;
+    private boolean reverse;
 
     public IndexerSubsystem(IntakeSubsystem intake) {
         this.intake = intake;
@@ -49,7 +50,16 @@ public final class IndexerSubsystem extends SubsystemBase {
             }
         }
 
+        if (reverse) {
+            sides = -NTData.INDEXER_SIDES_FEED_SPEED.get();
+            top = -NTData.INDEXER_TOP_FEED_SPEED.get();
+        }
+
         sidesMotor.set(sides);
         topMotor.set(top);
+    }
+
+    public void setReverse(boolean reverse) {
+        this.reverse = reverse;
     }
 }

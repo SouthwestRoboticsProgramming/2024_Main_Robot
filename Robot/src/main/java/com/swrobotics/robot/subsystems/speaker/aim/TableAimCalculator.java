@@ -1,5 +1,6 @@
 package com.swrobotics.robot.subsystems.speaker.aim;
 
+import com.swrobotics.lib.net.NTDouble;
 import com.swrobotics.mathlib.MathUtil;
 
 import java.util.TreeMap;
@@ -8,12 +9,24 @@ public final class TableAimCalculator implements AimCalculator {
     private final TreeMap<Double, Double> flywheelVelocityMap = new TreeMap<>();
     private final TreeMap<Double, Double> pivotAngleMap = new TreeMap<>();
 
+//    private static final NTDouble logDistance = new NTDouble("Shooter/Manual Aim/Est Distance (m)", 0);
+
     public TableAimCalculator() {
-        // TODO: More datas (this data may also be incorrect)
-        addCalibrationSample(1.1429, 63, 35);
-        addCalibrationSample(1.924, 54, 39);
-        addCalibrationSample(2.765, 41, 45);
-        addCalibrationSample(3.635, 34, 70); // vroom
+        // Calibration 1 (MURA)
+        double off = 5;
+        addCalibrationSample(1.1429, 63 - off, 35);
+        addCalibrationSample(1.924, 54 - off, 39);
+        addCalibrationSample(2.765, 41 - off, 45);
+//        addCalibrationSample(3.635, 34 - off, 70); // vroom
+
+        // Calibration 2 (shop)
+        addCalibrationSample(1.698725, 49.399451, 37.933578);
+        addCalibrationSample(2.340979, 38.664862, 44.923910);
+        addCalibrationSample(3.295272, 30.383333, 68.488096);
+
+        // Calibration 3 (MURA)
+        addCalibrationSample(3.549, 31, 74);
+        addCalibrationSample(4.917, 24, 80);
     }
 
     private void addCalibrationSample(double distanceM, double angleDeg, double velocityRPS) {
@@ -42,11 +55,16 @@ public final class TableAimCalculator implements AimCalculator {
         double percent = MathUtil.percent(distanceToSpeaker, distCloser, distFarther);
         double valCloser = map.get(distCloser);
         double valFarther = map.get(distFarther);
+
+//        System.out.printf("Sample (%s): close: (%.3f -> %.3f) far: (%.3f -> %.3f) pct %.3f\n", map == flywheelVelocityMap ? "V" : "A", distCloser, valCloser, distFarther, valFarther, percent);
+
         return MathUtil.lerp(valCloser, valFarther, percent);
     }
 
     @Override
     public Aim calculateAim(double distanceToSpeaker) {
+//        logDistance.set(distanceToSpeaker);
+
         return new Aim(
                 sample(flywheelVelocityMap, distanceToSpeaker),
                 sample(pivotAngleMap, distanceToSpeaker)

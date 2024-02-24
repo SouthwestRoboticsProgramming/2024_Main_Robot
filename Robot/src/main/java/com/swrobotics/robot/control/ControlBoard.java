@@ -40,6 +40,8 @@ public class ControlBoard extends SubsystemBase {
      * Left trigger: amp eject
      * Right bumper: toggle climber extend/retract
      * Right trigger: retract with feedforward
+     * Back: intake eject
+     * Start: indexer eject
      */
 
     private static final double DEADBAND = 0.15;
@@ -68,12 +70,16 @@ public class ControlBoard extends SubsystemBase {
         driver.start.onFalling(() -> robot.drive.setRotation(new Rotation2d()));
         driver.back.onFalling(() -> robot.drive.setRotation(new Rotation2d())); // Two buttons to reset gyro so the driver can't get confused
 
-        new Trigger(() -> driver.rightTrigger.isOutside(TRIGGER_BUTTON_THRESHOLD)).whileTrue(new AimTowardsSpeakerCommand(
+        new Trigger(this::driverWantsAim).whileTrue(new AimTowardsSpeakerCommand(
                 robot.drive,
                 robot.shooter
         ));
 
         climberState = ClimberArm.State.RETRACTED_IDLE;
+    }
+
+    private boolean driverWantsAim() {
+        return driver.rightTrigger.isOutside(TRIGGER_BUTTON_THRESHOLD);
     }
 
     private double squareWithSign(double value) {
@@ -107,6 +113,9 @@ public class ControlBoard extends SubsystemBase {
     public void periodic() {
         if (!DriverStation.isTeleop()) {
             climberState = ClimberArm.State.RETRACTED_IDLE;
+            robot.indexer.setReverse(false);
+            robot.intake.setReverse(false);
+            robot.shooter.setShouldRunFlywheel(true); // Always aim with note when not teleop
             return;
         }
 
@@ -163,5 +172,10 @@ public class ControlBoard extends SubsystemBase {
             climberState = ClimberArm.State.RETRACTED_HOLD;
         }
         robot.climber.setState(climberState);
+
+        robot.intake.setReverse(operator.back.isPressed());
+        robot.indexer.setReverse(operator.start.isPressed());
+
+        robot.shooter.setShouldRunFlywheel(driverWantsAim());
     }
 }

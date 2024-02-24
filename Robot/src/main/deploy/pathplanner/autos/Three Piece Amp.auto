@@ -39,12 +39,18 @@
         {
           "type": "named",
           "data": {
+            "name": "Shoot"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
             "name": "Intake Off"
           }
         }
       ]
     }
   },
-  "folder": "Three Piece",
+  "folder": null,
   "choreoAuto": false
 }

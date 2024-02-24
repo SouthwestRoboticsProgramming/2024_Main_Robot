@@ -1,6 +1,6 @@
 {
-  "robotWidth": 0.85,
-  "robotLength": 0.927,
+  "robotWidth": 0.838,
+  "robotLength": 0.914,
   "holonomicMode": true,
   "pathFolders": [
     "Troll"
@@ -9,8 +9,8 @@
     "Three Piece",
     "Troll"
   ],
-  "defaultMaxVel": 4.0,
-  "defaultMaxAccel": 3.0,
+  "defaultMaxVel": 4.11,
+  "defaultMaxAccel": 6.0,
   "defaultMaxAngVel": 540.0,
   "defaultMaxAngAccel": 720.0,
   "maxModuleSpeed": 5.64

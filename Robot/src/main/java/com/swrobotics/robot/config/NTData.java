@@ -67,6 +67,7 @@ public final class NTData {
     public static final NTEntry<Double> SHOOTER_AFTER_DELAY = new NTDouble("Shooter/After Shoot Delay (s)", 1).setPersistent();
     public static final NTEntry<Double> SHOOTER_MOVING_FLYWHEEL_VELOCITY = new NTDouble("Shooter/Moving/Flywheel Velocity (rot per sec)", 50).setPersistent();
     public static final NTEntry<Double> SHOOTER_MOVING_EXIT_VELOCITY = new NTDouble("Shooter/Moving/Note Exit Velocity (meters per sec)", 9.98).setPersistent();
+    public static final NTEntry<Boolean> SHOOTER_READY = new NTBoolean("Shooter/Is Ready", false); // Read by ShuffleLog
 
     public static final NTEntry<Double> SHOOTER_FLYWHEEL_IDLE_SPEED = new NTDouble("Shooter/Idle Speed", 0.1).setPersistent();
     public static final NTEntry<Double> SHOOTER_FLYWHEEL_ALLOWABLE_PCT_ERR = new NTDouble("Shooter/Allowable Pct Error", 0.05).setPersistent();

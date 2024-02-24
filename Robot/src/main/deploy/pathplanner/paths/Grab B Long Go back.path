@@ -3,45 +3,45 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 2.396284537906334,
-        "y": 5.531335051274091
+        "x": 7.9455539286986365,
+        "y": 0.903339894267817
       },
       "prevControl": null,
       "nextControl": {
-        "x": 1.4296311760281815,
-        "y": 5.417216251607919
+        "x": 5.178630243932725,
+        "y": 0.9033398942678167
       },
       "isLocked": false,
-      "linkedName": "End of Short Center"
+      "linkedName": "Audience Note"
     },
     {
       "anchor": {
-        "x": 2.1071123319692173,
-        "y": 4.524236478050422
+        "x": 2.1166597364210906,
+        "y": 4.4206052821904285
       },
       "prevControl": {
-        "x": 1.2478648991886374,
-        "y": 4.940434453303515
+        "x": 2.1166597364210906,
+        "y": 2.4085917302316133
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "End of Stage Note"
+      "linkedName": null
     }
   ],
   "rotationTargets": [],
   "constraintZones": [],
   "eventMarkers": [
     {
-      "name": "Shoot",
-      "waypointRelativePos": 1.0,
+      "name": "New Event Marker",
+      "waypointRelativePos": 0.7,
       "command": {
-        "type": "sequential",
+        "type": "parallel",
         "data": {
           "commands": [
             {
               "type": "named",
               "data": {
-                "name": "Shoot"
+                "name": "Intake Off"
               }
             }
           ]
@@ -57,14 +57,14 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 152.10973077514154,
+    "rotation": 152.6634185436824,
     "rotateFast": false
   },
   "reversed": false,
   "folder": null,
   "previewStartingState": {
-    "rotation": -178.91137511276565,
+    "rotation": -177.94397137580054,
     "velocity": 0
   },
-  "useDefaultConstraints": true
+  "useDefaultConstraints": false
 }

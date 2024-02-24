@@ -32,6 +32,8 @@ public final class ShooterSubsystem extends SubsystemBase {
     private AimCalculator.Aim targetAim; // Target aim is null if not currently aiming
     private final AimCalculator aimCalculator;
 
+    private boolean shouldRunFlywheel;
+
     public ShooterSubsystem(SwerveDrive drive, IndexerSubsystem indexer) {
         this.pivot = new PivotSubsystem();
         this.flywheel = new FlywheelSubsystem();
@@ -43,6 +45,8 @@ public final class ShooterSubsystem extends SubsystemBase {
         aimCalculator = new TableAimCalculator();
 
         NTData.SHOOTER_AFTER_DELAY.nowAndOnChange((delay) -> afterShootDelay = new Debouncer(delay, Debouncer.DebounceType.kFalling));
+
+        shouldRunFlywheel = true;
     }
 
     public Translation2d getSpeakerPosition() {
@@ -62,7 +66,10 @@ public final class ShooterSubsystem extends SubsystemBase {
         if (afterShootDelay.calculate(indexer.hasPiece())) {
             if (aim != null) {
                 isPreparing = true;
-                flywheel.setTargetVelocity(aim.flywheelVelocity());
+                if (shouldRunFlywheel)
+                    flywheel.setTargetVelocity(aim.flywheelVelocity());
+                else
+                    flywheel.setIdle();
                 pivot.setTargetAngle(aim.pivotAngle() / MathUtil.TAU);
             } else {
                 flywheel.setIdle();
@@ -73,11 +80,10 @@ public final class ShooterSubsystem extends SubsystemBase {
             pivot.setNeutral();
         }
 
-        ready.set(isReadyToShoot());
+        NTData.SHOOTER_READY.set(isReadyToShoot());
         pctErr.set(flywheel.getPercentErr());
     }
 
-    NTBoolean ready = new NTBoolean("Shooter/Debug/Flywheel Ready", false);
     NTDouble pctErr = new NTDouble("Shooter/Debug/Percent Error", 0);
 
     @Override
@@ -94,6 +100,10 @@ public final class ShooterSubsystem extends SubsystemBase {
 
     public boolean isReadyToShoot() {
         return isPreparing && flywheel.isReadyToShoot();
+    }
+
+    public void setShouldRunFlywheel(boolean shouldRunFlywheel) {
+        this.shouldRunFlywheel = shouldRunFlywheel;
     }
 
     public double getFlywheelPercentOfTarget() {

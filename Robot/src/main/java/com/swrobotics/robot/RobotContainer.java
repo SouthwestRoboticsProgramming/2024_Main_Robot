@@ -8,6 +8,7 @@ import com.swrobotics.messenger.client.MessengerClient;
 import com.swrobotics.robot.commands.RobotCommands;
 import com.swrobotics.robot.commands.IntakeSetCommand;
 import com.swrobotics.robot.commands.PlaySongCommand;
+import com.swrobotics.robot.config.IOAllocation;
 import com.swrobotics.robot.control.ControlBoard;
 import com.swrobotics.robot.logging.FieldView;
 import com.swrobotics.robot.logging.SimView;
@@ -54,6 +55,8 @@ public class RobotContainer {
     public final MessengerClient messenger;
     private final ControlBoard controlboard;
 
+    public final PowerDistribution pdp;
+
     // Mechanical
     public final SwerveDrive drive;
     public final IntakeSubsystem intake;
@@ -83,9 +86,11 @@ public class RobotContainer {
         messenger = new MessengerClient(host, MESSENGER_PORT, MESSENGER_NAME);
         new FileSystemAPI(messenger, "RoboRIO", Filesystem.getOperatingDirectory());
 
+        pdp = new PowerDistribution(IOAllocation.CAN.PDP.id(), PowerDistribution.ModuleType.kRev);
+
         drive = new SwerveDrive(FieldInfo.CRESCENDO_2024, messenger);
 
-        intake = new IntakeSubsystem();
+        intake = new IntakeSubsystem(pdp);
         indexer = new IndexerSubsystem(intake);
         shooter = new ShooterSubsystem(drive, indexer);
 
@@ -120,8 +125,7 @@ public class RobotContainer {
         FieldView.publish();
 
         char sep = File.separatorChar;
-
-        String whichSong = Math.random() > 0.9 ? "caramell-intro.chrp" : "xp.chrp";
+        String whichSong = Math.random() > 0.95 ? "caramell-bert-expanded.chrp" : "xp.chrp";
         CommandScheduler.getInstance().schedule(musicCommand = Commands.waitSeconds(5)
                 .andThen(new PlaySongCommand(music, "music" + sep + whichSong)));
 
