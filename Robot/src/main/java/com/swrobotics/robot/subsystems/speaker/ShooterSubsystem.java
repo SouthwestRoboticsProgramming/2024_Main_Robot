@@ -80,6 +80,13 @@ public final class ShooterSubsystem extends SubsystemBase {
             pivot.setNeutral();
         }
 
+        // Have the shooter be constantly active during auto
+        if ((aim != null) && DriverStation.isAutonomous()) {
+            isPreparing = true;
+            flywheel.setTargetVelocity(aim.flywheelVelocity());
+            pivot.setTargetAngle(aim.pivotAngle() / MathUtil.TAU);
+        }
+
         NTData.SHOOTER_READY.set(isReadyToShoot());
         pctErr.set(flywheel.getPercentErr());
     }
