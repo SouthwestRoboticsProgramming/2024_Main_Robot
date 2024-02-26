@@ -20,6 +20,7 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 
@@ -31,6 +32,7 @@ public class ControlBoard extends SubsystemBase {
      * Left trigger: fast mode
      * Left bumper: robot relative
      * Right trigger: aim at speaker
+     * Right bumper: spin up flywheel
      *
      * Operator:
      * A: intake
@@ -80,6 +82,10 @@ public class ControlBoard extends SubsystemBase {
 
     private boolean driverWantsAim() {
         return driver.rightTrigger.isOutside(TRIGGER_BUTTON_THRESHOLD);
+    }
+
+    private boolean driverWantsFlywheels() {
+        return driver.rightBumper.isPressed();
     }
 
     private double squareWithSign(double value) {
@@ -150,6 +156,12 @@ public class ControlBoard extends SubsystemBase {
         robot.intake.set(intakeState);
         robot.indexer.setFeedToShooter(operator.b.isPressed());
 
+        // Run the shooter a little when the operator wants to shooter but the driver doesn't (lets us poop a note out)
+        new Trigger(() -> operator.b.isFalling() && (!driverWantsAim() || driverWantsFlywheels())).onTrue(
+            Commands.run(() -> NTData.SHOOTER_FLYWHEEL_IDLE_SPEED.set(NTData.SHOOTER_FLYWHEEL_IDLE_SPEED.get() + 0.2)).withTimeout(0.5)
+            .andThen(() -> NTData.SHOOTER_FLYWHEEL_IDLE_SPEED.set(NTData.SHOOTER_FLYWHEEL_IDLE_SPEED.get() - 0.2))
+        );
+
         AmpArmSubsystem.Position ampArmPosition = AmpArmSubsystem.Position.STOW;
         AmpIntakeSubsystem.State ampIntakeState = AmpIntakeSubsystem.State.OFF;
         if (operator.x.isPressed()) {
@@ -176,6 +188,6 @@ public class ControlBoard extends SubsystemBase {
         robot.intake.setReverse(operator.back.isPressed());
         robot.indexer.setReverse(operator.start.isPressed());
 
-        robot.shooter.setShouldRunFlywheel(driverWantsAim());
+        robot.shooter.setShouldRunFlywheel(driverWantsAim() || driverWantsFlywheels());
     }
 }
