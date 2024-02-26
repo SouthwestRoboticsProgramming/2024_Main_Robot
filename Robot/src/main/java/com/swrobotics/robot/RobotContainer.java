@@ -30,6 +30,7 @@ import edu.wpi.first.wpilibj.*;
 import edu.wpi.first.wpilibj.simulation.DriverStationSim;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj2.command.*;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
@@ -138,6 +139,19 @@ public class RobotContainer {
         }
         musicChooser.setDefaultOption("None", "None");
         musicSelector = new LoggedDashboardChooser<>("Victory Music Selection", musicChooser);
+
+        // Rumble the controllers when we pick up a piece
+        new Trigger(() -> indexer.hasPiece()).onTrue(
+            Commands.parallel(
+                Commands.run(() -> controlboard.driver.setRumble(0.2)),
+                Commands.run(() -> controlboard.operator.setRumble(0.2))
+            )
+            .withTimeout(0.1)
+            .andThen(Commands.parallel(
+                Commands.run(() -> controlboard.driver.setRumble(0)),
+                Commands.run(() -> controlboard.operator.setRumble(0))
+            ))
+        );
     }
 
     private boolean hasDoneFirstInit = false;
