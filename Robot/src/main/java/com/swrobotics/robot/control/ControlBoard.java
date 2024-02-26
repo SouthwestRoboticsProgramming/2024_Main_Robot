@@ -14,6 +14,7 @@ import com.swrobotics.robot.subsystems.amp.AmpArmSubsystem;
 import com.swrobotics.robot.subsystems.amp.AmpIntakeSubsystem;
 import com.swrobotics.robot.subsystems.climber.ClimberArm;
 import com.swrobotics.robot.subsystems.speaker.IntakeSubsystem;
+import com.swrobotics.robot.subsystems.speaker.ShooterSubsystem;
 import com.swrobotics.robot.subsystems.speaker.aim.AmpAimCalculator;
 import com.swrobotics.robot.subsystems.swerve.SwerveDrive;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -42,7 +43,12 @@ public class ControlBoard extends SubsystemBase {
      * A: intake
      * B: shoot
      * X: amp intake
+<<<<<<< HEAD
      * Y: amp score [Duluth-Hold to prep amp, release to launch]
+=======
+     * Y: amp score
+     * Left bumper: amp score in trap
+>>>>>>> main
      * Left trigger: amp eject
      * Right bumper: toggle climber extend/retract
      * Right trigger: retract with feedforward
@@ -129,7 +135,7 @@ public class ControlBoard extends SubsystemBase {
             climberState = ClimberArm.State.RETRACTED_IDLE;
             robot.indexer.setReverse(false);
             robot.intake.setReverse(false);
-            robot.shooter.setShouldRunFlywheel(true); // Always aim with note when not teleop
+            robot.shooter.setFlywheelControl(ShooterSubsystem.FlywheelControl.SHOOT); // Always aim with note when not teleop
             return;
         }
 
@@ -162,13 +168,8 @@ public class ControlBoard extends SubsystemBase {
 
         // Indexer uses the intake state also
         robot.intake.set(intakeState);
-        robot.indexer.setFeedToShooter(operator.b.isPressed());
-
-        // Run the shooter a little when the operator wants to shooter but the driver doesn't (lets us poop a note out)
-        new Trigger(() -> operator.b.isFalling() && !(driverWantsAim() || driverWantsFlywheels())).onTrue(
-            Commands.run(() -> NTData.SHOOTER_FLYWHEEL_IDLE_SPEED.set(NTData.SHOOTER_FLYWHEEL_IDLE_SPEED.get() + 0.2)).withTimeout(0.5)
-            .andThen(() -> NTData.SHOOTER_FLYWHEEL_IDLE_SPEED.set(NTData.SHOOTER_FLYWHEEL_IDLE_SPEED.get() - 0.2))
-        );
+        boolean operatorWantsShoot = operator.b.isPressed();
+        robot.indexer.setFeedToShooter(operatorWantsShoot);
 
         AmpArmSubsystem.Position ampArmPosition = AmpArmSubsystem.Position.STOW;
         AmpIntakeSubsystem.State ampIntakeState = AmpIntakeSubsystem.State.OFF;
@@ -177,9 +178,11 @@ public class ControlBoard extends SubsystemBase {
             ampIntakeState = AmpIntakeSubsystem.State.INTAKE;
         } else if (operator.y.isPressed()) {
             ampArmPosition = AmpArmSubsystem.Position.SCORE_AMP;
-            if (operator.leftTrigger.isOutside(TRIGGER_BUTTON_THRESHOLD)) {
-                ampIntakeState = AmpIntakeSubsystem.State.OUTTAKE;
-            }
+        } else if (operator.leftBumper.isPressed()) {
+            ampArmPosition = AmpArmSubsystem.Position.SCORE_TRAP;
+        }
+        if (operator.leftTrigger.isOutside(TRIGGER_BUTTON_THRESHOLD)) {
+            ampIntakeState = AmpIntakeSubsystem.State.OUTTAKE;
         }
         robot.ampArm.setPosition(ampArmPosition);
         robot.ampIntake.setState(ampIntakeState);
@@ -196,6 +199,12 @@ public class ControlBoard extends SubsystemBase {
         robot.intake.setReverse(operator.back.isPressed());
         robot.indexer.setReverse(operator.start.isPressed());
 
-        robot.shooter.setShouldRunFlywheel(driverWantsAim() || driverWantsFlywheels());
+//        robot.shooter.setFlywheelControl(driverWantsAim() || driverWantsFlywheels());
+        ShooterSubsystem.FlywheelControl flywheelControl = ShooterSubsystem.FlywheelControl.IDLE;
+        if (driverWantsAim() || driverWantsFlywheels())
+            flywheelControl = ShooterSubsystem.FlywheelControl.SHOOT;
+        else if (operatorWantsShoot)
+            flywheelControl = ShooterSubsystem.FlywheelControl.POOP;
+        robot.shooter.setFlywheelControl(flywheelControl);
     }
 }

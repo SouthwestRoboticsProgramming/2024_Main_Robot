@@ -56,8 +56,8 @@ public final class FlywheelSubsystem extends SubsystemBase {
         rightMotor.setControl(new VelocityVoltage(velocityRPS));
     }
 
-    public void setIdle() {
-        DutyCycleOut cmd = new DutyCycleOut(NTData.SHOOTER_FLYWHEEL_IDLE_SPEED.get());
+    public void setDutyCycle(double percentOut) {
+        DutyCycleOut cmd = new DutyCycleOut(percentOut);
         leftMotor.setControl(cmd);
         rightMotor.setControl(cmd);
     }

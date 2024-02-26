@@ -8,12 +8,14 @@ import com.swrobotics.shufflelog.json.JsonObj;
 import com.swrobotics.shufflelog.profiler.Profiler;
 import com.swrobotics.shufflelog.tool.MenuBarTool;
 import com.swrobotics.shufflelog.tool.PreMatchChecklistTool;
+import com.swrobotics.shufflelog.tool.IndicatorsTool;
 import com.swrobotics.shufflelog.tool.Tool;
 import com.swrobotics.shufflelog.tool.data.DataLogTool;
 import com.swrobotics.shufflelog.tool.data.nt.NetworkTablesTool;
 import com.swrobotics.shufflelog.tool.field.FieldViewTool;
 import com.swrobotics.shufflelog.tool.messenger.MessengerTool;
 import com.swrobotics.shufflelog.tool.profile.ShuffleLogProfilerTool;
+import com.swrobotics.shufflelog.tool.sftp.SftpTool;
 import com.swrobotics.shufflelog.tool.smartdashboard.SmartDashboard;
 import com.swrobotics.shufflelog.tool.taskmanager.RoboRIOFilesTool;
 import com.swrobotics.shufflelog.tool.taskmanager.TaskManagerTool;
@@ -160,6 +162,12 @@ public final class ShuffleLog extends PApplet {
         tools.add(new RoboRIOFilesTool(this));
         tools.add(new FieldViewTool(this, smartDashboard, nt));
         if (!SIM_MODE) tools.add(new PreMatchChecklistTool(msg));
+
+        tools.add(new SftpTool(threadPool));
+
+        IndicatorsTool ready = new IndicatorsTool();
+        nt.addListener(ready);
+        tools.add(ready);
 
         for (Tool tool : tools) {
             tool.load(persistence);

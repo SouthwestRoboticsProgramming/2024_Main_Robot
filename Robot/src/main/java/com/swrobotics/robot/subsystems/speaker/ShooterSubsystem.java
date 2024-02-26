@@ -1,13 +1,11 @@
 package com.swrobotics.robot.subsystems.speaker;
 
 import com.ctre.phoenix6.hardware.TalonFX;
-import com.swrobotics.lib.net.NTBoolean;
 import com.swrobotics.lib.net.NTDouble;
 import com.swrobotics.mathlib.MathUtil;
 import com.swrobotics.robot.config.NTData;
 import com.swrobotics.robot.logging.SimView;
 import com.swrobotics.robot.subsystems.speaker.aim.AimCalculator;
-import com.swrobotics.robot.subsystems.speaker.aim.ManualAimCalculator;
 import com.swrobotics.robot.subsystems.speaker.aim.TableAimCalculator;
 import com.swrobotics.robot.subsystems.swerve.SwerveDrive;
 import edu.wpi.first.math.filter.Debouncer;
@@ -18,6 +16,12 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public final class ShooterSubsystem extends SubsystemBase {
+    public enum FlywheelControl {
+        SHOOT,
+        POOP,
+        IDLE
+    }
+
     private static final Pose2d blueSpeakerPose = new Pose2d(0, 5.5475, new Rotation2d(0));
 
     private final PivotSubsystem pivot;
@@ -33,7 +37,7 @@ public final class ShooterSubsystem extends SubsystemBase {
     private AimCalculator aimCalculator;
     private final AimCalculator tableAimCalculator;
 
-    private boolean shouldRunFlywheel;
+    private FlywheelControl flywheelControl;
 
     public ShooterSubsystem(SwerveDrive drive, IndexerSubsystem indexer) {
         this.pivot = new PivotSubsystem();
@@ -48,7 +52,7 @@ public final class ShooterSubsystem extends SubsystemBase {
 
         NTData.SHOOTER_AFTER_DELAY.nowAndOnChange((delay) -> afterShootDelay = new Debouncer(delay, Debouncer.DebounceType.kFalling));
 
-        shouldRunFlywheel = true;
+        flywheelControl = FlywheelControl.SHOOT;
     }
 
     public Translation2d getSpeakerPosition() {
@@ -64,23 +68,35 @@ public final class ShooterSubsystem extends SubsystemBase {
         if (DriverStation.isDisabled() || !pivot.hasCalibrated())
             return;
 
+        // TODO: Make this not a mess
         isPreparing = false;
-        if (afterShootDelay.calculate(indexer.hasPiece())) {
+        if ((aim != null) && DriverStation.isAutonomous()) {
+            // Have the shooter be constantly active during auto
+            isPreparing = true;
+            flywheel.setTargetVelocity(aim.flywheelVelocity());
+            pivot.setTargetAngle(aim.pivotAngle() / MathUtil.TAU);
+        } else if (afterShootDelay.calculate(indexer.hasPiece())) {
             if (aim != null) {
                 isPreparing = true;
-                if (shouldRunFlywheel)
+                if (flywheelControl == FlywheelControl.SHOOT)
                     flywheel.setTargetVelocity(aim.flywheelVelocity());
+                else if (flywheelControl == FlywheelControl.POOP)
+                    flywheel.setDutyCycle(NTData.SHOOTER_FLYWHEEL_POOP_SPEED.get());
                 else
-                    flywheel.setIdle();
+                    flywheel.setDutyCycle(NTData.SHOOTER_FLYWHEEL_IDLE_SPEED.get());
                 pivot.setTargetAngle(aim.pivotAngle() / MathUtil.TAU);
             } else {
-                flywheel.setIdle();
+                if (flywheelControl == FlywheelControl.POOP)
+                    flywheel.setDutyCycle(NTData.SHOOTER_FLYWHEEL_POOP_SPEED.get());
+                else
+                    flywheel.setDutyCycle(NTData.SHOOTER_FLYWHEEL_IDLE_SPEED.get());
                 pivot.setIdle();
             }
         } else {
             flywheel.setNeutral();
             pivot.setNeutral();
         }
+
 
         NTData.SHOOTER_READY.set(isReadyToShoot());
         pctErr.set(flywheel.getPercentErr());
@@ -103,11 +119,11 @@ public final class ShooterSubsystem extends SubsystemBase {
     }
 
     public boolean isReadyToShoot() {
-        return isPreparing && flywheel.isReadyToShoot();
+        return isPreparing && flywheel.isReadyToShoot() && pivot.isAtSetpoint();
     }
 
-    public void setShouldRunFlywheel(boolean shouldRunFlywheel) {
-        this.shouldRunFlywheel = shouldRunFlywheel;
+    public void setFlywheelControl(FlywheelControl flywheelControl) {
+        this.flywheelControl = flywheelControl;
     }
 
     public double getFlywheelPercentOfTarget() {

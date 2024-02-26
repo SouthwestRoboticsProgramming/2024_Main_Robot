@@ -7,6 +7,7 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 import java.util.Vector;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
@@ -23,6 +24,11 @@ public final class SftpConnection {
             Session session = null;
             try {
                 session = jsch.getSession(params.getUsername(), params.getHost(), params.getPort());
+
+                Properties config = new Properties();
+                config.put("StrictHostKeyChecking", "no");
+                session.setConfig(config);
+
                 String password = params.getPassword();
                 if (password != null)
                     session.setPassword(password);
@@ -32,7 +38,12 @@ public final class SftpConnection {
                 rawChannel.connect(CHANNEL_TIMEOUT);
                 ChannelSftp channel = (ChannelSftp) rawChannel;
 
-                future.complete(new SftpConnection(threadPool, session, channel));
+                String remoteRoot = channel.pwd();
+                if (remoteRoot.endsWith("/")) {
+                    remoteRoot = remoteRoot.substring(0, remoteRoot.length() - 1);
+                }
+
+                future.complete(new SftpConnection(threadPool, session, channel, remoteRoot));
             } catch (Throwable e) {
                 if (session != null && session.isConnected()) {
                     session.disconnect();
@@ -46,11 +57,13 @@ public final class SftpConnection {
     private final ExecutorService threadPool;
     private final Session session;
     private final ChannelSftp channel;
+    private final String remoteRootPath;
 
-    public SftpConnection(ExecutorService threadPool, Session session, ChannelSftp channel) {
+    public SftpConnection(ExecutorService threadPool, Session session, ChannelSftp channel, String remoteRootPath) {
         this.threadPool = threadPool;
         this.session = session;
         this.channel = channel;
+        this.remoteRootPath = remoteRootPath;
     }
 
     private <T> CompletableFuture<T> runAsync(Callable<T> fn) {
@@ -119,6 +132,10 @@ public final class SftpConnection {
             session.disconnect();
             return null;
         });
+    }
+
+    public String getRemoteRootPath() {
+        return remoteRootPath;
     }
 
     private static final class ProgressUpdater implements SftpProgressMonitor {

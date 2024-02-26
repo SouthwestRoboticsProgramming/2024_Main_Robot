@@ -17,18 +17,40 @@
     {
       "anchor": {
         "x": 2.873108603360064,
-        "y": 7.004798511021523
+        "y": 6.98077248444261
       },
       "prevControl": {
-        "x": 1.6162826627647557,
-        "y": 6.5136440244390466
+        "x": 1.6541231540062793,
+        "y": 6.512101337439224
+      },
+      "nextControl": {
+        "x": 3.3537468269850166,
+        "y": 7.165566542221883
+      },
+      "isLocked": false,
+      "linkedName": null
+    },
+    {
+      "anchor": {
+        "x": 1.9045071999557515,
+        "y": 6.335587861072428
+      },
+      "prevControl": {
+        "x": 2.1047587816525217,
+        "y": 6.785302985304612
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": null
+      "linkedName": "End of Amp Note"
     }
   ],
-  "rotationTargets": [],
+  "rotationTargets": [
+    {
+      "waypointRelativePos": 1,
+      "rotationDegrees": -157.103156394173,
+      "rotateFast": false
+    }
+  ],
   "constraintZones": [],
   "eventMarkers": [],
   "globalConstraints": {

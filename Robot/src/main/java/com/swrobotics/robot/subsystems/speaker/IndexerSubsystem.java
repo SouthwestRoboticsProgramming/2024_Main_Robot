@@ -5,12 +5,12 @@ import com.swrobotics.robot.config.NTData;
 import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.motorcontrol.PWMTalonSRX;
-import edu.wpi.first.wpilibj.motorcontrol.PWMVictorSPX;
+import edu.wpi.first.wpilibj.motorcontrol.VictorSP;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public final class IndexerSubsystem extends SubsystemBase {
     private final PWMTalonSRX sidesMotor = new PWMTalonSRX(IOAllocation.RIO.PWM_INDEXER_SIDES_MOTOR);
-    private final PWMVictorSPX topMotor = new PWMVictorSPX(IOAllocation.RIO.PWM_INDEXER_TOP_MOTOR);
+    private final VictorSP topMotor = new VictorSP(IOAllocation.RIO.PWM_INDEXER_TOP_MOTOR);
     private final DigitalInput beamBreak = new DigitalInput(IOAllocation.RIO.DIO_INDEXER_BEAM_BREAK);
     private final Debouncer beamBreakDebounce = new Debouncer(0.1, Debouncer.DebounceType.kRising);
 

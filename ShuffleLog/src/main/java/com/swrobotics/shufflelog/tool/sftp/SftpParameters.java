@@ -105,7 +105,7 @@ public final class SftpParameters {
             ImGui.inputText("##password", password, showPassword.get() ? 0 : ImGuiInputTextFlags.Password);
             ImGui.endDisabled();
             label("Show password:");
-            ImGui.beginDisabled();
+            ImGui.beginDisabled(!hasPassword.get());
             ImGui.checkbox("##show_password", showPassword);
             ImGui.endDisabled();
 
