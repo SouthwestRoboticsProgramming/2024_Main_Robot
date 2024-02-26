@@ -68,7 +68,12 @@ public final class ShooterSubsystem extends SubsystemBase {
 
         // TODO: Make this not a mess
         isPreparing = false;
-        if (afterShootDelay.calculate(indexer.hasPiece())) {
+        if ((aim != null) && DriverStation.isAutonomous()) {
+            // Have the shooter be constantly active during auto
+            isPreparing = true;
+            flywheel.setTargetVelocity(aim.flywheelVelocity());
+            pivot.setTargetAngle(aim.pivotAngle() / MathUtil.TAU);
+        } else if (afterShootDelay.calculate(indexer.hasPiece())) {
             if (aim != null) {
                 isPreparing = true;
                 if (flywheelControl == FlywheelControl.SHOOT)
@@ -85,11 +90,6 @@ public final class ShooterSubsystem extends SubsystemBase {
                     flywheel.setDutyCycle(NTData.SHOOTER_FLYWHEEL_IDLE_SPEED.get());
                 pivot.setIdle();
             }
-        } else if ((aim != null) && DriverStation.isAutonomous()) {
-            // Have the shooter be constantly active during auto
-            isPreparing = true;
-            flywheel.setTargetVelocity(aim.flywheelVelocity());
-            pivot.setTargetAngle(aim.pivotAngle() / MathUtil.TAU);
         } else {
             flywheel.setNeutral();
             pivot.setNeutral();
@@ -115,7 +115,7 @@ public final class ShooterSubsystem extends SubsystemBase {
     }
 
     public boolean isReadyToShoot() {
-        return isPreparing && flywheel.isReadyToShoot();
+        return isPreparing && flywheel.isReadyToShoot() && pivot.isAtSetpoint();
     }
 
     public void setFlywheelControl(FlywheelControl flywheelControl) {

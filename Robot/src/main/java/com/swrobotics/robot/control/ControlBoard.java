@@ -40,6 +40,7 @@ public class ControlBoard extends SubsystemBase {
      * B: shoot
      * X: amp intake
      * Y: amp score
+     * Left bumper: amp score in trap
      * Left trigger: amp eject
      * Right bumper: toggle climber extend/retract
      * Right trigger: retract with feedforward
@@ -77,16 +78,6 @@ public class ControlBoard extends SubsystemBase {
                 robot.drive,
                 robot.shooter
         ));
-
-        // Run the shooter a little when the operator wants to shooter but the driver doesn't (lets us poop a note out)
-        // FIXME: This will break things
-//        new Trigger(() -> operator.b.isFalling() && !(driverWantsAim() || driverWantsFlywheels())).onTrue(
-//                Commands.sequence(
-//                        Commands.runOnce(() -> NTData.SHOOTER_FLYWHEEL_IDLE_SPEED.set(NTData.SHOOTER_FLYWHEEL_IDLE_SPEED.get() + 0.2)),
-//                        Commands.waitSeconds(0.5),
-//                        Commands.runOnce(() -> NTData.SHOOTER_FLYWHEEL_IDLE_SPEED.set(NTData.SHOOTER_FLYWHEEL_IDLE_SPEED.get() - 0.2))
-//                )
-//        );
 
         climberState = ClimberArm.State.RETRACTED_IDLE;
     }
@@ -175,9 +166,11 @@ public class ControlBoard extends SubsystemBase {
             ampIntakeState = AmpIntakeSubsystem.State.INTAKE;
         } else if (operator.y.isPressed()) {
             ampArmPosition = AmpArmSubsystem.Position.SCORE_AMP;
-            if (operator.leftTrigger.isOutside(TRIGGER_BUTTON_THRESHOLD)) {
-                ampIntakeState = AmpIntakeSubsystem.State.OUTTAKE;
-            }
+        } else if (operator.leftBumper.isPressed()) {
+            ampArmPosition = AmpArmSubsystem.Position.SCORE_TRAP;
+        }
+        if (operator.leftTrigger.isOutside(TRIGGER_BUTTON_THRESHOLD)) {
+            ampIntakeState = AmpIntakeSubsystem.State.OUTTAKE;
         }
         robot.ampArm.setPosition(ampArmPosition);
         robot.ampIntake.setState(ampIntakeState);

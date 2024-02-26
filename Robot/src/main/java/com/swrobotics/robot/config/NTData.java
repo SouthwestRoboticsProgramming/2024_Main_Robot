@@ -56,6 +56,8 @@ public final class NTData {
 
     public static final NTEntry<Double> AMP_INTAKE_INTAKE_SPEED = new NTDouble("Amp/Intake/Intake Speed", 0.5).setPersistent();
     public static final NTEntry<Double> AMP_INTAKE_OUTTAKE_SPEED = new NTDouble("Amp/Intake/Outtake Speed", 0.5).setPersistent();
+    public static final NTEntry<Double> AMP_INTAKE_BACKOUT_SPEED = new NTDouble("Amp/Intake/Backout Speed", 0.1).setPersistent();
+    public static final NTEntry<Double> AMP_INTAKE_BACKOUT_TIME = new NTDouble("Amp/Intake/Backout Time (s)", 0.25).setPersistent();
 
     public static final NTEntry<Double> INDEXER_SIDES_TAKE_SPEED = new NTDouble("Indexer/Sides/Take Speed", 0.2).setPersistent();
     public static final NTEntry<Double> INDEXER_SIDES_FEED_SPEED = new NTDouble("Indexer/Sides/Feed Speed", 0.6).setPersistent();
@@ -82,6 +84,7 @@ public final class NTData {
     public static final NTEntry<Double> SHOOTER_PIVOT_KV = new NTDouble("Shooter/Pivot PID/kV", 0).setPersistent();
     public static final NTEntry<Boolean> SHOOTER_PIVOT_RECALIBRATE = new NTBoolean("Shooter/Pivot Calibration/Recalibrate", false);
     public static final NTEntry<Double> SHOOTER_PIVOT_CALIBRATE_VOLTS = new NTDouble("Shooter/Pivot Calibration/Applied Volts", 0.5).setPersistent();
+    public static final NTEntry<Double> SHOOTER_PIVOT_ALLOWABLE_PCT_ERR = new NTDouble("Shooter/Pivot/Allowable Pct Error", 0.01).setPersistent();
 
     private NTData() {
         throw new AssertionError();

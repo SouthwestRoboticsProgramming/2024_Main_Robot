@@ -39,6 +39,7 @@ public final class PivotSubsystem extends SubsystemBase {
 
     private State state;
     private boolean calibrated;
+    private double setpoint;
 
     public PivotSubsystem() {
         TalonFXConfiguration config = new TalonFXConfiguration();
@@ -57,6 +58,8 @@ public final class PivotSubsystem extends SubsystemBase {
 
         state = State.CALIBRATING;
         calibrated = false;
+
+        setpoint = Double.NEGATIVE_INFINITY;
     }
 
     public void setTargetAngle(double angleRot) {
@@ -70,6 +73,7 @@ public final class PivotSubsystem extends SubsystemBase {
 
         motor.setControl(new PositionVoltage(angleRot));
         state = State.SHOOTING;
+        setpoint = angleRot;
     }
 
     public void setIdle() {
@@ -120,6 +124,11 @@ public final class PivotSubsystem extends SubsystemBase {
     public boolean hasCalibrated() {
         // Motor knows position after we leave CALIBRATING
         return state != State.CALIBRATING;
+    }
+
+    public boolean isAtSetpoint() {
+        return state == State.SHOOTING
+                && MathUtil.percentError(position.getValue(), setpoint) < NTData.SHOOTER_PIVOT_ALLOWABLE_PCT_ERR.get();
     }
 
     @Override
