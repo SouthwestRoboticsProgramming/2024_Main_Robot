@@ -1,7 +1,6 @@
 package com.swrobotics.robot.subsystems.speaker;
 
 import com.ctre.phoenix6.StatusSignal;
-import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.NeutralOut;
@@ -16,7 +15,6 @@ import com.swrobotics.robot.config.NTData;
 import com.swrobotics.robot.logging.SimView;
 import com.swrobotics.robot.utils.TalonFXWithSim;
 import edu.wpi.first.math.system.plant.DCMotor;
-import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public final class PivotSubsystem extends SubsystemBase {
@@ -37,8 +35,8 @@ public final class PivotSubsystem extends SubsystemBase {
             0.01
     );
     private final StatusSignal<Double> position;
+    private final StatusSignal<ReverseLimitValue> limitSwitch;
 
-    private final RunUntilLimit calibration;
     private State state;
     private boolean calibrated;
 
@@ -51,6 +49,7 @@ public final class PivotSubsystem extends SubsystemBase {
 
         motor.getConfigurator().apply(config);
         position = motor.getPosition();
+        limitSwitch = motor.getReverseLimit();
 
         NTData.SHOOTER_PIVOT_KP.onChange(this::updatePID);
         NTData.SHOOTER_PIVOT_KD.onChange(this::updatePID);
@@ -58,9 +57,6 @@ public final class PivotSubsystem extends SubsystemBase {
 
         state = State.CALIBRATING;
         calibrated = false;
-
-        calibration = new RunUntilLimit(); // TODO: Not separate object
-        calibration.reset();
     }
 
     public void setTargetAngle(double angleRot) {
@@ -104,11 +100,16 @@ public final class PivotSubsystem extends SubsystemBase {
             NTData.SHOOTER_PIVOT_RECALIBRATE.set(false);
             state = State.CALIBRATING;
             calibrated = false;
-            calibration.reset();
         }
 
         if (state != State.SHOOTING && !calibrated) {
-            if (calibration.calibrate()) {
+            motor.setControl(new VoltageOut(-NTData.SHOOTER_PIVOT_CALIBRATE_VOLTS.get()));
+            limitSwitch.refresh();
+            boolean atLimit = limitSwitch.getValue() == ReverseLimitValue.ClosedToGround;
+
+            if (atLimit) {
+                motor.setPosition(hardStopAngle);
+
                 calibrated = true;
                 if (state == State.CALIBRATING)
                     state = State.IDLE;
@@ -142,36 +143,5 @@ public final class PivotSubsystem extends SubsystemBase {
 
     public TalonFXWithSim getMotor() {
         return motor;
-    }
-
-    private final class RunUntilLimit {
-        private final StatusSignal<ReverseLimitValue> limitSwitch = motor.getReverseLimit();
-
-        public void reset() {
-            // Don't crunch the shooter
-//            CurrentLimitsConfigs config = new CurrentLimitsConfigs();
-//            config.StatorCurrentLimitEnable = true;
-//            config.StatorCurrentLimit = 5; // Amps
-//            motor.getConfigurator().apply(config);
-        }
-
-        public boolean calibrate() {
-            motor.setControl(new VoltageOut(-NTData.SHOOTER_PIVOT_CALIBRATE_VOLTS.get()));
-            limitSwitch.refresh();
-            boolean atLimit = limitSwitch.getValue() == ReverseLimitValue.ClosedToGround;
-
-            if (atLimit) {
-                // Disable the low current limit
-//                CurrentLimitsConfigs config = new CurrentLimitsConfigs();
-//                config.StatorCurrentLimitEnable = false;
-//                motor.getConfigurator().apply(config);
-
-                motor.setPosition(hardStopAngle);
-
-                return true;
-            }
-
-            return false;
-        }
     }
 }
