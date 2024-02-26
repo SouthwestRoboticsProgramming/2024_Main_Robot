@@ -155,6 +155,10 @@ public final class MathUtil {
         return (measured - target) / target;
     }
 
+    public static double percentError(double measured, double target) {
+        return Math.abs(signedPercentError(measured, target));
+    }
+
     public static double absDiffRad(double a, double b) {
         double wrapA = wrap(a, 0, TAU);
         double wrapB = wrap(b, 0, TAU);
