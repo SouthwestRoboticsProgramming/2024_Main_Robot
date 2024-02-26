@@ -9,7 +9,7 @@ public final class TableAimCalculator implements AimCalculator {
     private final TreeMap<Double, Double> flywheelVelocityMap = new TreeMap<>();
     private final TreeMap<Double, Double> pivotAngleMap = new TreeMap<>();
 
-//    private static final NTDouble logDistance = new NTDouble("Shooter/Manual Aim/Est Distance (m)", 0);
+   private static final NTDouble logDistance = new NTDouble("Shooter/Manual Aim/Est Distance (m)", 0);
 
     public TableAimCalculator() {
         // Calibration 1 (MURA)
@@ -63,7 +63,7 @@ public final class TableAimCalculator implements AimCalculator {
 
     @Override
     public Aim calculateAim(double distanceToSpeaker) {
-//        logDistance.set(distanceToSpeaker);
+       logDistance.set(distanceToSpeaker);
 
         return new Aim(
                 sample(flywheelVelocityMap, distanceToSpeaker),

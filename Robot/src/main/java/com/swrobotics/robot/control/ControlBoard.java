@@ -8,11 +8,13 @@ import com.swrobotics.mathlib.MathUtil;
 import com.swrobotics.robot.RobotContainer;
 
 import com.swrobotics.robot.commands.AimTowardsSpeakerCommand;
+import com.swrobotics.robot.commands.ShootCommand;
 import com.swrobotics.robot.config.NTData;
 import com.swrobotics.robot.subsystems.amp.AmpArmSubsystem;
 import com.swrobotics.robot.subsystems.amp.AmpIntakeSubsystem;
 import com.swrobotics.robot.subsystems.climber.ClimberArm;
 import com.swrobotics.robot.subsystems.speaker.IntakeSubsystem;
+import com.swrobotics.robot.subsystems.speaker.aim.AmpAimCalculator;
 import com.swrobotics.robot.subsystems.swerve.SwerveDrive;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -33,12 +35,14 @@ public class ControlBoard extends SubsystemBase {
      * Left bumper: robot relative
      * Right trigger: aim at speaker
      * Right bumper: spin up flywheel
+     * Dpad Left: Manual subwoofer shot
+     * Dpad Right: Manual podium shot
      *
      * Operator:
      * A: intake
      * B: shoot
      * X: amp intake
-     * Y: amp score
+     * Y: amp score [Duluth-Hold to prep amp, release to launch]
      * Left trigger: amp eject
      * Right bumper: toggle climber extend/retract
      * Right trigger: retract with feedforward
@@ -63,10 +67,10 @@ public class ControlBoard extends SubsystemBase {
         operator = new XboxController(1, DEADBAND);
 
         // Pathing test
-        Pose2d[] target = new Pose2d[1];
-        target[0] = new Pose2d(10, 4, new Rotation2d(0));
-        driver.a.onRising(() -> CommandScheduler.getInstance().schedule(AutoBuilder.pathfindToPose(target[0], new PathConstraints(0.5, 8, 10, 40))));
-        driver.b.onRising(() -> target[0] = robot.drive.getEstimatedPose());
+        // Pose2d[] target = new Pose2d[1];
+        // target[0] = new Pose2d(10, 4, new Rotation2d(0));
+        // driver.a.onRising(() -> CommandScheduler.getInstance().schedule(AutoBuilder.pathfindToPose(target[0], new PathConstraints(0.5, 8, 10, 40))));
+        // driver.b.onRising(() -> target[0] = robot.drive.getEstimatedPose());
 
         // Configure triggers
         driver.start.onFalling(() -> robot.drive.setRotation(new Rotation2d()));
@@ -76,6 +80,10 @@ public class ControlBoard extends SubsystemBase {
                 robot.drive,
                 robot.shooter
         ));
+
+        Trigger ampTrigger = new Trigger(() -> operator.y.isPressed());
+        ampTrigger.whileTrue(Commands.run(() -> robot.shooter.setTempAimCalculator(new AmpAimCalculator())));
+        ampTrigger.onFalse(new ShootCommand(robot));
 
         climberState = ClimberArm.State.RETRACTED_IDLE;
     }

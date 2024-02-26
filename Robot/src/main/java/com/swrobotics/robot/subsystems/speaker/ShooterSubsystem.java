@@ -30,7 +30,8 @@ public final class ShooterSubsystem extends SubsystemBase {
     private boolean isPreparing;
 
     private AimCalculator.Aim targetAim; // Target aim is null if not currently aiming
-    private final AimCalculator aimCalculator;
+    private AimCalculator aimCalculator;
+    private final AimCalculator tableAimCalculator;
 
     private boolean shouldRunFlywheel;
 
@@ -42,7 +43,8 @@ public final class ShooterSubsystem extends SubsystemBase {
         this.indexer = indexer;
 
 //        aimCalculator = new ManualAimCalculator();
-        aimCalculator = new TableAimCalculator();
+        tableAimCalculator = new TableAimCalculator();
+        aimCalculator = tableAimCalculator;
 
         NTData.SHOOTER_AFTER_DELAY.nowAndOnChange((delay) -> afterShootDelay = new Debouncer(delay, Debouncer.DebounceType.kFalling));
 
@@ -82,6 +84,8 @@ public final class ShooterSubsystem extends SubsystemBase {
 
         NTData.SHOOTER_READY.set(isReadyToShoot());
         pctErr.set(flywheel.getPercentErr());
+
+        aimCalculator = tableAimCalculator;
     }
 
     NTDouble pctErr = new NTDouble("Shooter/Debug/Percent Error", 0);
@@ -108,6 +112,10 @@ public final class ShooterSubsystem extends SubsystemBase {
 
     public double getFlywheelPercentOfTarget() {
         return flywheel.getPercentOfTarget();
+    }
+
+    public void setTempAimCalculator(AimCalculator calculator) {
+        aimCalculator = calculator;
     }
 
     public AimCalculator.Aim getTargetAim() {
