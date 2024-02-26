@@ -77,6 +77,12 @@ public class ControlBoard extends SubsystemBase {
                 robot.shooter
         ));
 
+        // Run the shooter a little when the operator wants to shooter but the driver doesn't (lets us poop a note out)
+        new Trigger(() -> operator.b.isFalling() && !(driverWantsAim() || driverWantsFlywheels())).onTrue(
+                Commands.run(() -> NTData.SHOOTER_FLYWHEEL_IDLE_SPEED.set(NTData.SHOOTER_FLYWHEEL_IDLE_SPEED.get() + 0.2)).withTimeout(0.5)
+                        .andThen(() -> NTData.SHOOTER_FLYWHEEL_IDLE_SPEED.set(NTData.SHOOTER_FLYWHEEL_IDLE_SPEED.get() - 0.2))
+        );
+
         climberState = ClimberArm.State.RETRACTED_IDLE;
     }
 
@@ -155,12 +161,6 @@ public class ControlBoard extends SubsystemBase {
         // Indexer uses the intake state also
         robot.intake.set(intakeState);
         robot.indexer.setFeedToShooter(operator.b.isPressed());
-
-        // Run the shooter a little when the operator wants to shooter but the driver doesn't (lets us poop a note out)
-        new Trigger(() -> operator.b.isFalling() && !(driverWantsAim() || driverWantsFlywheels())).onTrue(
-            Commands.run(() -> NTData.SHOOTER_FLYWHEEL_IDLE_SPEED.set(NTData.SHOOTER_FLYWHEEL_IDLE_SPEED.get() + 0.2)).withTimeout(0.5)
-            .andThen(() -> NTData.SHOOTER_FLYWHEEL_IDLE_SPEED.set(NTData.SHOOTER_FLYWHEEL_IDLE_SPEED.get() - 0.2))
-        );
 
         AmpArmSubsystem.Position ampArmPosition = AmpArmSubsystem.Position.STOW;
         AmpIntakeSubsystem.State ampIntakeState = AmpIntakeSubsystem.State.OFF;
