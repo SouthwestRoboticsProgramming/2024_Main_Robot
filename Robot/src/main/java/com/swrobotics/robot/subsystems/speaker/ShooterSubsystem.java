@@ -19,7 +19,8 @@ public final class ShooterSubsystem extends SubsystemBase {
     public enum FlywheelControl {
         SHOOT,
         POOP,
-        IDLE
+        IDLE,
+        REVERSE
     }
 
     private static final Pose2d blueSpeakerPose = new Pose2d(0, 5.5475, new Rotation2d(0));
@@ -75,7 +76,10 @@ public final class ShooterSubsystem extends SubsystemBase {
             isPreparing = true;
             flywheel.setTargetVelocity(aim.flywheelVelocity());
             pivot.setTargetAngle(aim.pivotAngle() / MathUtil.TAU);
-        } else if (afterShootDelay.calculate(indexer.hasPiece())) {
+        } else if (flywheelControl == FlywheelControl.REVERSE) {
+            // Don't touch pivot so it won't move and squish stuck note
+            flywheel.setDutyCycle(-NTData.SHOOTER_FLYWHEEL_REVERSE_SPEED.get());
+        } else if (flywheelControl == FlywheelControl.SHOOT || afterShootDelay.calculate(indexer.hasPiece())) {
             if (aim != null) {
                 isPreparing = true;
                 if (flywheelControl == FlywheelControl.SHOOT)

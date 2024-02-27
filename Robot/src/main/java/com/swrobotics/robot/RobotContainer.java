@@ -148,8 +148,8 @@ public class RobotContainer {
             )
             .withTimeout(0.1)
             .andThen(Commands.parallel(
-                Commands.run(() -> controlboard.driver.setRumble(0)),
-                Commands.run(() -> controlboard.operator.setRumble(0))
+                Commands.runOnce(() -> controlboard.driver.setRumble(0)),
+                Commands.runOnce(() -> controlboard.operator.setRumble(0))
             ))
         );
     }

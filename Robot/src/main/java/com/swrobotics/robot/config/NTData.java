@@ -81,12 +81,13 @@ public final class NTData {
     public static final NTEntry<Boolean> SHOOTER_READY = new NTBoolean("Shooter/Is Ready", false); // Read by ShuffleLog
 
     // FIXME TUNE
-    public static final NTDouble SHOOTER_AMP_VELOCITY = new NTDouble("Shooter/Amp/Velocity (rot per sec)", 30);
-    public static final NTDouble SHOOTER_AMP_ANGLE = new NTDouble("Shooter/Amp/Pivot Angle (deg)", 65);
+    public static final NTEntry<Double> SHOOTER_AMP_VELOCITY = new NTDouble("Shooter/Amp/Velocity (rot per sec)", 30).setPersistent();
+    public static final NTEntry<Double> SHOOTER_AMP_ANGLE = new NTDouble("Shooter/Amp/Pivot Angle (deg)", 65).setPersistent();
 
-    // GOOD (except poop not tuned yet)
+    // GOOD
     public static final NTEntry<Double> SHOOTER_FLYWHEEL_IDLE_SPEED = new NTDouble("Shooter/Flywheel/Idle Speed (pct)", 0.0).setPersistent();
-    public static final NTEntry<Double> SHOOTER_FLYWHEEL_POOP_SPEED = new NTDouble("Shooter/Flywheel/Poop Speed (pct) ", 0.3).setPersistent(); // FIXME TUNE
+    public static final NTEntry<Double> SHOOTER_FLYWHEEL_POOP_SPEED = new NTDouble("Shooter/Flywheel/Poop Speed (pct) ", 0.3).setPersistent();
+    public static final NTEntry<Double> SHOOTER_FLYWHEEL_REVERSE_SPEED = new NTDouble("Shooter/Flywheel/Reverse Speed (pct)", 0.3).setPersistent();
     public static final NTEntry<Double> SHOOTER_FLYWHEEL_ALLOWABLE_PCT_ERR = new NTDouble("Shooter/Flywheel/Allowable Pct Error", 0.02).setPersistent();
     public static final NTEntry<Double> SHOOTER_FLYWHEEL_KP = new NTDouble("Shooter/Flywheel/PIDV/kP", 0.3).setPersistent();
     public static final NTEntry<Double> SHOOTER_FLYWHEEL_KD = new NTDouble("Shooter/Flywheel/PIDV/kD", 0).setPersistent();

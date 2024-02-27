@@ -43,12 +43,9 @@ public class ControlBoard extends SubsystemBase {
      * A: intake
      * B: shoot
      * X: amp intake
-<<<<<<< HEAD
-     * Y: amp score [Duluth-Hold to prep amp, release to launch]
-=======
-     * Y: amp score
-     * Left bumper: amp score in trap
->>>>>>> main
+     * Y: aim at amp
+     * [disabled] Y: amp score
+     * [disabled] Left bumper: amp score in trap
      * Left trigger: amp eject
      * Right bumper: toggle climber extend/retract
      * Right trigger: retract with feedforward
@@ -87,9 +84,9 @@ public class ControlBoard extends SubsystemBase {
                 robot.shooter
         ));
 
-        Trigger ampTrigger = new Trigger(() -> operator.y.isPressed());
-        ampTrigger.whileTrue(Commands.run(() -> robot.shooter.setTempAimCalculator(new AmpAimCalculator())));
-        ampTrigger.onFalse(new ShootCommand(robot));
+//        Trigger ampTrigger = new Trigger(() -> operator.y.isPressed());
+//        ampTrigger.whileTrue(Commands.run(() -> robot.shooter.setTempAimCalculator(new AmpAimCalculator())));
+//        ampTrigger.onFalse(new ShootCommand(robot));
 
         climberState = ClimberArm.State.RETRACTED_IDLE;
     }
@@ -199,9 +196,15 @@ public class ControlBoard extends SubsystemBase {
         robot.intake.setReverse(operator.back.isPressed());
         robot.indexer.setReverse(operator.start.isPressed());
 
+        boolean shootAmp = operator.y.isPressed();
+        if (shootAmp)
+            robot.shooter.setTempAimCalculator(AmpAimCalculator.INSTANCE);
+
 //        robot.shooter.setFlywheelControl(driverWantsAim() || driverWantsFlywheels());
         ShooterSubsystem.FlywheelControl flywheelControl = ShooterSubsystem.FlywheelControl.IDLE;
-        if (driverWantsAim() || driverWantsFlywheels())
+        if (operator.start.isPressed())
+            flywheelControl = ShooterSubsystem.FlywheelControl.REVERSE;
+        else if (driverWantsAim() || driverWantsFlywheels() || shootAmp)
             flywheelControl = ShooterSubsystem.FlywheelControl.SHOOT;
         else if (operatorWantsShoot)
             flywheelControl = ShooterSubsystem.FlywheelControl.POOP;
