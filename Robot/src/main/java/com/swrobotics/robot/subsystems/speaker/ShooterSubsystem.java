@@ -32,11 +32,10 @@ public final class ShooterSubsystem extends SubsystemBase {
     private final IndexerSubsystem indexer;
 
     private Debouncer afterShootDelay;
-    private boolean isPreparing;
+    private boolean isPreparingToShoot;
 
     private AimCalculator.Aim targetAim; // Target aim is null if not currently aiming
     private AimCalculator aimCalculator;
-    private final AimCalculator tableAimCalculator;
 
     private FlywheelControl flywheelControl;
 
@@ -48,8 +47,7 @@ public final class ShooterSubsystem extends SubsystemBase {
         this.indexer = indexer;
 
 //        aimCalculator = new ManualAimCalculator();
-        tableAimCalculator = new TableAimCalculator();
-        aimCalculator = tableAimCalculator;
+        aimCalculator = TableAimCalculator.INSTANCE;
 
         NTData.SHOOTER_AFTER_DELAY.nowAndOnChange((delay) -> afterShootDelay = new Debouncer(delay, Debouncer.DebounceType.kFalling));
 
@@ -62,68 +60,70 @@ public final class ShooterSubsystem extends SubsystemBase {
 
     @Override
     public void periodic() {
+        isPreparingToShoot = false;
+
         double distToSpeaker = getSpeakerPosition().getDistance(drive.getEstimatedPose().getTranslation());
         AimCalculator.Aim aim = aimCalculator.calculateAim(distToSpeaker);
         targetAim = aim;
 
+        // Wait until the pivot is calibrated to do any shooting
         if (DriverStation.isDisabled() || !pivot.hasCalibrated())
             return;
 
-        // TODO: Make this not a mess
-        isPreparing = false;
-        if ((aim != null) && DriverStation.isAutonomous()) {
-            // Have the shooter be constantly active during auto
-            isPreparing = true;
-            flywheel.setTargetVelocity(aim.flywheelVelocity());
-            pivot.setTargetAngle(aim.pivotAngle() / MathUtil.TAU);
-        } else if (flywheelControl == FlywheelControl.REVERSE) {
-            // Don't touch pivot so it won't move and squish stuck note
+        // To get note unstuck if we squish it
+        if (flywheelControl == FlywheelControl.REVERSE) {
+            pivot.setNeutral(); // Don't squish note any more than we are currently
             flywheel.setDutyCycle(-NTData.SHOOTER_FLYWHEEL_REVERSE_SPEED.get());
-        } else if (flywheelControl == FlywheelControl.SHOOT || afterShootDelay.calculate(indexer.hasPiece())) {
-            if (aim != null) {
-                isPreparing = true;
-                if (flywheelControl == FlywheelControl.SHOOT)
-                    flywheel.setTargetVelocity(aim.flywheelVelocity());
-                else if (flywheelControl == FlywheelControl.POOP)
-                    flywheel.setDutyCycle(NTData.SHOOTER_FLYWHEEL_POOP_SPEED.get());
-                else
-                    flywheel.setDutyCycle(NTData.SHOOTER_FLYWHEEL_IDLE_SPEED.get());
-                pivot.setTargetAngle(aim.pivotAngle() / MathUtil.TAU);
-            } else {
-                if (flywheelControl == FlywheelControl.POOP)
-                    flywheel.setDutyCycle(NTData.SHOOTER_FLYWHEEL_POOP_SPEED.get());
-                else
-                    flywheel.setDutyCycle(NTData.SHOOTER_FLYWHEEL_IDLE_SPEED.get());
-                pivot.setIdle();
-            }
-        } else {
-            flywheel.setNeutral();
-            pivot.setNeutral();
+            return;
         }
 
+        if (flywheelControl == FlywheelControl.POOP) {
+            pivot.setIdle();
+            flywheel.setDutyCycle(NTData.SHOOTER_FLYWHEEL_POOP_SPEED.get());
+            return;
+        }
+
+        boolean inAuto = DriverStation.isAutonomous();
+        boolean hasPiece = indexer.hasPiece();
+        boolean shouldContinue = afterShootDelay.calculate(hasPiece);
+
+        if (flywheelControl == FlywheelControl.SHOOT && (shouldContinue || inAuto)) {
+            // Actually do shooting
+            isPreparingToShoot = true;
+            flywheel.setTargetVelocity(aim.flywheelVelocity());
+            pivot.setShooting(aim.pivotAngle() / MathUtil.TAU);
+        } else {
+            // In IDLE and continue time has elapsed
+            pivot.setIdle();
+
+            if (hasPiece)
+                flywheel.setDutyCycle(NTData.SHOOTER_FLYWHEEL_IDLE_SPEED.get());
+            else
+                flywheel.setNeutral();
+        }
 
         NTData.SHOOTER_READY.set(isReadyToShoot());
         pctErr.set(flywheel.getPercentErr());
 
-        aimCalculator = tableAimCalculator;
+        aimCalculator = TableAimCalculator.INSTANCE;
     }
 
     NTDouble pctErr = new NTDouble("Shooter/Debug/Percent Error", 0);
 
     @Override
     public void simulationPeriodic() {
-        if (isPreparing)
+        if (isPreparingToShoot)
             SimView.targetTrajectory.update(targetAim);
         else
             SimView.targetTrajectory.clear();
     }
 
-    public boolean isPreparing() {
-        return isPreparing;
+    public boolean isPreparingToShoot() {
+        return isPreparingToShoot;
     }
 
     public boolean isReadyToShoot() {
-        return isPreparing && flywheel.isReadyToShoot() && pivot.isAtSetpoint();
+        return isPreparingToShoot && flywheel.isReadyToShoot() && pivot.isAtSetpoint();
     }
 
     public void setFlywheelControl(FlywheelControl flywheelControl) {

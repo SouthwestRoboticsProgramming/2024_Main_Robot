@@ -10,15 +10,13 @@ public final class ManualAimCalculator implements AimCalculator {
 
     private static final NTBoolean setFromTable = new NTBoolean("Shooter/Manual Aim/Set From Table", false);
 
-    private final TableAimCalculator tableRef = new TableAimCalculator();
-
     @Override
     public Aim calculateAim(double distanceToSpeaker) {
         logDistance.set(distanceToSpeaker);
 
         if (setFromTable.get()) {
 //            setFromTable.set(false);
-            Aim ref = tableRef.calculateAim(distanceToSpeaker);
+            Aim ref = TableAimCalculator.INSTANCE.calculateAim(distanceToSpeaker);
             velocitySetpoint.set(ref.flywheelVelocity());
             pivotSetpoint.set(Math.toDegrees(ref.pivotAngle()));
         }

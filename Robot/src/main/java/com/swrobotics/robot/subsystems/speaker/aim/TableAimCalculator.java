@@ -3,15 +3,21 @@ package com.swrobotics.robot.subsystems.speaker.aim;
 import com.swrobotics.lib.net.NTDouble;
 import com.swrobotics.mathlib.MathUtil;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.TreeMap;
 
 public final class TableAimCalculator implements AimCalculator {
+    public static final TableAimCalculator INSTANCE = new TableAimCalculator();
+    private static final NTDouble logDistance = new NTDouble("Shooter/Manual Aim/Est Distance (m)", 0);
+
     private final TreeMap<Double, Double> flywheelVelocityMap = new TreeMap<>();
     private final TreeMap<Double, Double> pivotAngleMap = new TreeMap<>();
 
-   private static final NTDouble logDistance = new NTDouble("Shooter/Manual Aim/Est Distance (m)", 0);
+    private final double idleAngle;
 
-    public TableAimCalculator() {
+    private TableAimCalculator() {
         // Calibration 1 (MURA)
         double off = 5;
         addCalibrationSample(1.1429, 63 - off, 35);
@@ -27,6 +33,8 @@ public final class TableAimCalculator implements AimCalculator {
         // Calibration 3 (MURA)
         addCalibrationSample(3.549, 31, 74);
         addCalibrationSample(4.917, 24, 80);
+
+        idleAngle = calculateIdleAngle();
     }
 
     private void addCalibrationSample(double distanceM, double angleDeg, double velocityRPS) {
@@ -69,5 +77,34 @@ public final class TableAimCalculator implements AimCalculator {
                 sample(flywheelVelocityMap, distanceToSpeaker),
                 sample(pivotAngleMap, distanceToSpeaker)
         );
+    }
+
+    // Finds the optimal idle angle to get to positions in the least
+    // time on average
+    private double calculateIdleAngle() {
+        // Convert to list so we can access by index
+        List<Map.Entry<Double, Double>> entries = new ArrayList<>(pivotAngleMap.entrySet());
+        if (entries.size() == 1)
+            return entries.get(0).getValue();
+
+        // Find the integral of the shooting curve from min to max distance
+        double width = 0;
+        double area = 0;
+        for (int i = 1; i < entries.size(); i++) {
+            Map.Entry<Double, Double> prev = entries.get(i - 1);
+            Map.Entry<Double, Double> entry = entries.get(i);
+
+            double span = entry.getKey() - prev.getKey();
+            width += span;
+            area += span * (prev.getValue() + entry.getValue()) / 2;
+        }
+
+        // Find average angle over the range
+        return area / width;
+    }
+
+    // Radians
+    public double getIdleAngle() {
+        return idleAngle;
     }
 }

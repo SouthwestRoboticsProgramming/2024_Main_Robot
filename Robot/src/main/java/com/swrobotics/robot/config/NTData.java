@@ -3,6 +3,7 @@ package com.swrobotics.robot.config;
 import com.swrobotics.lib.net.NTBoolean;
 import com.swrobotics.lib.net.NTDouble;
 import com.swrobotics.lib.net.NTEntry;
+import edu.wpi.first.networktables.NetworkTableInstance;
 
 public final class NTData {
     // GOOD
@@ -96,7 +97,6 @@ public final class NTData {
     public static final NTEntry<Double> SHOOTER_FLYWHEEL_KV = new NTDouble("Shooter/Flywheel/PIDV/kV", 0.126).setPersistent();
 
     // GOOD (except for allowable pct err)
-    public static final NTEntry<Double> SHOOTER_PIVOT_IDLE_ANGLE = new NTDouble("Shooter/Pivot/Idle Angle (deg)", 35).setPersistent();
     public static final NTEntry<Double> SHOOTER_PIVOT_KP = new NTDouble("Shooter/Pivot/PID/kP", 600).setPersistent();
     public static final NTEntry<Double> SHOOTER_PIVOT_KD = new NTDouble("Shooter/Pivot/PID/kD", 0).setPersistent();
     public static final NTEntry<Double> SHOOTER_PIVOT_KV = new NTDouble("Shooter/Pivot/PID/kV", 0).setPersistent();

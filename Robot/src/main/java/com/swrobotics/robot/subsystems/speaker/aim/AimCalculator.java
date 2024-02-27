@@ -6,6 +6,5 @@ public interface AimCalculator {
     final record Aim(double flywheelVelocity, double pivotAngle) {}
 
     // Distance is in meters
-    // May return null if shot is impossible
     Aim calculateAim(double distanceToSpeaker);
 }

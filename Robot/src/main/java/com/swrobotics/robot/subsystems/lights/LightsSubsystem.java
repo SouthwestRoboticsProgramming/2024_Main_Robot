@@ -109,7 +109,7 @@ public final class LightsSubsystem extends SubsystemBase {
             prideSequencer.apply(this);
         } else if (robot.climber.getCurrentState() == ClimberArm.State.RETRACTED_HOLD) {
             showClimberHold();
-        } else if (robot.shooter.isPreparing()) {
+        } else if (robot.shooter.isPreparingToShoot()) {
             showShooterStatus();
         } else if (robot.drive.getLastSelectedPriority() == SwerveDrive.AUTO_PRIORITY) {
             showAutoDriving();

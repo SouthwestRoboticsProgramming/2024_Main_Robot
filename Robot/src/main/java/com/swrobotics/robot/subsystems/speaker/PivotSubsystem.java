@@ -13,14 +13,17 @@ import com.swrobotics.mathlib.MathUtil;
 import com.swrobotics.robot.config.IOAllocation;
 import com.swrobotics.robot.config.NTData;
 import com.swrobotics.robot.logging.SimView;
+import com.swrobotics.robot.subsystems.speaker.aim.TableAimCalculator;
 import com.swrobotics.robot.utils.TalonFXWithSim;
 import edu.wpi.first.math.system.plant.DCMotor;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public final class PivotSubsystem extends SubsystemBase {
     private enum State {
         CALIBRATING,
         IDLE,
+        OFF,
         SHOOTING
     }
 
@@ -62,28 +65,33 @@ public final class PivotSubsystem extends SubsystemBase {
         setpoint = Double.NEGATIVE_INFINITY;
     }
 
-    public void setTargetAngle(double angleRot) {
-        if (state == State.CALIBRATING)
-            return;
-
+    private void setTargetAngle(double angleRot) {
         angleRot = MathUtil.clamp(
                 angleRot,
                 hardStopAngle + 2 / 360.0,
                 maxAngle - 2 / 360.0);
 
         motor.setControl(new PositionVoltage(angleRot));
-        state = State.SHOOTING;
         setpoint = angleRot;
+    }
+
+    public void setShooting(double angleRot) {
+        if (state == State.CALIBRATING)
+            return;
+
+        setTargetAngle(angleRot);
+        state = State.SHOOTING;
     }
 
     public void setIdle() {
         if (state == State.CALIBRATING)
             return;
 
-        if (state != State.IDLE)
+        // Don't recalibrate in auto to save time
+        if (state != State.IDLE && !DriverStation.isAutonomous())
             calibrated = false;
 
-        setTargetAngle(NTData.SHOOTER_PIVOT_IDLE_ANGLE.get() / 360.0);
+        setTargetAngle(TableAimCalculator.INSTANCE.getIdleAngle() / MathUtil.TAU);
         state = State.IDLE;
     }
 
@@ -91,11 +99,8 @@ public final class PivotSubsystem extends SubsystemBase {
         if (state == State.CALIBRATING)
             return;
 
-        if (state != State.IDLE)
-            calibrated = false;
-
         motor.setControl(new NeutralOut());
-        state = State.IDLE;
+        state = State.OFF;
     }
 
     @Override
@@ -106,13 +111,14 @@ public final class PivotSubsystem extends SubsystemBase {
             calibrated = false;
         }
 
-        if (state != State.SHOOTING && !calibrated) {
+        if ((state == State.CALIBRATING || state == State.IDLE) && !calibrated) {
             motor.setControl(new VoltageOut(-NTData.SHOOTER_PIVOT_CALIBRATE_VOLTS.get()));
             limitSwitch.refresh();
             boolean atLimit = limitSwitch.getValue() == ReverseLimitValue.ClosedToGround;
 
             if (atLimit) {
                 motor.setPosition(hardStopAngle);
+                motor.setControl(new NeutralOut());
 
                 calibrated = true;
                 if (state == State.CALIBRATING)

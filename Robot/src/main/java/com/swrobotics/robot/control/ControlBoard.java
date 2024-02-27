@@ -1,14 +1,11 @@
 package com.swrobotics.robot.control;
 
 import com.ctre.phoenix6.mechanisms.swerve.SwerveModule.DriveRequestType;
-import com.pathplanner.lib.auto.AutoBuilder;
-import com.pathplanner.lib.path.PathConstraints;
 import com.swrobotics.lib.input.XboxController;
 import com.swrobotics.mathlib.MathUtil;
 import com.swrobotics.robot.RobotContainer;
 
 import com.swrobotics.robot.commands.AimTowardsSpeakerCommand;
-import com.swrobotics.robot.commands.ShootCommand;
 import com.swrobotics.robot.config.NTData;
 import com.swrobotics.robot.subsystems.amp.AmpArmSubsystem;
 import com.swrobotics.robot.subsystems.amp.AmpIntakeSubsystem;
@@ -17,13 +14,10 @@ import com.swrobotics.robot.subsystems.speaker.IntakeSubsystem;
 import com.swrobotics.robot.subsystems.speaker.ShooterSubsystem;
 import com.swrobotics.robot.subsystems.speaker.aim.AmpAimCalculator;
 import com.swrobotics.robot.subsystems.swerve.SwerveDrive;
-import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj2.command.CommandScheduler;
-import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 
@@ -126,16 +120,7 @@ public class ControlBoard extends SubsystemBase {
         return driver.leftBumper.isPressed();
     }
 
-    @Override
-    public void periodic() {
-        if (!DriverStation.isTeleop()) {
-            climberState = ClimberArm.State.RETRACTED_IDLE;
-            robot.indexer.setReverse(false);
-            robot.intake.setReverse(false);
-            robot.shooter.setFlywheelControl(ShooterSubsystem.FlywheelControl.SHOOT); // Always aim with note when not teleop
-            return;
-        }
-
+    private void drivePeriodic() {
         Translation2d translation = getDriveTranslation();
         if (DriverStation.getAlliance().orElse(DriverStation.Alliance.Blue) == DriverStation.Alliance.Red) {
             translation = translation.rotateBy(Rotation2d.fromDegrees(180));
@@ -145,10 +130,10 @@ public class ControlBoard extends SubsystemBase {
         Rotation2d rotation = new Rotation2d(MathUtil.TAU * rawRotation);
 
         ChassisSpeeds chassisRequest = ChassisSpeeds.fromFieldRelativeSpeeds(
-                        translation.getX(),
-                        translation.getY(),
-                        rotation.getRadians(),
-                        robot.drive.getEstimatedPose().getRotation());
+                translation.getX(),
+                translation.getY(),
+                rotation.getRadians(),
+                robot.drive.getEstimatedPose().getRotation());
 
         if (getRobotRelativeDrive()) {
             chassisRequest = new ChassisSpeeds(-translation.getX(), -translation.getY(), rotation.getRadians());
@@ -158,16 +143,20 @@ public class ControlBoard extends SubsystemBase {
                 SwerveDrive.DRIVER_PRIORITY,
                 chassisRequest,
                 DriveRequestType.Velocity);
+    }
 
-        IntakeSubsystem.State intakeState = IntakeSubsystem.State.OFF;
-        if (operator.a.isPressed())
-            intakeState = IntakeSubsystem.State.INTAKE;
+    private void climberPeriodic() {
+        if (operator.rightBumper.isRising()) {
+            boolean extended = climberState == ClimberArm.State.EXTENDED;
+            climberState = extended ? ClimberArm.State.RETRACTED_IDLE : ClimberArm.State.EXTENDED;
+        }
+        if (operator.rightTrigger.isOutside(TRIGGER_BUTTON_THRESHOLD)) {
+            climberState = ClimberArm.State.RETRACTED_HOLD;
+        }
+        robot.climber.setState(climberState);
+    }
 
-        // Indexer uses the intake state also
-        robot.intake.set(intakeState);
-        boolean operatorWantsShoot = operator.b.isPressed();
-        robot.indexer.setFeedToShooter(operatorWantsShoot);
-
+    private void ampArmPeriodic() {
         AmpArmSubsystem.Position ampArmPosition = AmpArmSubsystem.Position.STOW;
         AmpIntakeSubsystem.State ampIntakeState = AmpIntakeSubsystem.State.OFF;
         if (operator.x.isPressed()) {
@@ -183,31 +172,55 @@ public class ControlBoard extends SubsystemBase {
         }
         robot.ampArm.setPosition(ampArmPosition);
         robot.ampIntake.setState(ampIntakeState);
+    }
 
-        if (operator.rightBumper.isRising()) {
-            boolean extended = climberState == ClimberArm.State.EXTENDED;
-            climberState = extended ? ClimberArm.State.RETRACTED_IDLE : ClimberArm.State.EXTENDED;
-        }
-        if (operator.rightTrigger.isOutside(TRIGGER_BUTTON_THRESHOLD)) {
-            climberState = ClimberArm.State.RETRACTED_HOLD;
-        }
-        robot.climber.setState(climberState);
+    private void intakePeriodic() {
+        IntakeSubsystem.State intakeState = IntakeSubsystem.State.OFF;
+        if (operator.a.isPressed())
+            intakeState = IntakeSubsystem.State.INTAKE;
 
+        // Indexer uses the intake state also (feeds in when intake is on)
+        robot.intake.set(intakeState);
         robot.intake.setReverse(operator.back.isPressed());
+    }
+
+    private void shooterPeriodic() {
+        boolean aimAtSpeaker = driverWantsAim();
+
+        boolean shoot = operator.b.isPressed();
+        robot.indexer.setFeedToShooter(shoot);
         robot.indexer.setReverse(operator.start.isPressed());
 
-        boolean shootAmp = operator.y.isPressed();
-        if (shootAmp)
-            robot.shooter.setTempAimCalculator(AmpAimCalculator.INSTANCE);
+        boolean aimAtAmp = operator.y.isPressed();
+        if (aimAtAmp)
+            robot.shooter.setTempAimCalculator(AmpAimCalculator.INSTANCE); // TODO: Probably better way to do this
 
-//        robot.shooter.setFlywheelControl(driverWantsAim() || driverWantsFlywheels());
+        boolean runFlywheelForShooting = aimAtSpeaker || aimAtAmp || driverWantsFlywheels();
+
         ShooterSubsystem.FlywheelControl flywheelControl = ShooterSubsystem.FlywheelControl.IDLE;
         if (operator.start.isPressed())
             flywheelControl = ShooterSubsystem.FlywheelControl.REVERSE;
-        else if (driverWantsAim() || driverWantsFlywheels() || shootAmp)
+        else if (runFlywheelForShooting)
             flywheelControl = ShooterSubsystem.FlywheelControl.SHOOT;
-        else if (operatorWantsShoot)
+        else if (shoot)
             flywheelControl = ShooterSubsystem.FlywheelControl.POOP;
         robot.shooter.setFlywheelControl(flywheelControl);
+    }
+
+    @Override
+    public void periodic() {
+        if (!DriverStation.isTeleop()) {
+            climberState = ClimberArm.State.RETRACTED_IDLE;
+            robot.indexer.setReverse(false);
+            robot.intake.setReverse(false);
+            robot.shooter.setFlywheelControl(ShooterSubsystem.FlywheelControl.SHOOT); // Always aim with note when not teleop
+            return;
+        }
+
+        drivePeriodic();
+        climberPeriodic();
+        // ampArmPeriodic();
+        intakePeriodic();
+        shooterPeriodic();
     }
 }
