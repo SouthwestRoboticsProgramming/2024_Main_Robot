@@ -89,6 +89,8 @@ public final class PivotSubsystem extends SubsystemBase {
         if (state == State.CALIBRATING)
             return;
 
+        angleRot += NTData.SHOOTER_PIVOT_ANGLE_ADJUST.get() / 360.0;
+
         angleRot = MathUtil.clamp(
                 angleRot,
                 hardStopAngle + 2 / 360.0,

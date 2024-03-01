@@ -104,6 +104,7 @@ public final class NTData {
     public static final NTEntry<Boolean> SHOOTER_PIVOT_RECALIBRATE = new NTBoolean("Shooter/Pivot/Calibration/Recalibrate", false);
     public static final NTEntry<Double> SHOOTER_PIVOT_CALIBRATE_VOLTS = new NTDouble("Shooter/Pivot/Calibration/Applied Volts", 4).setPersistent();
     public static final NTEntry<Double> SHOOTER_PIVOT_ALLOWABLE_PCT_ERR = new NTDouble("Shooter/Pivot/Allowable Pct Error", 0.01).setPersistent(); // FIXME TUNE
+    public static final NTEntry<Double> SHOOTER_PIVOT_ANGLE_ADJUST = new NTDouble("Shooter/Pivot/Angle Adjust (deg)", 0).setPersistent();
 
     private NTData() {
         throw new AssertionError();

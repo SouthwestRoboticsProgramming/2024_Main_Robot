@@ -149,6 +149,12 @@ public class ControlBoard extends SubsystemBase {
             robot.drive.setPose(robot.drive.getFieldInfo().flipPoseForAlliance(new Pose2d(3.354, 5.512, new Rotation2d(Math.PI))));
 
 
+        if (operator.dpad.up.isRising())
+            NTData.SHOOTER_PIVOT_ANGLE_ADJUST.set(NTData.SHOOTER_PIVOT_ANGLE_ADJUST.get() + 1);
+        if (operator.dpad.down.isRising())
+            NTData.SHOOTER_PIVOT_ANGLE_ADJUST.set(NTData.SHOOTER_PIVOT_ANGLE_ADJUST.get() - 1);
+
+
         driver.setRumble(pieceRumble ? 0.5 : 0);
         boolean shooterReady = robot.shooter.isReadyToShoot();
         operator.setRumble(pieceRumble ? 0.5 : (shooterReady ? 0.3 : 0));
