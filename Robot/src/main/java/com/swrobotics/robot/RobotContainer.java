@@ -31,6 +31,7 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.*;
 import edu.wpi.first.wpilibj.simulation.DriverStationSim;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.*;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 
@@ -57,6 +58,7 @@ public class RobotContainer {
     // Create a way to choose between autonomous sequences
     private final LoggedDashboardChooser<Command> autoSelector;
     private final LoggedDashboardChooser<String> musicSelector;
+    private final LoggedDashboardChooser<Double> autoDelaySelector;
 
     public final MessengerClient messenger;
     private final ControlBoard controlboard;
@@ -134,7 +136,6 @@ public class RobotContainer {
             autoChooser.addOption(auto.name(), auto.cmd());
         autoSelector = new LoggedDashboardChooser<>("Auto Selection", autoChooser);
 
-
         FieldView.publish();
 
         char sep = File.separatorChar;
@@ -160,6 +161,15 @@ public class RobotContainer {
                 Commands.runOnce(() -> controlboard.setPieceRumble(false))
             )
         );
+
+
+        SendableChooser<Double> autoDelay = new SendableChooser<>();
+        autoDelay.setDefaultOption("None", 0.0);
+        for (int i = 0; i < 10; i++) {
+            double time = i / 2.0 + 0.5;
+            autoDelay.addOption(time + " seconds", time);
+        }
+        autoDelaySelector = new LoggedDashboardChooser<>("Auto Delay", autoDelay);
     }
 
     private static final record AutoEntry(String name, Command cmd) {}
@@ -204,6 +214,7 @@ public class RobotContainer {
     }
 
     public Command getAutonomousCommand() {
-        return autoSelector.get();
+        return Commands.waitSeconds(autoDelaySelector.get())
+            .andThen(autoSelector.get());
     }
 }
