@@ -18,6 +18,29 @@ import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public final class PivotSubsystem extends SubsystemBase {
+    /**
+     * All possible sources of error:
+     *
+     * Vision estimates:
+     *   [x] Tag is wrong size
+     *   Camera calibration is wrong
+     *   [/] Estimates are poor quality
+     *
+     * Tuning:
+     *   The tuning was wrong
+     *
+     * Targeting:
+     *   [/] Target point is wrong for the event field (field is not right dimensions)
+     *
+     * Shooting:
+     *   [x] Different behavior between almost-new and used notes
+     *   Pivot does not go to setpoint
+     *   [x] Pivot does not calibrate to correct position
+     *   [x] Flywheel does not go to setpoint
+     *   [x] Indexer speed changed between shop and here
+     *   Physics just behaves differently in Duluth than Minneapolis
+     */
+
     private enum State {
         CALIBRATING,
         IDLE,

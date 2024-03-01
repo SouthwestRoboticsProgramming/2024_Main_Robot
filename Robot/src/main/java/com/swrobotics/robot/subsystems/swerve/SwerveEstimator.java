@@ -28,6 +28,8 @@ public final class SwerveEstimator {
     private final TreeMap<Double, PoseUpdate> updates = new TreeMap<>();
     private final Matrix<N3, N1> q;
 
+    private boolean ignoreVision;
+
     public SwerveEstimator(FieldInfo field) {
         tagTracker = new TagTrackerInput(
                 field,
@@ -45,6 +47,12 @@ public final class SwerveEstimator {
         for (int i = 0; i < 3; i++) {
             q.set(i, 0, MathUtil.square(STATE_STD_DEVS[i]));
         }
+
+        ignoreVision = false;
+    }
+
+    public void setIgnoreVision(boolean ignoreVision) {
+        this.ignoreVision = ignoreVision;
     }
 
     public Pose2d getEstimatedPose() {
@@ -68,6 +76,9 @@ public final class SwerveEstimator {
             tagPoses.add(tagPose3d.toPose2d());
         }
         FieldView.aprilTagPoses.setPoses(tagPoses);
+
+        if (ignoreVision)
+            return;
 
         for (TagTrackerInput.VisionUpdate visionUpdate : visionData) {
             double timestamp = visionUpdate.timestamp;

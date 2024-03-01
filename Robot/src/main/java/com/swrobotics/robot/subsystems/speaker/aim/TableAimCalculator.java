@@ -2,6 +2,7 @@ package com.swrobotics.robot.subsystems.speaker.aim;
 
 import com.swrobotics.lib.net.NTDouble;
 import com.swrobotics.mathlib.MathUtil;
+import com.swrobotics.robot.config.NTData;
 
 import java.util.TreeMap;
 
@@ -64,6 +65,8 @@ public final class TableAimCalculator implements AimCalculator {
     @Override
     public Aim calculateAim(double distanceToSpeaker) {
        logDistance.set(distanceToSpeaker);
+
+       distanceToSpeaker *= NTData.SHOOTER_DISTANCE_SCALE.get();
 
         return new Aim(
                 sample(flywheelVelocityMap, distanceToSpeaker),

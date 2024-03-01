@@ -75,12 +75,6 @@
         {
           "type": "named",
           "data": {
-            "name": "Intake Off"
-          }
-        },
-        {
-          "type": "named",
-          "data": {
             "name": "Shoot"
           }
         }

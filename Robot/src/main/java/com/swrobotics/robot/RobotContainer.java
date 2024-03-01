@@ -142,15 +142,11 @@ public class RobotContainer {
 
         // Rumble the controllers when we pick up a piece
         new Trigger(() -> indexer.hasPiece()).onTrue(
-            Commands.parallel(
-                Commands.run(() -> controlboard.driver.setRumble(0.2)),
-                Commands.run(() -> controlboard.operator.setRumble(0.2))
+            Commands.run(() -> controlboard.setPieceRumble(true))
+            .withTimeout(0.2)
+            .andThen(
+                Commands.runOnce(() -> controlboard.setPieceRumble(false))
             )
-            .withTimeout(0.1)
-            .andThen(Commands.parallel(
-                Commands.runOnce(() -> controlboard.driver.setRumble(0)),
-                Commands.runOnce(() -> controlboard.operator.setRumble(0))
-            ))
         );
     }
 

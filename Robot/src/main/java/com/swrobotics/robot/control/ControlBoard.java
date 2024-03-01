@@ -38,6 +38,7 @@ public class ControlBoard extends SubsystemBase {
      * Right bumper: spin up flywheel
      * Dpad Left: Manual subwoofer shot
      * Dpad Right: Manual podium shot
+     * Dpad down: recalibrate pivot
      *
      * Operator:
      * A: intake
@@ -61,6 +62,7 @@ public class ControlBoard extends SubsystemBase {
     public final XboxController operator;
 
     private ClimberArm.State climberState;
+    private boolean pieceRumble;
 
     public ControlBoard(RobotContainer robot) {
         this.robot = robot;
@@ -136,6 +138,21 @@ public class ControlBoard extends SubsystemBase {
             return;
         }
 
+
+        boolean forceToSubwoofer = driver.dpad.right.isPressed();
+        boolean forceToStageCorner = driver.dpad.left.isPressed();
+        robot.drive.setEstimatorIgnoreVision(forceToSubwoofer || forceToStageCorner);
+
+        if (forceToSubwoofer)
+            robot.drive.setPose(robot.drive.getFieldInfo().flipPoseForAlliance(new Pose2d(1.393, 5.512, new Rotation2d(Math.PI))));
+        if (forceToStageCorner)
+            robot.drive.setPose(robot.drive.getFieldInfo().flipPoseForAlliance(new Pose2d(3.354, 5.512, new Rotation2d(Math.PI))));
+
+
+        driver.setRumble(pieceRumble ? 0.5 : 0);
+        boolean shooterReady = robot.shooter.isReadyToShoot();
+        operator.setRumble(pieceRumble ? 0.5 : (shooterReady ? 0.3 : 0));
+
         Translation2d translation = getDriveTranslation();
         if (DriverStation.getAlliance().orElse(DriverStation.Alliance.Blue) == DriverStation.Alliance.Red) {
             translation = translation.rotateBy(Rotation2d.fromDegrees(180));
@@ -204,10 +221,14 @@ public class ControlBoard extends SubsystemBase {
         ShooterSubsystem.FlywheelControl flywheelControl = ShooterSubsystem.FlywheelControl.IDLE;
         if (operator.start.isPressed())
             flywheelControl = ShooterSubsystem.FlywheelControl.REVERSE;
-        else if (driverWantsAim() || driverWantsFlywheels() || shootAmp)
+        else if (driverWantsAim() || driverWantsFlywheels() || shootAmp || forceToSubwoofer || forceToStageCorner)
             flywheelControl = ShooterSubsystem.FlywheelControl.SHOOT;
         else if (operatorWantsShoot)
             flywheelControl = ShooterSubsystem.FlywheelControl.POOP;
         robot.shooter.setFlywheelControl(flywheelControl);
+    }
+
+    public void setPieceRumble(boolean pieceRumble) {
+        this.pieceRumble = pieceRumble;
     }
 }

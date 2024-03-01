@@ -311,4 +311,8 @@ public final class SwerveDrive extends SubsystemBase {
     public TalonFX getTurnMotor(int module) {
         return modules[module].getSteerMotor();
     }
+
+    public void setEstimatorIgnoreVision(boolean ignoreVision) {
+        estimator.setIgnoreVision(ignoreVision);
+    }
 }
