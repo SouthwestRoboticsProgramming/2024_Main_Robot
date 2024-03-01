@@ -29,6 +29,8 @@ import java.util.function.BiConsumer;
 public class Robot extends LoggedRobot {
     private Command autonomousCommand;
     private final Timer autonomousTimer = new Timer();
+    private double autonomousDelay;
+    private boolean hasScheduledAuto;
 
     private RobotContainer robotContainer;
 
@@ -137,13 +139,18 @@ public class Robot extends LoggedRobot {
         // Get autonomous from selector
         autonomousCommand = robotContainer.getAutonomousCommand();
 
-        // schedule the autonomous command (example)
-        if (autonomousCommand != null) {
-            autonomousCommand.schedule();
+        autonomousDelay = robotContainer.getAutoDelay();
+        autonomousTimer.restart();
+        hasScheduledAuto = false;
+    }
 
-            // Reset the timer
-            autonomousTimer.reset();
-            autonomousTimer.start();
+    @Override
+    public void autonomousPeriodic() {
+        // Manually time auto delay since using sequential group causes crash
+        // when running the same auto twice
+        if (!hasScheduledAuto && autonomousCommand != null && autonomousTimer.hasElapsed(autonomousDelay)) {
+            autonomousCommand.schedule();
+            hasScheduledAuto = true;
         }
     }
 

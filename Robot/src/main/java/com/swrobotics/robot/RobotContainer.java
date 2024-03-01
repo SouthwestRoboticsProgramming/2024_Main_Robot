@@ -123,7 +123,7 @@ public class RobotContainer {
         autos.add(new AutoEntry("Drive forward", Commands.run(
                 () -> drive.drive(new DriveRequest(
                         SwerveDrive.AUTO_PRIORITY,
-                        new Translation2d(0.0, 0.5),
+                        drive.getFieldInfo().getAllianceForward().times(0.5),
                         DriveRequestType.OpenLoopVoltage)),
                 drive
         ).withTimeout(5)));
@@ -213,8 +213,11 @@ public class RobotContainer {
             CommandScheduler.getInstance().cancel(musicCommand);
     }
 
+    public double getAutoDelay() {
+        return autoDelaySelector.get();
+    }
+
     public Command getAutonomousCommand() {
-        return Commands.waitSeconds(autoDelaySelector.get())
-            .andThen(autoSelector.get());
+        return autoSelector.get();
     }
 }
