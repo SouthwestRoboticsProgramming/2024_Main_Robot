@@ -2,10 +2,10 @@
   "version": 1.0,
   "startingPose": {
     "position": {
-      "x": 0.9146333962183594,
-      "y": 6.969716047694203
+      "x": 1.0315749406427588,
+      "y": 4.373613761472538
     },
-    "rotation": 121.08217606614882
+    "rotation": -117.12130340415868
   },
   "command": {
     "type": "sequential",
@@ -33,7 +33,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Stage Note"
+            "pathName": "Alternate Amp Note"
           }
         },
         {

@@ -1,12 +1,6 @@
 {
   "version": 1.0,
-  "startingPose": {
-    "position": {
-      "x": 0.9146333962183594,
-      "y": 6.969716047694203
-    },
-    "rotation": 121.08217606614882
-  },
+  "startingPose": null,
   "command": {
     "type": "sequential",
     "data": {
@@ -18,13 +12,13 @@
               {
                 "type": "named",
                 "data": {
-                  "name": "Shoot"
+                  "name": "Intake On"
                 }
               },
               {
                 "type": "named",
                 "data": {
-                  "name": "Intake On"
+                  "name": "Shoot"
                 }
               }
             ]
@@ -33,13 +27,25 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Stage Note"
+            "pathName": "Short Center"
           }
         },
         {
           "type": "named",
           "data": {
             "name": "Shoot"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Grab Long Under Stage"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Score Long Under Stage"
           }
         }
       ]
