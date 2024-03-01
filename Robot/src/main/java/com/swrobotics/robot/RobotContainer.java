@@ -3,6 +3,8 @@ package com.swrobotics.robot;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveModule.DriveRequestType;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
+import com.pathplanner.lib.commands.PathPlannerAuto;
+import com.pathplanner.lib.path.PathPlannerPath;
 import com.swrobotics.lib.field.FieldInfo;
 import com.swrobotics.messenger.client.MessengerClient;
 import com.swrobotics.robot.commands.RobotCommands;
@@ -35,6 +37,9 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -112,15 +117,22 @@ public class RobotContainer {
         NamedCommands.registerCommand("Shoot", RobotCommands.aimAndShoot(this));
 
         // Create a chooser to select the autonomous
-        autoSelector = new LoggedDashboardChooser<>("Auto Selection", AutoBuilder.buildAutoChooser());
-        autoSelector.addOption("Just Shoot", RobotCommands.aimAndShoot(this));
-        autoSelector.addDefaultOption("Drive forward", Commands.run(
+        List<AutoEntry> autos = buildPathPlannerAutos();
+        autos.add(new AutoEntry("Drive forward", Commands.run(
                 () -> drive.drive(new DriveRequest(
                         SwerveDrive.AUTO_PRIORITY,
                         new Translation2d(0.0, 0.5),
                         DriveRequestType.OpenLoopVoltage)),
                 drive
-        ).withTimeout(5));
+        ).withTimeout(5)));
+        autos.sort(Comparator.comparing(AutoEntry::name, String.CASE_INSENSITIVE_ORDER));
+
+        SendableChooser<Command> autoChooser = new SendableChooser<>();
+        autoChooser.setDefaultOption("Just Shoot", RobotCommands.aimAndShoot(this));
+        autoChooser.addOption("None", Commands.none());
+        for (AutoEntry auto : autos)
+            autoChooser.addOption(auto.name(), auto.cmd());
+        autoSelector = new LoggedDashboardChooser<>("Auto Selection", autoChooser);
 
 
         FieldView.publish();
@@ -148,6 +160,31 @@ public class RobotContainer {
                 Commands.runOnce(() -> controlboard.setPieceRumble(false))
             )
         );
+    }
+
+    private static final record AutoEntry(String name, Command cmd) {}
+
+    private static List<AutoEntry> buildPathPlannerAutos() {
+        if (!AutoBuilder.isConfigured()) {
+            throw new RuntimeException(
+                    "AutoBuilder was not configured before attempting to build an auto chooser");
+        }
+
+        List<String> autoNames = AutoBuilder.getAllAutoNames();
+        autoNames.sort(String.CASE_INSENSITIVE_ORDER);
+
+        List<PathPlannerAuto> options = new ArrayList<>();
+        for (String autoName : autoNames) {
+            PathPlannerAuto auto = new PathPlannerAuto(autoName);
+
+            options.add(auto);
+        }
+
+        List<AutoEntry> entries = new ArrayList<>();
+        for (PathPlannerAuto auto : options)
+            entries.add(new AutoEntry(auto.getName(), auto));
+
+        return entries;
     }
 
     private boolean hasDoneFirstInit = false;
