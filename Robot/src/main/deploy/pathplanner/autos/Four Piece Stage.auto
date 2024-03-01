@@ -1,16 +1,16 @@
 {
   "version": 1.0,
-  "startingPose": {
-    "position": {
-      "x": 1.2771521839339972,
-      "y": 4.034483282641779
-    },
-    "rotation": 131.0943008629279
-  },
+  "startingPose": null,
   "command": {
     "type": "sequential",
     "data": {
       "commands": [
+        {
+          "type": "wait",
+          "data": {
+            "waitTime": 1.0
+          }
+        },
         {
           "type": "parallel",
           "data": {
@@ -33,6 +33,18 @@
         {
           "type": "path",
           "data": {
+            "pathName": "Short Center"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Shoot"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
             "pathName": "Stage Note"
           }
         },
@@ -40,6 +52,12 @@
           "type": "named",
           "data": {
             "name": "Shoot"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Intake Off"
           }
         },
         {

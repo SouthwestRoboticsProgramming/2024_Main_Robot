@@ -43,15 +43,9 @@
           }
         },
         {
-          "type": "wait",
-          "data": {
-            "waitTime": 0.5
-          }
-        },
-        {
           "type": "named",
           "data": {
-            "name": "Intake Off"
+            "name": "Shoot"
           }
         }
       ]
