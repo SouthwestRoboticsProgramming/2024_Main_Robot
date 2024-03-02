@@ -1,5 +1,6 @@
 package com.swrobotics.robot.subsystems.swerve;
 
+import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveModuleConstants;
 import com.ctre.phoenix6.sim.CANcoderSimState;
 import com.ctre.phoenix6.sim.ChassisReference;
@@ -34,6 +35,13 @@ public class SwerveModule extends com.ctre.phoenix6.mechanisms.swerve.SwerveModu
 
     public SwerveModule(SwerveModuleConstants constants, String name, String canbusName) {
         super(constants, canbusName);
+
+        CurrentLimitsConfigs limits = new CurrentLimitsConfigs();
+        limits.SupplyCurrentLimitEnable = true;
+        limits.SupplyCurrentLimit = 35;
+        limits.SupplyTimeThreshold = 0.25;
+        limits.StatorCurrentLimitEnable = false;
+        getDriveMotor().getConfigurator().apply(limits);
 
         this.name = name;
         this.constants = constants;

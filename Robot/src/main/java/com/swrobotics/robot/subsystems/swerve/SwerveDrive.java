@@ -47,7 +47,8 @@ import static com.swrobotics.robot.subsystems.swerve.SwerveConstants.SWERVE_MODU
 public final class SwerveDrive extends SubsystemBase {
     public static final int DRIVER_PRIORITY = 0;
     public static final int AUTO_PRIORITY = 1;
-    public static final int AIM_PRIORITY = 2;
+    public static final int SNAP_PRIORITY = 2;
+    public static final int AIM_PRIORITY = 3;
 
     // Priority should be one of the priority levels above
     public static record DriveRequest(int priority, Translation2d robotRelTranslation, DriveRequestType type) {
@@ -278,6 +279,10 @@ public final class SwerveDrive extends SubsystemBase {
     @AutoLogOutput(key = "Drive/Robot Rel Velocity")
     public ChassisSpeeds getRobotRelativeSpeeds() {
         return kinematics.toChassisSpeeds(getCurrentModuleStates());
+    }
+
+    public Translation2d toRobotRelativeDrive(Translation2d fieldRelDrive) {
+        return fieldRelDrive.rotateBy(getEstimatedPose().getRotation().unaryMinus());
     }
 
     public ChassisSpeeds getFieldRelativeSpeeds() {

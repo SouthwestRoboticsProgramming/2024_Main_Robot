@@ -142,7 +142,8 @@ public final class TagTrackerLayer implements FieldLayer, NTInstanceListener {
             g.vertex(0, 0.25f, 0.25f);
             g.vertex(0, 0.25f, -0.25f);
             g.endShape(PConstants.CLOSE);
-            drawAxes(g);
+            if (showTagAxes.get())
+                drawAxes(g);
             g.popMatrix();
         }
     }

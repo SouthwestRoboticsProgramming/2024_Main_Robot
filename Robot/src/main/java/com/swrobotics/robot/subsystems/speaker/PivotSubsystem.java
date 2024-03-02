@@ -9,12 +9,14 @@ import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.signals.ReverseLimitValue;
+import com.swrobotics.lib.net.NTEntry;
 import com.swrobotics.mathlib.MathUtil;
 import com.swrobotics.robot.config.IOAllocation;
 import com.swrobotics.robot.config.NTData;
 import com.swrobotics.robot.logging.SimView;
 import com.swrobotics.robot.utils.TalonFXWithSim;
 import edu.wpi.first.math.system.plant.DCMotor;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public final class PivotSubsystem extends SubsystemBase {
@@ -40,6 +42,12 @@ public final class PivotSubsystem extends SubsystemBase {
      *   [x] Indexer speed changed between shop and here
      *   Physics just behaves differently in Duluth than Minneapolis
      */
+
+    public static NTEntry<Double> getAdjustForAlliance() {
+        return DriverStation.getAlliance().orElse(DriverStation.Alliance.Blue) == DriverStation.Alliance.Blue
+                ? NTData.SHOOTER_PIVOT_ANGLE_ADJUST_BLUE
+                : NTData.SHOOTER_PIVOT_ANGLE_ADJUST_RED;
+    }
 
     private enum State {
         CALIBRATING,
@@ -89,7 +97,7 @@ public final class PivotSubsystem extends SubsystemBase {
         if (state == State.CALIBRATING)
             return;
 
-        angleRot += NTData.SHOOTER_PIVOT_ANGLE_ADJUST.get() / 360.0;
+        angleRot += getAdjustForAlliance().get() / 360.0;
 
         angleRot = MathUtil.clamp(
                 angleRot,

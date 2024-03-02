@@ -16,6 +16,11 @@ public final class NTData {
     public static final NTEntry<Double> DRIVE_AIM_MAX_TURN = new NTDouble("Drive/Aim/Max Turn Speed (rot per sec)", 1).setPersistent();
     public static final NTEntry<Double> DRIVE_AIM_TOLERANCE = new NTDouble("Drive/Aim/Tolerance (rot)", 0.05).setPersistent();
 
+    public static final NTEntry<Double> DRIVE_SNAP_KP = new NTDouble("Drive/Snap/PID/kP", 8).setPersistent();
+    public static final NTEntry<Double> DRIVE_SNAP_KD = new NTDouble("Drive/Snap/PID/kD", 0).setPersistent();
+    public static final NTEntry<Double> DRIVE_SNAP_MAX_SPEED = new NTDouble("Drive/Snap/PID/Max Speed (meters per sec)", 2).setPersistent();
+    public static final NTEntry<Double> DRIVE_SNAP_DEADBAND = new NTDouble("Drive/Snap/PID/Deadband (m)", 0.05);
+
     // GOOD
     public static final NTEntry<Boolean> DRIVE_CALIBRATE = new NTBoolean("Drive/Modules/Calibrate", false);
     public static final NTEntry<Double> DRIVE_FL_OFFSET = new NTDouble("Drive/Modules/Front Left Offset (rot)", 0.611084).setPersistent();
@@ -104,7 +109,8 @@ public final class NTData {
     public static final NTEntry<Boolean> SHOOTER_PIVOT_RECALIBRATE = new NTBoolean("Shooter/Pivot/Calibration/Recalibrate", false);
     public static final NTEntry<Double> SHOOTER_PIVOT_CALIBRATE_VOLTS = new NTDouble("Shooter/Pivot/Calibration/Applied Volts", 4).setPersistent();
     public static final NTEntry<Double> SHOOTER_PIVOT_ALLOWABLE_PCT_ERR = new NTDouble("Shooter/Pivot/Allowable Pct Error", 0.01).setPersistent(); // FIXME TUNE
-    public static final NTEntry<Double> SHOOTER_PIVOT_ANGLE_ADJUST = new NTDouble("Shooter/Pivot/Angle Adjust (deg)", 0).setPersistent();
+    public static final NTEntry<Double> SHOOTER_PIVOT_ANGLE_ADJUST_BLUE = new NTDouble("Shooter/Pivot/Angle Adjust Blue (deg)", -1).setPersistent();
+    public static final NTEntry<Double> SHOOTER_PIVOT_ANGLE_ADJUST_RED = new NTDouble("Shooter/Pivot/Angle Adjust Red (deg)", 1).setPersistent();
 
     private NTData() {
         throw new AssertionError();

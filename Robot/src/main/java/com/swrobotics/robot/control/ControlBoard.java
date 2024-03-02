@@ -1,29 +1,26 @@
 package com.swrobotics.robot.control;
 
 import com.ctre.phoenix6.mechanisms.swerve.SwerveModule.DriveRequestType;
-import com.pathplanner.lib.auto.AutoBuilder;
-import com.pathplanner.lib.path.PathConstraints;
 import com.swrobotics.lib.input.XboxController;
+import com.swrobotics.lib.net.NTEntry;
 import com.swrobotics.mathlib.MathUtil;
 import com.swrobotics.robot.RobotContainer;
 
 import com.swrobotics.robot.commands.AimTowardsSpeakerCommand;
-import com.swrobotics.robot.commands.ShootCommand;
+import com.swrobotics.robot.commands.SnapDistanceCommand;
 import com.swrobotics.robot.config.NTData;
-import com.swrobotics.robot.subsystems.amp.AmpArmSubsystem;
-import com.swrobotics.robot.subsystems.amp.AmpIntakeSubsystem;
 import com.swrobotics.robot.subsystems.climber.ClimberArm;
 import com.swrobotics.robot.subsystems.speaker.IntakeSubsystem;
+import com.swrobotics.robot.subsystems.speaker.PivotSubsystem;
 import com.swrobotics.robot.subsystems.speaker.ShooterSubsystem;
 import com.swrobotics.robot.subsystems.speaker.aim.AmpAimCalculator;
 import com.swrobotics.robot.subsystems.swerve.SwerveDrive;
+import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj2.command.CommandScheduler;
-import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 
@@ -38,7 +35,8 @@ public class ControlBoard extends SubsystemBase {
      * Right bumper: spin up flywheel
      * Dpad Left: Manual subwoofer shot
      * Dpad Right: Manual podium shot
-     * Dpad down: recalibrate pivot
+     * Dpad Up: Snap to distance closer to speaker
+     * Dpad Down: Snap to distance farther to speaker
      *
      * Operator:
      * A: intake
@@ -64,6 +62,16 @@ public class ControlBoard extends SubsystemBase {
     private ClimberArm.State climberState;
     private boolean pieceRumble;
 
+    private final Debouncer driverSlowDebounce = new Debouncer(0.075);
+    private final Debouncer driverRobotRelDebounce = new Debouncer(0.075);
+    private final Debouncer driverFlywheelDebounce = new Debouncer(0.075);
+    private final Debouncer driverSnapCloserDebounce = new Debouncer(0.1);
+    private final Debouncer driverSnapFartherDebounce = new Debouncer(0.1);
+    private final Debouncer forceSubwooferDebounce = new Debouncer(0.1);
+    private final Debouncer forceStageCornerDebounce = new Debouncer(0.1);
+    private final Debouncer intakeDebounce = new Debouncer(0.075);
+    private final Debouncer shootDebounce = new Debouncer(0.075);
+
     public ControlBoard(RobotContainer robot) {
         this.robot = robot;
 
@@ -86,6 +94,10 @@ public class ControlBoard extends SubsystemBase {
                 robot.shooter
         ));
 
+        // Up is closer, down is farther
+        new Trigger(this::driverWantsSnapCloser).whileTrue(new SnapDistanceCommand(robot.drive, robot.shooter, true));
+        new Trigger(this::driverWantsSnapFarther).whileTrue(new SnapDistanceCommand(robot.drive, robot.shooter, false));
+
 //        Trigger ampTrigger = new Trigger(() -> operator.y.isPressed());
 //        ampTrigger.whileTrue(Commands.run(() -> robot.shooter.setTempAimCalculator(new AmpAimCalculator())));
 //        ampTrigger.onFalse(new ShootCommand(robot));
@@ -93,12 +105,22 @@ public class ControlBoard extends SubsystemBase {
         climberState = ClimberArm.State.RETRACTED_IDLE;
     }
 
+    private boolean driverWantsSnapCloser() {
+        return driverSnapCloserDebounce.calculate(driver.dpad.up.isPressed());
+    }
+
+    private boolean driverWantsSnapFarther() {
+        return driverSnapFartherDebounce.calculate(driver.dpad.down.isPressed());
+    }
+
     private boolean driverWantsAim() {
-        return driver.rightTrigger.isOutside(TRIGGER_BUTTON_THRESHOLD);
+        return driver.rightTrigger.isOutside(TRIGGER_BUTTON_THRESHOLD)
+                || driverWantsSnapCloser()
+                || driverWantsSnapFarther();
     }
 
     private boolean driverWantsFlywheels() {
-        return driver.rightBumper.isPressed();
+        return driverFlywheelDebounce.calculate(driver.rightBumper.isPressed());
     }
 
     private double squareWithSign(double value) {
@@ -108,7 +130,7 @@ public class ControlBoard extends SubsystemBase {
 
     private Translation2d getDriveTranslation() {
         double speed = NTData.DRIVE_SPEED_NORMAL.get();
-        if (driver.leftBumper.isPressed())
+        if (driverSlowDebounce.calculate(driver.leftBumper.isPressed()))
             speed = NTData.DRIVE_SPEED_SLOW.get();
         if (driver.leftTrigger.isOutside(TRIGGER_BUTTON_THRESHOLD))
             speed = SwerveDrive.MAX_LINEAR_SPEED;
@@ -125,7 +147,7 @@ public class ControlBoard extends SubsystemBase {
     }
 
     private boolean getRobotRelativeDrive() {
-        return driver.leftBumper.isPressed();
+        return driverRobotRelDebounce.calculate(driver.leftBumper.isPressed());
     }
 
     @Override
@@ -139,8 +161,8 @@ public class ControlBoard extends SubsystemBase {
         }
 
 
-        boolean forceToSubwoofer = driver.dpad.right.isPressed();
-        boolean forceToStageCorner = driver.dpad.left.isPressed();
+        boolean forceToSubwoofer = forceSubwooferDebounce.calculate(driver.dpad.left.isPressed());
+        boolean forceToStageCorner = forceStageCornerDebounce.calculate(driver.dpad.right.isPressed());
         robot.drive.setEstimatorIgnoreVision(forceToSubwoofer || forceToStageCorner);
 
         if (forceToSubwoofer)
@@ -149,15 +171,16 @@ public class ControlBoard extends SubsystemBase {
             robot.drive.setPose(robot.drive.getFieldInfo().flipPoseForAlliance(new Pose2d(3.354, 5.512, new Rotation2d(Math.PI))));
 
 
+        NTEntry<Double> pivotAdjust = PivotSubsystem.getAdjustForAlliance();
         if (operator.dpad.up.isRising())
-            NTData.SHOOTER_PIVOT_ANGLE_ADJUST.set(NTData.SHOOTER_PIVOT_ANGLE_ADJUST.get() + 1);
+            pivotAdjust.set(pivotAdjust.get() + 1);
         if (operator.dpad.down.isRising())
-            NTData.SHOOTER_PIVOT_ANGLE_ADJUST.set(NTData.SHOOTER_PIVOT_ANGLE_ADJUST.get() - 1);
+            pivotAdjust.set(pivotAdjust.get() - 1);
 
 
-        driver.setRumble(pieceRumble ? 0.5 : 0);
+        driver.setRumble(pieceRumble ? 0.6 : 0);
         boolean shooterReady = robot.shooter.isReadyToShoot();
-        operator.setRumble(pieceRumble ? 0.5 : (shooterReady ? 0.3 : 0));
+        operator.setRumble(pieceRumble ? 0.6 : (shooterReady ? 0.5 : 0));
 
         Translation2d translation = getDriveTranslation();
         if (DriverStation.getAlliance().orElse(DriverStation.Alliance.Blue) == DriverStation.Alliance.Red) {
@@ -183,29 +206,29 @@ public class ControlBoard extends SubsystemBase {
                 DriveRequestType.Velocity);
 
         IntakeSubsystem.State intakeState = IntakeSubsystem.State.OFF;
-        if (operator.a.isPressed())
+        if (intakeDebounce.calculate(operator.a.isPressed()))
             intakeState = IntakeSubsystem.State.INTAKE;
 
         // Indexer uses the intake state also
         robot.intake.set(intakeState);
-        boolean operatorWantsShoot = operator.b.isPressed();
+        boolean operatorWantsShoot = shootDebounce.calculate(operator.b.isPressed());
         robot.indexer.setFeedToShooter(operatorWantsShoot);
 
-        AmpArmSubsystem.Position ampArmPosition = AmpArmSubsystem.Position.STOW;
-        AmpIntakeSubsystem.State ampIntakeState = AmpIntakeSubsystem.State.OFF;
-        if (operator.x.isPressed()) {
-            ampArmPosition = AmpArmSubsystem.Position.PICKUP;
-            ampIntakeState = AmpIntakeSubsystem.State.INTAKE;
-        } else if (operator.y.isPressed()) {
-            ampArmPosition = AmpArmSubsystem.Position.SCORE_AMP;
-        } else if (operator.leftBumper.isPressed()) {
-            ampArmPosition = AmpArmSubsystem.Position.SCORE_TRAP;
-        }
-        if (operator.leftTrigger.isOutside(TRIGGER_BUTTON_THRESHOLD)) {
-            ampIntakeState = AmpIntakeSubsystem.State.OUTTAKE;
-        }
-        robot.ampArm.setPosition(ampArmPosition);
-        robot.ampIntake.setState(ampIntakeState);
+//        AmpArmSubsystem.Position ampArmPosition = AmpArmSubsystem.Position.STOW;
+//        AmpIntakeSubsystem.State ampIntakeState = AmpIntakeSubsystem.State.OFF;
+//        if (operator.x.isPressed()) {
+//            ampArmPosition = AmpArmSubsystem.Position.PICKUP;
+//            ampIntakeState = AmpIntakeSubsystem.State.INTAKE;
+//        } else if (operator.y.isPressed()) {
+//            ampArmPosition = AmpArmSubsystem.Position.SCORE_AMP;
+//        } else if (operator.leftBumper.isPressed()) {
+//            ampArmPosition = AmpArmSubsystem.Position.SCORE_TRAP;
+//        }
+//        if (operator.leftTrigger.isOutside(TRIGGER_BUTTON_THRESHOLD)) {
+//            ampIntakeState = AmpIntakeSubsystem.State.OUTTAKE;
+//        }
+//        robot.ampArm.setPosition(ampArmPosition);
+//        robot.ampIntake.setState(ampIntakeState);
 
         if (operator.rightBumper.isRising()) {
             boolean extended = climberState == ClimberArm.State.EXTENDED;

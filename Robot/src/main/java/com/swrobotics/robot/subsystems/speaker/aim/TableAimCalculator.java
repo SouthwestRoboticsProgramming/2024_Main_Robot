@@ -7,6 +7,8 @@ import com.swrobotics.robot.config.NTData;
 import java.util.TreeMap;
 
 public final class TableAimCalculator implements AimCalculator {
+    public static final TableAimCalculator INSTANCE = new TableAimCalculator();
+
     private final TreeMap<Double, Double> flywheelVelocityMap = new TreeMap<>();
     private final TreeMap<Double, Double> pivotAngleMap = new TreeMap<>();
 
@@ -15,19 +17,25 @@ public final class TableAimCalculator implements AimCalculator {
     public TableAimCalculator() {
         // Calibration 1 (MURA)
         double off = 5;
-        addCalibrationSample(1.1429, 63 - off, 35);
-        addCalibrationSample(1.924, 54 - off, 39);
-        addCalibrationSample(2.765, 41 - off, 45);
+//        addCalibratio?nSample(1.1429, 63 - off, 35);
+
+        addCalibrationSample(1.2, 60, 39);
+        addCalibrationSample(2.1, 46, 39);
+        addCalibrationSample(3.0, 34, 60);
+        addCalibrationSample(3.8, 29, 70);
+
+//        addCalibrationSample(1.924, 54 - off, 39);
+//        addCalibrationSample(2.765, 41 - off, 45);
 //        addCalibrationSample(3.635, 34 - off, 70); // vroom
 
         // Calibration 2 (shop)
-        addCalibrationSample(1.698725, 49.399451, 37.933578);
-        addCalibrationSample(2.340979, 38.664862, 44.923910);
-        addCalibrationSample(3.295272, 30.383333, 68.488096);
+//        addCalibrationSample(1.698725, 49.399451, 37.933578);
+//        addCalibrationSample(2.340979, 38.664862, 44.923910);
+//        addCalibrationSample(3.295272, 30.383333, 68.488096);
 
         // Calibration 3 (MURA)
-        addCalibrationSample(3.549, 31, 74);
-        addCalibrationSample(4.917, 24, 80);
+//        addCalibrationSample(3.549, 31, 74);
+//        addCalibrationSample(4.917, 24, 80);
     }
 
     private void addCalibrationSample(double distanceM, double angleDeg, double velocityRPS) {
@@ -72,5 +80,18 @@ public final class TableAimCalculator implements AimCalculator {
                 sample(flywheelVelocityMap, distanceToSpeaker),
                 sample(pivotAngleMap, distanceToSpeaker)
         );
+    }
+
+    public double getSnapDistance(double currentDist, boolean wantMoveCloser) {
+        Double distCloser = pivotAngleMap.floorKey(currentDist);
+        Double distFarther = pivotAngleMap.ceilingKey(currentDist);
+
+        // Clamp to min or max known sample if out of range
+        if (distCloser == null)
+            distCloser = distFarther;
+        if (distFarther == null)
+            distFarther = distCloser;
+
+        return wantMoveCloser ? distCloser : distFarther;
     }
 }
