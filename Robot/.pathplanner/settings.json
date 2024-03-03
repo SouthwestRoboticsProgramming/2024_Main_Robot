@@ -5,10 +5,7 @@
   "pathFolders": [
     "Troll"
   ],
-  "autoFolders": [
-    "Three Piece",
-    "Troll"
-  ],
+  "autoFolders": [],
   "defaultMaxVel": 4.11,
   "defaultMaxAccel": 6.0,
   "defaultMaxAngVel": 540.0,
