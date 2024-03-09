@@ -94,4 +94,8 @@ public final class TableAimCalculator implements AimCalculator {
 
         return wantMoveCloser ? distCloser : distFarther;
     }
+
+    public boolean isTooFar(double distance) {
+        return distance > pivotAngleMap.lastKey();
+    }
 }
