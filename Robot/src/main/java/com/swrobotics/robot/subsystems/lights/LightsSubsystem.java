@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Optional;
 
 public final class LightsSubsystem extends SubsystemBase {
-    private static final int LED_COUNT = 32;
+    private static final int LED_COUNT = 22;
 
     private final RobotContainer robot;
     private final AddressableLED leds;

@@ -66,7 +66,7 @@ public final class PrideSequencer {
         return new Flag(stripes.toArray(new Stripe[0]), patternWeight);
     }
 
-    private static final int REPEAT = 2;
+    private static final int REPEAT = 1;
     private static final float SCROLL = 4f;
     private static final double PRESENT_TIME = 10;
     private static final double TRANSITION_TIME = 0.5;

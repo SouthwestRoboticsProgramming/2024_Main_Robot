@@ -14,6 +14,7 @@ import com.swrobotics.robot.config.IOAllocation;
 import com.swrobotics.robot.control.ControlBoard;
 import com.swrobotics.robot.logging.FieldView;
 import com.swrobotics.robot.logging.SimView;
+import com.swrobotics.robot.subsystems.amp.AmpArm2Subsystem;
 import com.swrobotics.robot.subsystems.amp.AmpArmSubsystem;
 import com.swrobotics.robot.subsystems.amp.AmpIntakeSubsystem;
 import com.swrobotics.robot.subsystems.climber.ClimberSubsystem;
@@ -70,7 +71,8 @@ public class RobotContainer {
     public final IntakeSubsystem intake;
     public final IndexerSubsystem indexer;
     public final ShooterSubsystem shooter;
-    public final AmpArmSubsystem ampArm;
+//    public final AmpArmSubsystem ampArm;
+    public final AmpArm2Subsystem ampArm2;
     public final AmpIntakeSubsystem ampIntake;
     public final ClimberSubsystem climber;
 
@@ -102,7 +104,8 @@ public class RobotContainer {
         indexer = new IndexerSubsystem(intake);
         shooter = new ShooterSubsystem(drive, indexer);
 
-        ampArm = new AmpArmSubsystem();
+//        ampArm = new AmpArmSubsystem();
+        ampArm2 = new AmpArm2Subsystem();
         ampIntake = new AmpIntakeSubsystem();
 
         climber = new ClimberSubsystem();
@@ -120,10 +123,10 @@ public class RobotContainer {
 
         // Create a chooser to select the autonomous
         List<AutoEntry> autos = buildPathPlannerAutos();
-        autos.add(new AutoEntry("Drive forward", Commands.run(
+        autos.add(new AutoEntry("Drive backward", Commands.run(
                 () -> drive.drive(new DriveRequest(
                         SwerveDrive.AUTO_PRIORITY,
-                        drive.getFieldInfo().getAllianceForward().times(0.5),
+                        new Translation2d(-0.5, 0),
                         DriveRequestType.OpenLoopVoltage)),
                 drive
         ).withTimeout(5)));

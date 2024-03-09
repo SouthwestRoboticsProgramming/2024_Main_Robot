@@ -14,6 +14,7 @@ import com.swrobotics.robot.subsystems.speaker.IntakeSubsystem;
 import com.swrobotics.robot.subsystems.speaker.PivotSubsystem;
 import com.swrobotics.robot.subsystems.speaker.ShooterSubsystem;
 import com.swrobotics.robot.subsystems.speaker.aim.AmpAimCalculator;
+import com.swrobotics.robot.subsystems.speaker.aim.TableAimCalculator;
 import com.swrobotics.robot.subsystems.swerve.SwerveDrive;
 import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -178,10 +179,6 @@ public class ControlBoard extends SubsystemBase {
             pivotAdjust.set(pivotAdjust.get() - 1);
 
 
-        driver.setRumble(pieceRumble ? 0.6 : 0);
-        boolean shooterReady = robot.shooter.isReadyToShoot();
-        operator.setRumble(pieceRumble ? 0.6 : (shooterReady ? 0.5 : 0));
-
         Translation2d translation = getDriveTranslation();
         if (DriverStation.getAlliance().orElse(DriverStation.Alliance.Blue) == DriverStation.Alliance.Red) {
             translation = translation.rotateBy(Rotation2d.fromDegrees(180));
@@ -255,6 +252,14 @@ public class ControlBoard extends SubsystemBase {
         else if (operatorWantsShoot)
             flywheelControl = ShooterSubsystem.FlywheelControl.POOP;
         robot.shooter.setFlywheelControl(flywheelControl);
+
+
+        double distToSpeaker = robot.shooter.getSpeakerPosition().getDistance(robot.drive.getEstimatedPose().getTranslation());
+        boolean tooFar = TableAimCalculator.INSTANCE.isTooFar(distToSpeaker);
+
+        driver.setRumble(pieceRumble ? 0.6 : (tooFar && (driverWantsAim() || driverWantsFlywheels()) ? 0.5 : 0));
+        boolean shooterReady = robot.shooter.isReadyToShoot();
+        operator.setRumble(pieceRumble ? 0.6 : (shooterReady ? 0.5 : 0));
     }
 
     public void setPieceRumble(boolean pieceRumble) {
