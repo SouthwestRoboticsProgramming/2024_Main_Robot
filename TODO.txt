@@ -1,0 +1,28 @@
+For sure goals:
+
+[x] rumble driver when far
+amp arm not goof
+make lights not seizure when shooting
+shoot faster in auto
+remove wait for note from shoot, add alternative that does have wait
+auto put up intake when we have a note
+idle mode for flywheels when less than a distance to speaker
+lob mode
+add 2nd camera, maybe zoom in on speaker?
+driver has button to point at amp (x and b)
+  one of them could be point perp to the source
+operator has button to deploy amp bar
+always fast mode, limit accel/speed at low battery
+lights double blink green when flywheel ready
+change the preset buttons to be not dpad (y subwoofer, a podium)
+add chooser for whether to preset starting position if we can't see a tag
+make Choreo autos work
+tune in 3-5 autos very well
+
+Stretch goals:
+
+fallback to 1 controller mapping if one disconnects
+automate climbing sequence if amp arm is annoying
+limelight game piece targeting, drive on robot-rel side to side to align
+shoot while moving
+auto drive to amp w/ pathfinding (hold control)
