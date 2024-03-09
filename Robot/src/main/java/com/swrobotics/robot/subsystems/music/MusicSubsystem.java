@@ -43,7 +43,7 @@ public final class MusicSubsystem extends SubsystemBase {
         addInstrument(robot.drive.getTurnMotor(3));
         addInstrument(robot.climber.getLeftMotor());
         addInstrument(robot.climber.getRightMotor());
-        addInstrument(robot.ampArm.getMotor());
+        addInstrument(robot.ampArm2.getMotor());
         addInstrument(robot.shooter.getLeftFlywheelMotor());
         addInstrument(robot.shooter.getRightFlywheelMotor());
         addInstrument(robot.shooter.getPivotMotor());
