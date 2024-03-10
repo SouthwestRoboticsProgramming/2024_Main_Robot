@@ -1,5 +1,7 @@
 package com.swrobotics.robot.control;
 
+import java.security.InvalidAlgorithmParameterException;
+
 import com.ctre.phoenix6.mechanisms.swerve.SwerveModule.DriveRequestType;
 import com.swrobotics.lib.input.XboxController;
 import com.swrobotics.lib.net.NTEntry;
@@ -22,6 +24,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 
@@ -104,6 +107,12 @@ public class ControlBoard extends SubsystemBase {
 //        ampTrigger.onFalse(new ShootCommand(robot));
 
         climberState = ClimberArm.State.RETRACTED_IDLE;
+
+        operator.a.onFalling(() -> robot.intake.set(IntakeSubsystem.State.INTAKE));
+        operator.a.onFalling(() -> System.out.println("AHHHHH"));
+
+        operator.a.onRising(() -> robot.intake.set(IntakeSubsystem.State.OFF));
+        new Trigger(() -> robot.indexer.hasPiece() || !operator.a.isPressed()).onTrue(Commands.runOnce(() -> robot.intake.set(IntakeSubsystem.State.OFF)));
     }
 
     private boolean driverWantsSnapCloser() {
@@ -202,12 +211,7 @@ public class ControlBoard extends SubsystemBase {
                 chassisRequest,
                 DriveRequestType.Velocity);
 
-        IntakeSubsystem.State intakeState = IntakeSubsystem.State.OFF;
-        if (intakeDebounce.calculate(operator.a.isPressed()))
-            intakeState = IntakeSubsystem.State.INTAKE;
-
         // Indexer uses the intake state also
-        robot.intake.set(intakeState);
         boolean operatorWantsShoot = shootDebounce.calculate(operator.b.isPressed());
         robot.indexer.setFeedToShooter(operatorWantsShoot);
 
