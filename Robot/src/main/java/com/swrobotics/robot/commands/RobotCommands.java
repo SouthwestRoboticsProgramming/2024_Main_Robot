@@ -7,11 +7,15 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.ParallelDeadlineGroup;
 
 public final class RobotCommands {
-    public static Command aimAndShoot(RobotContainer robot) {
+    public static Command aimAndShoot(RobotContainer robot, boolean waitForNote) {
         AimTowardsSpeakerCommand aim = new AimTowardsSpeakerCommand(robot.drive, robot.shooter);
         Command shootSeq = Commands.sequence(
-                Commands.waitUntil(() -> aim.isInTolerance(NTData.DRIVE_AIM_TOLERANCE.get())),
-                new ShootCommand(robot)
+                Commands.waitUntil(() -> (!waitForNote || robot.indexer.hasPiece())
+                        && aim.isInTolerance(NTData.DRIVE_AIM_TOLERANCE.get())
+                        && robot.shooter.isReadyToShoot())
+                    .withTimeout(NTData.SHOOTER_AUTO_READY_TIMEOUT.get()),
+                Commands.waitSeconds(NTData.SHOOTER_AUTO_AFTER_READY_DELAY.get()),
+                new IndexerFeedCommand(robot.indexer)
         );
 
         return new ParallelDeadlineGroup(shootSeq, aim);
