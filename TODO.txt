@@ -13,7 +13,7 @@ driver has button to point at amp (x and b)
   one of them could be point perp to the source
 operator has button to deploy amp bar
 always fast mode, limit accel/speed at low battery
-lights double blink green when flywheel ready
+[x] lights double blink green when flywheel ready
 change the preset buttons to be not dpad (y subwoofer, a podium)
 add chooser for whether to preset starting position if we can't see a tag
 make Choreo autos work
