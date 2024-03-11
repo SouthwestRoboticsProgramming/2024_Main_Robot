@@ -116,10 +116,10 @@ public class RobotContainer {
         controlboard = new ControlBoard(this);
 
         // Register Named Commands for Auto
-        NamedCommands.registerCommand("Example Named Command", new InstantCommand());
         NamedCommands.registerCommand("Intake On", new IntakeSetCommand(intake, IntakeSubsystem.State.INTAKE));
         NamedCommands.registerCommand("Intake Off", new IntakeSetCommand(intake, IntakeSubsystem.State.OFF));
-        NamedCommands.registerCommand("Shoot", RobotCommands.aimAndShoot(this));
+        NamedCommands.registerCommand("Shoot", RobotCommands.aimAndShoot(this, false));
+        NamedCommands.registerCommand("Wait and Shoot", RobotCommands.aimAndShoot(this, true)); // Waits for indexer to have note
 
         // Create a chooser to select the autonomous
         List<AutoEntry> autos = buildPathPlannerAutos();
@@ -133,7 +133,7 @@ public class RobotContainer {
         autos.sort(Comparator.comparing(AutoEntry::name, String.CASE_INSENSITIVE_ORDER));
 
         SendableChooser<Command> autoChooser = new SendableChooser<>();
-        autoChooser.setDefaultOption("Just Shoot", RobotCommands.aimAndShoot(this));
+        autoChooser.setDefaultOption("Just Shoot", RobotCommands.aimAndShoot(this, false));
         autoChooser.addOption("None", Commands.none());
         for (AutoEntry auto : autos)
             autoChooser.addOption(auto.name(), auto.cmd());
