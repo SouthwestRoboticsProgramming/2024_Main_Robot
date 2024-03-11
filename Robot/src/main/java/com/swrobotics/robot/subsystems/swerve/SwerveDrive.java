@@ -16,6 +16,7 @@ import org.littletonrobotics.junction.Logger;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveModuleConstants;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveModule.SteerRequestType;
+import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.kauailabs.navx.frc.AHRS;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.pathfinding.Pathfinding;
@@ -36,6 +37,7 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.SPI;
+import edu.wpi.first.wpilibj.DriverStation.MatchType;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 import com.swrobotics.lib.net.NTEntry;
@@ -240,6 +242,13 @@ public final class SwerveDrive extends SubsystemBase {
             }
         }
 
+        // Coast if we are really close to the end of the match
+        // (lets us slide into the stage at the end to clutch up the 1 pt)
+        double time = DriverStation.getMatchTime();
+        if (DriverStation.isTeleopEnabled() && time < 3) {
+            setNeutralMode(NeutralModeValue.Coast);
+        }
+
         // Update estimator
         // Do refresh here, so we get the most up-to-date data
         SwerveModulePosition[] positions = getCurrentModulePositions(true);
@@ -315,6 +324,12 @@ public final class SwerveDrive extends SubsystemBase {
 
     public TalonFX getTurnMotor(int module) {
         return modules[module].getSteerMotor();
+    }
+
+    public void setNeutralMode(NeutralModeValue neutralMode) {
+        for (SwerveModule module : modules) {
+            module.configNeutralMode(neutralMode);
+        }
     }
 
     public void setEstimatorIgnoreVision(boolean ignoreVision) {
