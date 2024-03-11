@@ -19,7 +19,7 @@ public final class TableAimCalculator implements AimCalculator {
         double off = 5;
 //        addCalibratio?nSample(1.1429, 63 - off, 35);
 
-        addCalibrationSample(1.2, 60, 39);
+        addCalibrationSample(1.22, 60, 39);
         addCalibrationSample(2.1, 46, 39);
         addCalibrationSample(3.0, 34, 60);
         addCalibrationSample(3.8, 29, 70);
