@@ -1,11 +1,14 @@
 package com.swrobotics.robot.subsystems.speaker;
 
+import org.littletonrobotics.junction.AutoLogOutput;
+
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.swrobotics.lib.net.NTDouble;
 import com.swrobotics.mathlib.MathUtil;
 import com.swrobotics.robot.config.NTData;
 import com.swrobotics.robot.logging.SimView;
 import com.swrobotics.robot.subsystems.speaker.aim.AimCalculator;
+import com.swrobotics.robot.subsystems.speaker.aim.LobCalculator;
 import com.swrobotics.robot.subsystems.speaker.aim.TableAimCalculator;
 import com.swrobotics.robot.subsystems.swerve.SwerveDrive;
 import edu.wpi.first.math.filter.Debouncer;
@@ -24,6 +27,7 @@ public final class ShooterSubsystem extends SubsystemBase {
     }
 
     private static final Pose2d blueSpeakerPose = new Pose2d(0, 5.5475, new Rotation2d(0));
+    private static final Pose2d blueLobZone = new Pose2d(2, 6.8, new Rotation2d()); // Between the speaker and the amp
 
     private final PivotSubsystem pivot;
     private final FlywheelSubsystem flywheel;
@@ -60,10 +64,21 @@ public final class ShooterSubsystem extends SubsystemBase {
         return drive.getFieldInfo().flipPoseForAlliance(blueSpeakerPose).getTranslation();
     }
 
+    public Translation2d getLobZonePosition() {
+        return drive.getFieldInfo().flipPoseForAlliance(blueLobZone).getTranslation();
+    }
+
     @Override
     public void periodic() {
-        double distToSpeaker = getSpeakerPosition().getDistance(drive.getEstimatedPose().getTranslation());
-        AimCalculator.Aim aim = aimCalculator.calculateAim(distToSpeaker);
+        // Use the selected aim calculator
+        AimCalculator.Aim aim;
+        if (aimCalculator instanceof LobCalculator) {
+            double distToLob = getLobZonePosition().getDistance(drive.getEstimatedPose().getTranslation());
+            aim = aimCalculator.calculateAim(distToLob);
+        } else {
+            double distToSpeaker = getSpeakerPosition().getDistance(drive.getEstimatedPose().getTranslation());
+            aim = aimCalculator.calculateAim(distToSpeaker);
+        }
         targetAim = aim;
 
         if (DriverStation.isDisabled() || !pivot.hasCalibrated())
@@ -112,6 +127,8 @@ public final class ShooterSubsystem extends SubsystemBase {
 
     @Override
     public void simulationPeriodic() {
+        SimView.updateShooter(targetAim);
+
         if (isPreparing)
             SimView.targetTrajectory.update(targetAim);
         else

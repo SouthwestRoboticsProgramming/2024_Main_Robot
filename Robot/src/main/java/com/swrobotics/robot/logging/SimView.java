@@ -36,7 +36,8 @@ public final class SimView {
     }
 
     private static final MechanismRoot2d shooter = view.getRoot("Shooter", originX - 0.5, originY);
-    private static final MechanismLigament2d shooterPivot = new MechanismLigament2d("Pivot", 0.7, 0, 3, new Color8Bit(Color.kGreen));
+    private static final double maxShooterLength = 0.7;
+    private static final MechanismLigament2d shooterPivot = new MechanismLigament2d("Pivot", maxShooterLength, 0, 3, new Color8Bit(Color.kGreen));
     static {
         shooter.append(shooterPivot);
     }
@@ -64,8 +65,9 @@ public final class SimView {
         ampIntake.setAngle(intakeRot * 360 - 180);
     }
 
-    public static void updateShooterPivot(double pivotRot) {
-        shooterPivot.setAngle(pivotRot * 360);
+    public static void updateShooter(AimCalculator.Aim aim) {
+        shooterPivot.setAngle(Math.toDegrees(aim.pivotAngle()));
+        shooterPivot.setLength(aim.flywheelVelocity() / 100 * maxShooterLength);
     }
 
     // Do not use on real robot ever! This is very inefficient and only for debugging sim

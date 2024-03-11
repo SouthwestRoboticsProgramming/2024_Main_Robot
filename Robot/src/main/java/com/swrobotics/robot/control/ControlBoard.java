@@ -5,7 +5,7 @@ import com.swrobotics.lib.input.XboxController;
 import com.swrobotics.lib.net.NTEntry;
 import com.swrobotics.mathlib.MathUtil;
 import com.swrobotics.robot.RobotContainer;
-
+import com.swrobotics.robot.commands.AimTowardsLobCommand;
 import com.swrobotics.robot.commands.AimTowardsSpeakerCommand;
 import com.swrobotics.robot.commands.SnapDistanceCommand;
 import com.swrobotics.robot.config.NTData;
@@ -14,14 +14,17 @@ import com.swrobotics.robot.subsystems.speaker.IntakeSubsystem;
 import com.swrobotics.robot.subsystems.speaker.PivotSubsystem;
 import com.swrobotics.robot.subsystems.speaker.ShooterSubsystem;
 import com.swrobotics.robot.subsystems.speaker.aim.AmpAimCalculator;
+import com.swrobotics.robot.subsystems.speaker.aim.LobCalculator;
 import com.swrobotics.robot.subsystems.speaker.aim.TableAimCalculator;
 import com.swrobotics.robot.subsystems.swerve.SwerveDrive;
 import edu.wpi.first.math.filter.Debouncer;
+import edu.wpi.first.math.filter.Debouncer.DebounceType;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 
@@ -90,6 +93,14 @@ public class ControlBoard extends SubsystemBase {
         driver.start.onFalling(() -> robot.drive.setRotation(new Rotation2d()));
         driver.back.onFalling(() -> robot.drive.setRotation(new Rotation2d())); // Two buttons to reset gyro so the driver can't get confused
 
+        new Trigger(() -> driver.leftBumper.isPressed())
+            .whileTrue(new AimTowardsLobCommand(robot.drive, robot.shooter))
+            .whileTrue(Commands.run(() -> robot.shooter.setTempAimCalculator(LobCalculator.INSTANCE)))
+            .debounce(0.2, DebounceType.kRising) // Only debounce the shooting
+            .onFalse(
+                Commands.run(() -> robot.indexer.setFeedToShooter(true)).withTimeout(0.5)
+                .andThen(Commands.runOnce(() -> robot.indexer.setFeedToShooter(false))));
+
         new Trigger(this::driverWantsAim).whileTrue(new AimTowardsSpeakerCommand(
                 robot.drive,
                 robot.shooter
@@ -131,8 +142,8 @@ public class ControlBoard extends SubsystemBase {
 
     private Translation2d getDriveTranslation() {
         double speed = NTData.DRIVE_SPEED_NORMAL.get();
-        if (driverSlowDebounce.calculate(driver.leftBumper.isPressed()))
-            speed = NTData.DRIVE_SPEED_SLOW.get();
+        // if (driverSlowDebounce.calculate(driver.leftBumper.isPressed()))
+        //     speed = NTData.DRIVE_SPEED_SLOW.get();
         if (driver.leftTrigger.isOutside(TRIGGER_BUTTON_THRESHOLD))
             speed = SwerveDrive.MAX_LINEAR_SPEED;
 //            speed = NTData.DRIVE_SPEED_FAST.get();
@@ -148,7 +159,8 @@ public class ControlBoard extends SubsystemBase {
     }
 
     private boolean getRobotRelativeDrive() {
-        return driverRobotRelDebounce.calculate(driver.leftBumper.isPressed());
+        // return driverRobotRelDebounce.calculate(driver.leftBumper.isPressed());
+        return false;
     }
 
     @Override
