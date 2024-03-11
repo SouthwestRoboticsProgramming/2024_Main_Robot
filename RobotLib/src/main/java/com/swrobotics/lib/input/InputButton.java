@@ -57,7 +57,7 @@ public final class InputButton implements InputElement {
     }
 
     /**
-     * Adds a function that will be called whenever the button is released. This function will be
+     * Adds a function that will be called whenever the button is pressed. This function will be
      * invoked on each periodic where {@link #isRising()} returns {@code true}.
      *
      * @param risingFn function to call
@@ -74,7 +74,7 @@ public final class InputButton implements InputElement {
     }
 
     /**
-     * Adds a function that will be called whenever the button is pressed. This function will be
+     * Adds a function that will be called whenever the button is release. This function will be
      * invoked on each periodic where {@link #isFalling()} returns {@code true}.
      *
      * @param fallingFn function to call
