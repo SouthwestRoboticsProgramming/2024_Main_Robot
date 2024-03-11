@@ -48,7 +48,6 @@ public class ControlBoard extends SubsystemBase {
      * [disabled] Left bumper: amp score in trap
      * Left trigger: amp eject
      * Right bumper: toggle climber extend/retract
-     * Right trigger: retract with feedforward
      * Back: intake eject
      * Start: indexer eject
      */
@@ -103,7 +102,7 @@ public class ControlBoard extends SubsystemBase {
 //        ampTrigger.whileTrue(Commands.run(() -> robot.shooter.setTempAimCalculator(new AmpAimCalculator())));
 //        ampTrigger.onFalse(new ShootCommand(robot));
 
-        climberState = ClimberArm.State.RETRACTED_IDLE;
+        climberState = ClimberArm.State.RETRACTED;
     }
 
     private boolean driverWantsSnapCloser() {
@@ -154,7 +153,7 @@ public class ControlBoard extends SubsystemBase {
     @Override
     public void periodic() {
         if (!DriverStation.isTeleop()) {
-            climberState = ClimberArm.State.RETRACTED_IDLE;
+            climberState = ClimberArm.State.RETRACTED;
             robot.indexer.setReverse(false);
             robot.intake.setReverse(false);
             robot.shooter.setFlywheelControl(ShooterSubsystem.FlywheelControl.SHOOT); // Always aim with note when not teleop
@@ -229,10 +228,7 @@ public class ControlBoard extends SubsystemBase {
 
         if (operator.rightBumper.isRising()) {
             boolean extended = climberState == ClimberArm.State.EXTENDED;
-            climberState = extended ? ClimberArm.State.RETRACTED_IDLE : ClimberArm.State.EXTENDED;
-        }
-        if (operator.rightTrigger.isOutside(TRIGGER_BUTTON_THRESHOLD)) {
-            climberState = ClimberArm.State.RETRACTED_HOLD;
+            climberState = extended ? ClimberArm.State.RETRACTED : ClimberArm.State.EXTENDED;
         }
         robot.climber.setState(climberState);
 

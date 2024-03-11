@@ -17,6 +17,7 @@ import com.swrobotics.robot.logging.SimView;
 import com.swrobotics.robot.utils.TalonFXWithSim;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public final class PivotSubsystem extends SubsystemBase {
@@ -91,6 +92,11 @@ public final class PivotSubsystem extends SubsystemBase {
         calibrated = false;
 
         setpoint = Double.NEGATIVE_INFINITY;
+
+        if (RobotBase.isSimulation()) {
+            state = State.IDLE;
+            calibrated = true;
+        }
     }
 
     public void setTargetAngle(double angleRot) {
@@ -113,7 +119,7 @@ public final class PivotSubsystem extends SubsystemBase {
         if (state == State.CALIBRATING)
             return;
 
-        if (state != State.IDLE)
+        if (state != State.IDLE && RobotBase.isReal())
             calibrated = false;
 
         setTargetAngle(NTData.SHOOTER_PIVOT_IDLE_ANGLE.get() / 360.0);
@@ -124,7 +130,7 @@ public final class PivotSubsystem extends SubsystemBase {
         if (state == State.CALIBRATING)
             return;
 
-        if (state != State.IDLE)
+        if (state != State.IDLE && RobotBase.isReal())
             calibrated = false;
 
         motor.setControl(new NeutralOut());

@@ -25,6 +25,8 @@ public final class LightsSubsystem extends SubsystemBase {
     private final Debouncer batteryLowDebounce;
     private final PrideSequencer prideSequencer;
 
+    private double shooterReadyStartTimestamp = Double.NaN;
+
     public LightsSubsystem(RobotContainer robot) {
         this.robot = robot;
         leds = new AddressableLED(IOAllocation.RIO.PWM_LEDS);
@@ -43,23 +45,23 @@ public final class LightsSubsystem extends SubsystemBase {
         applySolid(Timer.getFPGATimestamp() % 0.5 > 0.25 ? Color.kRed : Color.kBlack);
     }
 
-    private void showClimberHold() {
-        Color color = Color.kPurple;
-
-        float bright = (float) (0.8 + 0.4 * Math.sin(Timer.getFPGATimestamp() * 2));
-        color = new Color(
-                color.red * bright,
-                color.green * bright,
-                color.blue * bright
-        );
-
-        applySolid(color);
-    }
-
     private void showShooterStatus() {
         if (robot.shooter.isReadyToShoot()) {
-            applySolid(Color.kWhite);
+            double timestamp = Timer.getFPGATimestamp();
+            if (Double.isNaN(shooterReadyStartTimestamp))
+                shooterReadyStartTimestamp = timestamp;
+            double elapsed = timestamp - shooterReadyStartTimestamp;
+
+            elapsed *= 4; // 4 blinks/sec
+
+            // 2 blinks, on 50% of the time, solid after 3rd blink
+            if ((elapsed <= 2 && (elapsed % 1) < 0.5) || elapsed > 2) {
+                applySolid(Color.kLime);
+            } else {
+                applySolid(Color.kBlack);
+            }
         } else {
+            shooterReadyStartTimestamp = Double.NaN;
             double pct = robot.shooter.getFlywheelPercentOfTarget();
             if (pct < 1) {
                 applyStripes(
@@ -71,7 +73,7 @@ public final class LightsSubsystem extends SubsystemBase {
                 float reversePct = (float) Math.min(pct - 1, 1);
                 applyStripes(
                         0,
-                        new Stripe(Color.kYellow, 1 - reversePct),
+                        new Stripe(Color.kWhite, 1 - reversePct),
                         new Stripe(Color.kOrange, reversePct)
                 );
             }
@@ -103,19 +105,23 @@ public final class LightsSubsystem extends SubsystemBase {
     public void periodic() {
         // Special indicator to swap battery
         boolean batteryLow = RobotController.getBatteryVoltage() < 10;
+
+        boolean resetShooterBlink = true;
         if (batteryLowDebounce.calculate(batteryLow)) {
             showLowBattery();
         } else if (DriverStation.isDisabled()) {
             prideSequencer.apply(this);
-        } else if (robot.climber.getCurrentState() == ClimberArm.State.RETRACTED_HOLD) {
-            showClimberHold();
         } else if (robot.shooter.isPreparing()) {
+            resetShooterBlink = false;
             showShooterStatus();
         } else if (robot.drive.getLastSelectedPriority() == SwerveDrive.AUTO_PRIORITY) {
             showAutoDriving();
         } else {
             showIdle();
         }
+
+        if (resetShooterBlink)
+            shooterReadyStartTimestamp = Double.NaN;
     }
 
     private void applySolid(Color color) {

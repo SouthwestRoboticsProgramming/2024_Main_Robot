@@ -41,7 +41,6 @@ public final class NTData {
     public static final NTEntry<Double> INTAKE_KD = new NTDouble("Intake/PID/kD", 0).setPersistent();
 
     // GOOD
-    public static final NTEntry<Double> CLIMBER_HOLD_VOLTS = new NTDouble("Climber/Hold Strength (volts)", 0).setPersistent();
     public static final NTEntry<Double> CLIMBER_EXTEND_POSITION = new NTDouble("Climber/Extended Position (rotor rot)", 85.629883).setPersistent();
     public static final NTEntry<Double> CLIMBER_KP = new NTDouble("Climber/PID/kP", 0.25).setPersistent();
     public static final NTEntry<Double> CLIMBER_KD = new NTDouble("Climber/PID/kD", 0).setPersistent();
