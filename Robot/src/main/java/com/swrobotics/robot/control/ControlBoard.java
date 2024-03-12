@@ -18,6 +18,8 @@ import com.swrobotics.robot.subsystems.speaker.ShooterSubsystem;
 import com.swrobotics.robot.subsystems.speaker.aim.AmpAimCalculator;
 import com.swrobotics.robot.subsystems.speaker.aim.TableAimCalculator;
 import com.swrobotics.robot.subsystems.swerve.SwerveDrive;
+import com.swrobotics.robot.subsystems.swerve.SwerveDrive.TurnRequest;
+
 import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -96,6 +98,9 @@ public class ControlBoard extends SubsystemBase {
                 robot.drive,
                 robot.shooter
         ));
+
+        // Spin like mad when the driver clicks in the right stick
+        new Trigger(() -> driver.rightStickButton.isPressed()).debounce(0.1).whileTrue(Commands.run(() -> robot.drive.turn(new TurnRequest(1, Rotation2d.fromDegrees(640)))));
 
         // Up is closer, down is farther
         new Trigger(this::driverWantsSnapCloser).whileTrue(new SnapDistanceCommand(robot.drive, robot.shooter, true));
