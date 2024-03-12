@@ -8,6 +8,7 @@ import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
+import com.ctre.phoenix6.signals.ReverseLimitTypeValue;
 import com.ctre.phoenix6.signals.ReverseLimitValue;
 import com.swrobotics.lib.net.NTBoolean;
 import com.swrobotics.lib.net.NTEntry;
@@ -80,6 +81,8 @@ public final class PivotSubsystem extends SubsystemBase {
         config.Feedback.SensorToMechanismRatio = motorToPivotRatio;
         config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
         config.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
+        config.HardwareLimitSwitch.ReverseLimitEnable = true;
+        config.HardwareLimitSwitch.ReverseLimitType = ReverseLimitTypeValue.NormallyClosed;
 
         motor.getConfigurator().apply(config);
         position = motor.getPosition();
@@ -149,7 +152,7 @@ public final class PivotSubsystem extends SubsystemBase {
         if (state != State.SHOOTING && !calibrated) {
             motor.setControl(new VoltageOut(-NTData.SHOOTER_PIVOT_CALIBRATE_VOLTS.get()));
             limitSwitch.refresh();
-            boolean atLimit = limitSwitch.getValue() == ReverseLimitValue.ClosedToGround;
+            boolean atLimit = limitSwitch.getValue() == ReverseLimitValue.Open; // Normally closed
             limitSw.set(atLimit);
 
             if (atLimit) {

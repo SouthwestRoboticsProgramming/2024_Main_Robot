@@ -107,14 +107,17 @@ public class ControlBoard extends SubsystemBase {
 
         climberState = ClimberArm.State.RETRACTED;
 
-        Trigger operatorA = new Trigger(operator.a::isPressed);
-        operatorA.onTrue(Commands.runOnce(() -> robot.intake.set(IntakeSubsystem.State.INTAKE)));
-        operatorA.onFalse(Commands.runOnce(() -> robot.intake.set(IntakeSubsystem.State.OFF)));
+//        Trigger operatorA = new Trigger(operator.a::isPressed);
+//        operatorA.onTrue(Commands.runOnce(() -> robot.intake.set(IntakeSubsystem.State.INTAKE)));
+        operator.a.onRising(() -> robot.intake.set(IntakeSubsystem.State.INTAKE));
+        operator.a.onFalling(() -> robot.intake.set(IntakeSubsystem.State.OFF));
+//        operatorA.onFalse(Commands.runOnce(() -> robot.intake.set(IntakeSubsystem.State.OFF)));
         robot.intake.set(IntakeSubsystem.State.OFF);
 
 //        operator.a.onFalling(() -> robot.intake.set(IntakeSubsystem.State.INTAKE));
 //        operator.a.onRising(() -> robot.intake.set(IntakeSubsystem.State.OFF));
-        new Trigger(() -> robot.indexer.hasPiece() || !operator.a.isPressed()).onTrue(Commands.runOnce(() -> robot.intake.set(IntakeSubsystem.State.OFF)));
+        new Trigger(() -> robot.indexer.hasPiece() || !operator.a.isPressed())
+                .onTrue(Commands.runOnce(() -> robot.intake.set(IntakeSubsystem.State.OFF)));
     }
 
     private boolean driverWantsSnapCloser() {
