@@ -3,12 +3,16 @@ package com.swrobotics.robot.control;
 import java.security.InvalidAlgorithmParameterException;
 
 import com.ctre.phoenix6.mechanisms.swerve.SwerveModule.DriveRequestType;
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.path.PathConstraints;
 import com.swrobotics.lib.input.XboxController;
 import com.swrobotics.lib.net.NTEntry;
 import com.swrobotics.mathlib.MathUtil;
 import com.swrobotics.robot.RobotContainer;
 
 import com.swrobotics.robot.commands.AimTowardsSpeakerCommand;
+import com.swrobotics.robot.commands.AmpAlignCommand;
+import com.swrobotics.robot.commands.DriveIntoWallCommand;
 import com.swrobotics.robot.commands.SnapDistanceCommand;
 import com.swrobotics.robot.config.NTData;
 import com.swrobotics.robot.subsystems.climber.ClimberArm;
@@ -96,6 +100,14 @@ public class ControlBoard extends SubsystemBase {
                 robot.drive,
                 robot.shooter
         ));
+
+        // new Trigger(() -> driver.x.isPressed()).or(() -> driver.b.isPressed()).onTrue(AutoBuilder.pathfindToPose(new Pose2d(new Translation2d(1.823, 8.254), Rotation2d.fromDegrees(90)), new PathConstraints(3.0, 3.0, 540, 640)));
+        new Trigger(() -> driver.x.isPressed()).or(() -> driver.b.isPressed()).whileTrue(
+            AutoBuilder.pathfindToPose(
+                new Pose2d(new Translation2d(1.84, 7.4),
+                Rotation2d.fromDegrees(90)),
+                new PathConstraints(3.0, 3.0, 540, 640))
+            .andThen(new DriveIntoWallCommand(robot.drive).withTimeout(1.0)));
 
         // Up is closer, down is farther
         new Trigger(this::driverWantsSnapCloser).whileTrue(new SnapDistanceCommand(robot.drive, robot.shooter, true));
