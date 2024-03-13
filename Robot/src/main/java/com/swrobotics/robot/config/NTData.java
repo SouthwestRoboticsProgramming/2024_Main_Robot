@@ -64,6 +64,10 @@ public final class NTData {
     public static final NTEntry<Double> AMP_ARM_KD = new NTDouble("Amp/Arm/PID/kD", 0).setPersistent();
     public static final NTEntry<Double> AMP_ARM_GRAVITY_AMOUNT = new NTDouble("Amp/Arm/Gravity (volts at horiz)", 0).setPersistent();
 
+    public static final NTEntry<Double> AMP_ARM_2_KP = new NTDouble("Amp Arm 2/kP", 50).setPersistent();
+    public static final NTEntry<Double> AMP_ARM_2_KD = new NTDouble("Amp Arm 2/kD", 0).setPersistent();
+    public static final NTEntry<Double> AMP_ARM_2_EXTEND_POS = new NTDouble("Amp Arm 2/Extend Pos (deg)", 110).setPersistent();
+
     // FIXME TUNE
     public static final NTEntry<Double> AMP_INTAKE_INTAKE_SPEED = new NTDouble("Amp/Intake/Intake Speed (pct)", 0.5).setPersistent();
     public static final NTEntry<Double> AMP_INTAKE_OUTTAKE_SPEED = new NTDouble("Amp/Intake/Outtake Speed (pct)", 0.5).setPersistent();
