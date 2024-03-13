@@ -15,6 +15,7 @@ import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
@@ -74,7 +75,16 @@ public final class ShooterSubsystem extends SubsystemBase {
         AimCalculator.Aim aim;
         if (aimCalculator instanceof LobCalculator) {
             double distToLob = getLobZonePosition().getDistance(drive.getEstimatedPose().getTranslation());
-            aim = aimCalculator.calculateAim(distToLob);
+            Pose2d robotPose = drive.getEstimatedPose();
+            Translation2d robotPos = robotPose.getTranslation();
+            ChassisSpeeds robotSpeeds = drive.getFieldRelativeSpeeds();
+        
+            Translation2d target = getLobZonePosition();
+            Rotation2d angleToTarget = target.minus(robotPos).getAngle();
+        
+            // Relative to the target
+            Translation2d robotVelocity = new Translation2d(robotSpeeds.vxMetersPerSecond, robotSpeeds.vyMetersPerSecond).rotateBy(angleToTarget);
+            aim = LobCalculator.INSTANCE.calculateAim(distToLob, robotVelocity.getX());
         } else {
             double distToSpeaker = getSpeakerPosition().getDistance(drive.getEstimatedPose().getTranslation());
             aim = aimCalculator.calculateAim(distToSpeaker);

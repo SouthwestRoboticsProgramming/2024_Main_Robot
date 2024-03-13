@@ -1,14 +1,21 @@
 package com.swrobotics.robot.commands;
 
+import org.littletonrobotics.junction.AutoLogOutput;
+
 import com.swrobotics.lib.net.NTUtil;
 import com.swrobotics.mathlib.MathUtil;
 import com.swrobotics.robot.config.NTData;
 import com.swrobotics.robot.subsystems.speaker.ShooterSubsystem;
+import com.swrobotics.robot.subsystems.speaker.aim.AimCalculator;
 import com.swrobotics.robot.subsystems.swerve.SwerveDrive;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.geometry.Twist2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.math.kinematics.proto.ChassisSpeedsProto;
+import edu.wpi.first.math.kinematics.struct.ChassisSpeedsStruct;
 import edu.wpi.first.wpilibj2.command.Command;
 
 public final class AimTowardsLobCommand extends Command {
@@ -37,11 +44,19 @@ public final class AimTowardsLobCommand extends Command {
     public void execute() {
         Pose2d robotPose = drive.getEstimatedPose();
         Translation2d robotPos = robotPose.getTranslation();
-
+        ChassisSpeeds robotSpeeds = drive.getFieldRelativeSpeeds();
+        
         Translation2d target = shooter.getLobZonePosition();
         Rotation2d angleToTarget = target.minus(robotPos).getAngle();
+        
+        // Relative to the target
+        Translation2d robotVelocity = new Translation2d(robotSpeeds.vxMetersPerSecond, robotSpeeds.vyMetersPerSecond).rotateBy(angleToTarget);
 
-        double correctionRad = 0;
+        AimCalculator.Aim currentAim = shooter.getTargetAim();
+        double flyTime = getFlyTime(currentAim);
+        double missAmount = flyTime * robotVelocity.getY();
+
+        double correctionRad = -Math.atan2(missAmount, currentAim.distanceToSpeaker());
 
         double setpointAngle = MathUtil.wrap(angleToTarget.getRadians() + correctionRad, -Math.PI, Math.PI);
         double currentAngle = MathUtil.wrap(robotPose.getRotation().getRadians(), -Math.PI, Math.PI);
@@ -56,5 +71,9 @@ public final class AimTowardsLobCommand extends Command {
 
     public boolean isInTolerance(double tolRotations) {
         return errorRad < tolRotations * MathUtil.TAU;
+    }
+
+    private double getFlyTime(AimCalculator.Aim aim) {
+        return Math.cos(aim.pivotAngle()) * aim.flywheelVelocity() / NTData.SHOOTER_LOB_POWER_COEFFICIENT.get() / 9.8;
     }
 }

@@ -1,34 +1,43 @@
 package com.swrobotics.robot.subsystems.speaker.aim;
 
-import com.swrobotics.lib.net.NTDouble;
+import com.swrobotics.mathlib.MathUtil;
+import com.swrobotics.robot.config.NTData;
+
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
 
 public class LobCalculator implements AimCalculator {
     public static final LobCalculator INSTANCE = new LobCalculator();
 
-    private NTDouble LOB_HEIGHT;
-    private NTDouble LOB_POWER_MULTIPLIER;
     private static final double twoG = 9.8 * 2;
     private double sqrt2gh;
 
     public LobCalculator() {
-        LOB_HEIGHT = new NTDouble("Shooter/Lob/Height (m)", 3);
-        LOB_POWER_MULTIPLIER = new NTDouble("Shooter/Lob/Power Multiplier", 1.25);
-        LOB_HEIGHT.onChange((a) -> this.updateHeight());
-        sqrt2gh = Math.sqrt(twoG * LOB_HEIGHT.get());
+        NTData.SHOOTER_LOB_HEIGHT_METERS.onChange((a) -> this.updateHeight());
+        sqrt2gh = Math.sqrt(twoG * NTData.SHOOTER_LOB_HEIGHT_METERS.get());
+    }
+
+    public Aim calculateAim(double distanceToSpeaker, double velocityTowardsGoal) {
+        double angleRad = Math.atan2(4 * NTData.SHOOTER_LOB_HEIGHT_METERS.get(), distanceToSpeaker);
+        double velocity = sqrt2gh / Math.sin(angleRad);
+
+        Translation2d velocityVector = new Translation2d(velocity, new Rotation2d(angleRad));
+        Translation2d driveVelocityVector = new Translation2d(velocityTowardsGoal, 0);
+        Translation2d shooterVelocity = velocityVector.minus(driveVelocityVector);
+
+        double velocitySetpoint = shooterVelocity.getNorm() * NTData.SHOOTER_LOB_POWER_COEFFICIENT.get();
+
+        // System.out.println("V: " + velocitySetpoint + " A: " + Math.toDegrees(angleRad));
+        return new Aim(velocitySetpoint, MathUtil.clamp(shooterVelocity.getAngle().getRadians(), Math.toRadians(23), Math.toRadians(69)), distanceToSpeaker);
     }
 
     @Override
     public Aim calculateAim(double distanceToSpeaker) {
-        double angleRad = Math.atan2(4 * LOB_HEIGHT.get(), distanceToSpeaker);
-        double velocity = sqrt2gh / Math.sin(angleRad);
-        double velocitySetpoint = velocity * LOB_POWER_MULTIPLIER.get();
-
-        System.out.println("V: " + velocitySetpoint + " A: " + Math.toDegrees(angleRad));
-        return new Aim(velocitySetpoint, angleRad);
+        return calculateAim(distanceToSpeaker, 0);
     }
 
     private void updateHeight() {
-        sqrt2gh = Math.sqrt(twoG * LOB_HEIGHT.get());
+        sqrt2gh = Math.sqrt(twoG * NTData.SHOOTER_LOB_HEIGHT_METERS.get());
     }
     
 }

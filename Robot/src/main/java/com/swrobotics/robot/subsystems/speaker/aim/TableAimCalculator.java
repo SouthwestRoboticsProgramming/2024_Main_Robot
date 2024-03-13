@@ -78,7 +78,8 @@ public final class TableAimCalculator implements AimCalculator {
 
         return new Aim(
                 sample(flywheelVelocityMap, distanceToSpeaker),
-                sample(pivotAngleMap, distanceToSpeaker)
+                sample(pivotAngleMap, distanceToSpeaker),
+                distanceToSpeaker
         );
     }
 
