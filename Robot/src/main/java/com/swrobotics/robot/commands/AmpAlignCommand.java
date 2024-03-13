@@ -4,7 +4,6 @@ import com.ctre.phoenix6.mechanisms.swerve.SwerveModule.DriveRequestType;
 import com.swrobotics.lib.net.NTUtil;
 import com.swrobotics.mathlib.MathUtil;
 import com.swrobotics.robot.config.NTData;
-import com.swrobotics.robot.subsystems.speaker.ShooterSubsystem;
 import com.swrobotics.robot.subsystems.swerve.SwerveDrive;
 import com.swrobotics.robot.subsystems.swerve.SwerveDrive.DriveRequest;
 
@@ -22,7 +21,7 @@ public final class AmpAlignCommand extends Command {
     private final PIDController turnPid;
     private double errorRad;
 
-    public AmpAlignCommand(SwerveDrive drive, ShooterSubsystem shooter) {
+    public AmpAlignCommand(SwerveDrive drive) {
         this.drive = drive;
 
         turnPid = NTUtil.tunablePID(NTData.DRIVE_AIM_KP, NTData.DRIVE_AIM_KD);

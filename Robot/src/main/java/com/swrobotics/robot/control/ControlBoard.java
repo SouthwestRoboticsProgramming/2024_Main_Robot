@@ -101,13 +101,17 @@ public class ControlBoard extends SubsystemBase {
                 robot.shooter
         ));
 
-        // new Trigger(() -> driver.x.isPressed()).or(() -> driver.b.isPressed()).onTrue(AutoBuilder.pathfindToPose(new Pose2d(new Translation2d(1.823, 8.254), Rotation2d.fromDegrees(90)), new PathConstraints(3.0, 3.0, 540, 640)));
-        new Trigger(() -> driver.x.isPressed()).or(() -> driver.b.isPressed()).whileTrue(
+        // Full auto amp
+        new Trigger(() -> driver.b.isPressed()).or(() -> driver.b.isPressed()).whileTrue(
             AutoBuilder.pathfindToPose(
                 new Pose2d(new Translation2d(1.84, 7.4),
                 Rotation2d.fromDegrees(90)),
                 new PathConstraints(3.0, 3.0, 540, 640))
-            .andThen(new DriveIntoWallCommand(robot.drive).withTimeout(1.0)));
+            .andThen(new DriveIntoWallCommand(robot.drive).withTimeout(1.0)
+            .alongWith())); // FIXME: Make the bar go up too
+
+        // Just angle amp
+        new Trigger(() -> driver.a.isPressed()).whileTrue(new AmpAlignCommand(robot.drive).alongWith()); // FIXME: Make the bar go up too
 
         // Up is closer, down is farther
         new Trigger(this::driverWantsSnapCloser).whileTrue(new SnapDistanceCommand(robot.drive, robot.shooter, true));
