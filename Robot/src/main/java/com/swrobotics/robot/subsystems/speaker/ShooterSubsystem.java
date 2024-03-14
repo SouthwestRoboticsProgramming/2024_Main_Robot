@@ -1,6 +1,6 @@
 package com.swrobotics.robot.subsystems.speaker;
 
-import org.littletonrobotics.junction.AutoLogOutput;
+import edu.wpi.first.wpilibj.RobotBase;
 
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.swrobotics.lib.net.NTDouble;
@@ -85,11 +85,20 @@ public final class ShooterSubsystem extends SubsystemBase {
             // Relative to the target
             Translation2d robotVelocity = new Translation2d(robotSpeeds.vxMetersPerSecond, robotSpeeds.vyMetersPerSecond).rotateBy(angleToTarget);
             aim = LobCalculator.INSTANCE.calculateAim(distToLob, robotVelocity.getX());
+
+            if (RobotBase.isSimulation())
+                SimView.lobTrajectory.update(
+                        aim.flywheelVelocity() / NTData.SHOOTER_LOB_POWER_COEFFICIENT.get(),
+                        aim.pivotAngle());
         } else {
             double distToSpeaker = getSpeakerPosition().getDistance(drive.getEstimatedPose().getTranslation());
             aim = aimCalculator.calculateAim(distToSpeaker);
+
+            if (RobotBase.isSimulation())
+                SimView.lobTrajectory.clear();
         }
         targetAim = aim;
+        aimCalculator = tableAimCalculator;
 
         if (DriverStation.isDisabled() || !pivot.hasCalibrated())
             return;
@@ -129,8 +138,6 @@ public final class ShooterSubsystem extends SubsystemBase {
 
         NTData.SHOOTER_READY.set(isReadyToShoot());
         pctErr.set(flywheel.getPercentErr());
-
-        aimCalculator = tableAimCalculator;
     }
 
     NTDouble pctErr = new NTDouble("Shooter/Debug/Percent Error", 0);
@@ -138,11 +145,6 @@ public final class ShooterSubsystem extends SubsystemBase {
     @Override
     public void simulationPeriodic() {
         SimView.updateShooter(targetAim);
-
-        if (isPreparing)
-            SimView.targetTrajectory.update(targetAim);
-        else
-            SimView.targetTrajectory.clear();
     }
 
     public boolean isPreparing() {

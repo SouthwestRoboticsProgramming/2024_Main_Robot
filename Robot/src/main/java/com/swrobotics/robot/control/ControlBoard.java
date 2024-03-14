@@ -93,7 +93,7 @@ public class ControlBoard extends SubsystemBase {
         driver.start.onFalling(() -> robot.drive.setRotation(new Rotation2d()));
         driver.back.onFalling(() -> robot.drive.setRotation(new Rotation2d())); // Two buttons to reset gyro so the driver can't get confused
 
-        new Trigger(() -> driver.leftBumper.isPressed())
+        new Trigger(driver.leftBumper::isPressed)
             .whileTrue(new AimTowardsLobCommand(robot.drive, robot.shooter))
             .whileTrue(Commands.run(() -> robot.shooter.setTempAimCalculator(LobCalculator.INSTANCE)))
             .debounce(0.2, DebounceType.kRising) // Only debounce the shooting

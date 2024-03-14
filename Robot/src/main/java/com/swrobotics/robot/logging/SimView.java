@@ -42,8 +42,8 @@ public final class SimView {
         shooter.append(shooterPivot);
     }
 
-    public static final ShooterTrajectoryView targetTrajectory = new ShooterTrajectoryView(
-            view.getRoot("Target Trajectory", originX, originY + 0.4),
+    public static final ShooterTrajectoryView lobTrajectory = new ShooterTrajectoryView(
+            view.getRoot("Lob Trajectory", originX, originY + 0.4),
             new Color8Bit(Color.kYellow)
     );
 
@@ -72,7 +72,7 @@ public final class SimView {
 
     // Do not use on real robot ever! This is very inefficient and only for debugging sim
     public static final class ShooterTrajectoryView {
-        private static final double maxTime = 1;
+        private static final double maxTime = 2;
         private static final int segments = 16;
 
         private final MechanismLigament2d[] ligaments;
@@ -98,10 +98,11 @@ public final class SimView {
             }
         }
 
-        public void update(AimCalculator.Aim aim) {
-            double vx = aim.flywheelVelocity() * Math.cos(aim.pivotAngle());
-            double vy = aim.flywheelVelocity() * Math.sin(aim.pivotAngle());
+        public void update(double initialVelocityMPS, double pivotAngleRad) {
+            double vx = initialVelocityMPS * Math.cos(pivotAngleRad);
+            double vy = initialVelocityMPS * Math.sin(pivotAngleRad);
 
+            // Plot free-fall trajectory
             double px = 0, py = 0;
             double pa = 0;
             for (int i = 0; i < segments; i++) {
