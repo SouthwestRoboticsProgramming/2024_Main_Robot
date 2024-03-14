@@ -120,6 +120,7 @@ public class RobotContainer {
         NamedCommands.registerCommand("Intake Off", new IntakeSetCommand(intake, IntakeSubsystem.State.OFF));
         NamedCommands.registerCommand("Shoot", RobotCommands.aimAndShoot(this, false));
         NamedCommands.registerCommand("Wait and Shoot", RobotCommands.aimAndShoot(this, true)); // Waits for indexer to have note
+        NamedCommands.registerCommand("Eject Hard", RobotCommands.ejectHard(this));
 
         // Create a chooser to select the autonomous
         List<AutoEntry> autos = buildPathPlannerAutos();

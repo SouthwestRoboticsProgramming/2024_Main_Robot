@@ -81,8 +81,10 @@ public final class SimView {
     public static void setShooting(boolean shooting) {
         if (shooting) {
             shooterPivot.setColor(new Color8Bit(Color.kBlueViolet));
+            view.setBackgroundColor(new Color8Bit(Color.kYellow));
         } else {
             shooterPivot.setColor(new Color8Bit(Color.kGreen));
+            view.setBackgroundColor(new Color8Bit(Color.kDarkGray));
         }
     }
 

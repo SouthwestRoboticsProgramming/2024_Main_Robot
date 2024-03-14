@@ -17,13 +17,16 @@ public final class IndexerFeedCommand extends Command {
 
     @Override
     public void initialize() {
-        timer.restart();
+        timer.reset();
     }
 
     @Override
     public void execute() {
         indexer.setFeedToShooter(true);
         SimView.setShooting(true);
+        if (!indexer.hasPiece()) {
+            timer.start();
+        }
     }
 
     @Override
