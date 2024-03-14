@@ -33,7 +33,6 @@ public class ControlBoard extends SubsystemBase {
      * Driver:
      * Left stick: translation
      * Right stick X: rotation
-     * Left trigger: fast mode
      * Left bumper: robot relative
      * Right trigger: aim at speaker
      * Right bumper: spin up flywheel
@@ -143,17 +142,21 @@ public class ControlBoard extends SubsystemBase {
         return Math.copySign(squared, value);
     }
 
+    private double powerWithSign(double value, double power) {
+        double powered = Math.pow(Math.abs(value), power);
+        return Math.copySign(powered, value);
+    }
+
     private Translation2d getDriveTranslation() {
-        double speed = NTData.DRIVE_SPEED_NORMAL.get();
-        if (driverSlowDebounce.calculate(driver.leftBumper.isPressed()))
-            speed = NTData.DRIVE_SPEED_SLOW.get();
-        if (driver.leftTrigger.isOutside(TRIGGER_BUTTON_THRESHOLD))
-            speed = SwerveDrive.MAX_LINEAR_SPEED;
-//            speed = NTData.DRIVE_SPEED_FAST.get();
+        // double speed = NTData.DRIVE_SPEED_NORMAL.get();
+        double speed = SwerveDrive.MAX_LINEAR_SPEED;
 
         Translation2d leftStick = driver.getLeftStick();
-        double x = -squareWithSign(leftStick.getY()) * speed;
-        double y = -squareWithSign(leftStick.getX()) * speed;
+        // double x = -squareWithSign(leftStick.getY()) * speed;
+        // double y = -squareWithSign(leftStick.getX()) * speed;
+        double power = 2.5;
+        double x = -powerWithSign(leftStick.getY(), power) * speed;
+        double y = -powerWithSign(leftStick.getX(), power) * speed;
         return new Translation2d(x, y);
     }
 
