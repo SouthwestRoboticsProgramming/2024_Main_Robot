@@ -89,6 +89,7 @@ public final class SwerveDrive extends SubsystemBase {
     private DriveRequest currentDriveRequest;
     private TurnRequest currentTurnRequest;
     private int lastSelectedPriority;
+    private NeutralModeValue currentNeutralMode;
 
     public SwerveDrive(FieldInfo fieldInfo, MessengerClient msg) {
         this.fieldInfo = fieldInfo;
@@ -118,6 +119,7 @@ public final class SwerveDrive extends SubsystemBase {
         prevPositions = null;
         currentDriveRequest = NULL_DRIVE;
         currentTurnRequest = NULL_TURN;
+        currentNeutralMode = NeutralModeValue.Brake;
 
         // Configure pathing
         AutoBuilder.configureHolonomic(
@@ -247,6 +249,8 @@ public final class SwerveDrive extends SubsystemBase {
         double time = DriverStation.getMatchTime();
         if (DriverStation.isTeleopEnabled() && time < 3) {
             setNeutralMode(NeutralModeValue.Coast);
+        } else {
+            setNeutralMode(NeutralModeValue.Brake);
         }
 
         // Update estimator
@@ -327,6 +331,10 @@ public final class SwerveDrive extends SubsystemBase {
     }
 
     public void setNeutralMode(NeutralModeValue neutralMode) {
+        if (neutralMode == currentNeutralMode)
+            return;
+
+        currentNeutralMode = neutralMode;
         for (SwerveModule module : modules) {
             module.configNeutralMode(neutralMode);
         }
