@@ -13,6 +13,7 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public final class ShooterSubsystem extends SubsystemBase {
@@ -112,10 +113,10 @@ public final class ShooterSubsystem extends SubsystemBase {
 
     @Override
     public void simulationPeriodic() {
-        if (isPreparing)
-            SimView.targetTrajectory.update(targetAim);
-        else
-            SimView.targetTrajectory.clear();
+        // if (isPreparing)
+        //     SimView.targetTrajectory.update(targetAim);
+        // else
+        //     SimView.targetTrajectory.clear();
     }
 
     public boolean isPreparing() {
@@ -123,6 +124,7 @@ public final class ShooterSubsystem extends SubsystemBase {
     }
 
     public boolean isReadyToShoot() {
+        if (RobotBase.isSimulation()) { return true; }
         return isPreparing && flywheel.isReadyToShoot() && pivot.isAtSetpoint();
     }
 

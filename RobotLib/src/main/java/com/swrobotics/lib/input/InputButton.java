@@ -38,9 +38,9 @@ public final class InputButton implements InputElement {
 
     /**
      * Gets whether this button was just pressed during this periodic cycle. This is when the button
-     * was not pressed the previous periodic, but is now pressed.
+     * was pressed the previous periodic, but is now pressed.
      *
-     * @return if button was just pressed
+     * @return if button was just released
      */
     public boolean isRising() {
         return pressed && !wasPressed;
@@ -48,12 +48,12 @@ public final class InputButton implements InputElement {
 
     /**
      * Gets whether this button was just released during this periodic cycle. This is when the
-     * button was pressed the previous periodic, but is now not pressed.
+     * button was not pressed the previous periodic, but is now pressed.
      *
-     * @return if button was just released
+     * @return if button was just pressed
      */
     public boolean isFalling() {
-        return !wasPressed && pressed;
+        return !pressed && wasPressed;
     }
 
     /**
@@ -74,7 +74,7 @@ public final class InputButton implements InputElement {
     }
 
     /**
-     * Adds a function that will be called whenever the button is released. This function will be
+     * Adds a function that will be called whenever the button is release. This function will be
      * invoked on each periodic where {@link #isFalling()} returns {@code true}.
      *
      * @param fallingFn function to call
