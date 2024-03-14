@@ -100,7 +100,9 @@ public class ControlBoard extends SubsystemBase {
         ));
 
         // Spin like mad when the driver clicks in the right stick
-        new Trigger(() -> driver.rightStickButton.isPressed()).debounce(0.1).whileTrue(Commands.run(() -> robot.drive.turn(new TurnRequest(1, new Rotation2d(11.0)))));
+        new Trigger(driver.rightStickButton::isPressed)
+                .debounce(0.1)
+                .whileTrue(Commands.run(() -> robot.drive.turn(new TurnRequest(SwerveDrive.DRIVER_PRIORITY + 1, new Rotation2d(11.0)))));
 
         // Up is closer, down is farther
         new Trigger(this::driverWantsSnapCloser).whileTrue(new SnapDistanceCommand(robot.drive, robot.shooter, true));
