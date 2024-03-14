@@ -203,15 +203,6 @@
           "name": "Wait and Shoot"
         }
       }
-    },
-    {
-      "timestamp": 1.0450109613700889,
-      "command": {
-        "type": "named",
-        "data": {
-          "name": "Shoot"
-        }
-      }
     }
   ]
 }
