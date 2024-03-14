@@ -343,4 +343,8 @@ public final class SwerveDrive extends SubsystemBase {
     public void setEstimatorIgnoreVision(boolean ignoreVision) {
         estimator.setIgnoreVision(ignoreVision);
     }
+
+    public NeutralModeValue getCurrentNeutralMode() {
+        return currentNeutralMode;
+    }
 }
