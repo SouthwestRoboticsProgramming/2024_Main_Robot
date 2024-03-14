@@ -8,7 +8,9 @@ import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
+import com.ctre.phoenix6.signals.ReverseLimitTypeValue;
 import com.ctre.phoenix6.signals.ReverseLimitValue;
+import com.swrobotics.lib.net.NTBoolean;
 import com.swrobotics.lib.net.NTEntry;
 import com.swrobotics.mathlib.MathUtil;
 import com.swrobotics.robot.config.IOAllocation;
@@ -17,6 +19,7 @@ import com.swrobotics.robot.logging.SimView;
 import com.swrobotics.robot.utils.TalonFXWithSim;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public final class PivotSubsystem extends SubsystemBase {
@@ -56,7 +59,7 @@ public final class PivotSubsystem extends SubsystemBase {
     }
 
     private static final double motorToPivotRatio = 10 * 9 * 4;
-    private static final double hardStopAngle = 22 / 360.0;
+    private static final double hardStopAngle = 27 / 360.0;
     private static final double maxAngle = (90 - 20) / 360.0;
 
     private final TalonFXWithSim motor = new TalonFXWithSim(
@@ -78,6 +81,8 @@ public final class PivotSubsystem extends SubsystemBase {
         config.Feedback.SensorToMechanismRatio = motorToPivotRatio;
         config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
         config.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
+        config.HardwareLimitSwitch.ReverseLimitEnable = true;
+        config.HardwareLimitSwitch.ReverseLimitType = ReverseLimitTypeValue.NormallyClosed;
 
         motor.getConfigurator().apply(config);
         position = motor.getPosition();
@@ -91,6 +96,11 @@ public final class PivotSubsystem extends SubsystemBase {
         calibrated = false;
 
         setpoint = Double.NEGATIVE_INFINITY;
+
+        if (RobotBase.isSimulation()) {
+            state = State.IDLE;
+            calibrated = true;
+        }
     }
 
     public void setTargetAngle(double angleRot) {
@@ -101,7 +111,7 @@ public final class PivotSubsystem extends SubsystemBase {
 
         angleRot = MathUtil.clamp(
                 angleRot,
-                hardStopAngle + 2 / 360.0,
+                hardStopAngle + 0.5 / 360.0,
                 maxAngle - 2 / 360.0);
 
         motor.setControl(new PositionVoltage(angleRot));
@@ -113,7 +123,7 @@ public final class PivotSubsystem extends SubsystemBase {
         if (state == State.CALIBRATING)
             return;
 
-        if (state != State.IDLE)
+        if (state != State.IDLE && RobotBase.isReal())
             calibrated = false;
 
         setTargetAngle(NTData.SHOOTER_PIVOT_IDLE_ANGLE.get() / 360.0);
@@ -124,7 +134,7 @@ public final class PivotSubsystem extends SubsystemBase {
         if (state == State.CALIBRATING)
             return;
 
-        if (state != State.IDLE)
+        if (state != State.IDLE && RobotBase.isReal())
             calibrated = false;
 
         motor.setControl(new NeutralOut());
@@ -142,7 +152,8 @@ public final class PivotSubsystem extends SubsystemBase {
         if (state != State.SHOOTING && !calibrated) {
             motor.setControl(new VoltageOut(-NTData.SHOOTER_PIVOT_CALIBRATE_VOLTS.get()));
             limitSwitch.refresh();
-            boolean atLimit = limitSwitch.getValue() == ReverseLimitValue.ClosedToGround;
+            boolean atLimit = limitSwitch.getValue() == ReverseLimitValue.Open; // Normally closed
+            limitSw.set(atLimit);
 
             if (atLimit) {
                 motor.setPosition(hardStopAngle);
@@ -153,6 +164,8 @@ public final class PivotSubsystem extends SubsystemBase {
             }
         }
     }
+
+    NTBoolean limitSw = new NTBoolean("Shooter/Debug/Limit Switch", false);
 
     public boolean hasCalibrated() {
         // Motor knows position after we leave CALIBRATING

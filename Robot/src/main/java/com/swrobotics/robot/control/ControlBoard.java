@@ -1,5 +1,7 @@
 package com.swrobotics.robot.control;
 
+import java.security.InvalidAlgorithmParameterException;
+
 import com.ctre.phoenix6.mechanisms.swerve.SwerveModule.DriveRequestType;
 import com.swrobotics.lib.input.XboxController;
 import com.swrobotics.lib.net.NTEntry;
@@ -33,7 +35,6 @@ public class ControlBoard extends SubsystemBase {
      * Driver:
      * Left stick: translation
      * Right stick X: rotation
-     * Left trigger: fast mode
      * Left bumper: robot relative
      * Right trigger: aim at speaker
      * Right bumper: spin up flywheel
@@ -51,7 +52,6 @@ public class ControlBoard extends SubsystemBase {
      * [disabled] Left bumper: amp score in trap
      * Left trigger: amp eject
      * Right bumper: toggle climber extend/retract
-     * Right trigger: retract with feedforward
      * Back: intake eject
      * Start: indexer eject
      */
@@ -114,7 +114,19 @@ public class ControlBoard extends SubsystemBase {
 //        ampTrigger.whileTrue(Commands.run(() -> robot.shooter.setTempAimCalculator(new AmpAimCalculator())));
 //        ampTrigger.onFalse(new ShootCommand(robot));
 
-        climberState = ClimberArm.State.RETRACTED_IDLE;
+        climberState = ClimberArm.State.RETRACTED;
+
+//        Trigger operatorA = new Trigger(operator.a::isPressed);
+//        operatorA.onTrue(Commands.runOnce(() -> robot.intake.set(IntakeSubsystem.State.INTAKE)));
+        operator.a.onRising(() -> robot.intake.set(IntakeSubsystem.State.INTAKE));
+        operator.a.onFalling(() -> robot.intake.set(IntakeSubsystem.State.OFF));
+//        operatorA.onFalse(Commands.runOnce(() -> robot.intake.set(IntakeSubsystem.State.OFF)));
+        robot.intake.set(IntakeSubsystem.State.OFF);
+
+//        operator.a.onFalling(() -> robot.intake.set(IntakeSubsystem.State.INTAKE));
+//        operator.a.onRising(() -> robot.intake.set(IntakeSubsystem.State.OFF));
+        new Trigger(() -> robot.indexer.hasPiece() || !operator.a.isPressed())
+                .onTrue(Commands.runOnce(() -> robot.intake.set(IntakeSubsystem.State.OFF)));
     }
 
     private boolean driverWantsSnapCloser() {
@@ -140,17 +152,21 @@ public class ControlBoard extends SubsystemBase {
         return Math.copySign(squared, value);
     }
 
+    private double powerWithSign(double value, double power) {
+        double powered = Math.pow(Math.abs(value), power);
+        return Math.copySign(powered, value);
+    }
+
     private Translation2d getDriveTranslation() {
-        double speed = NTData.DRIVE_SPEED_NORMAL.get();
-        // if (driverSlowDebounce.calculate(driver.leftBumper.isPressed()))
-        //     speed = NTData.DRIVE_SPEED_SLOW.get();
-        if (driver.leftTrigger.isOutside(TRIGGER_BUTTON_THRESHOLD))
-            speed = SwerveDrive.MAX_LINEAR_SPEED;
-//            speed = NTData.DRIVE_SPEED_FAST.get();
+        // double speed = NTData.DRIVE_SPEED_NORMAL.get();
+        double speed = SwerveDrive.MAX_LINEAR_SPEED;
 
         Translation2d leftStick = driver.getLeftStick();
-        double x = -squareWithSign(leftStick.getY()) * speed;
-        double y = -squareWithSign(leftStick.getX()) * speed;
+        // double x = -squareWithSign(leftStick.getY()) * speed;
+        // double y = -squareWithSign(leftStick.getX()) * speed;
+        double power = 2.5;
+        double x = -powerWithSign(leftStick.getY(), power) * speed;
+        double y = -powerWithSign(leftStick.getX(), power) * speed;
         return new Translation2d(x, y);
     }
 
@@ -166,7 +182,7 @@ public class ControlBoard extends SubsystemBase {
     @Override
     public void periodic() {
         if (!DriverStation.isTeleop()) {
-            climberState = ClimberArm.State.RETRACTED_IDLE;
+            climberState = ClimberArm.State.RETRACTED;
             robot.indexer.setReverse(false);
             robot.intake.setReverse(false);
             robot.shooter.setFlywheelControl(ShooterSubsystem.FlywheelControl.SHOOT); // Always aim with note when not teleop
@@ -214,12 +230,7 @@ public class ControlBoard extends SubsystemBase {
                 chassisRequest,
                 DriveRequestType.Velocity);
 
-        IntakeSubsystem.State intakeState = IntakeSubsystem.State.OFF;
-        if (intakeDebounce.calculate(operator.a.isPressed()))
-            intakeState = IntakeSubsystem.State.INTAKE;
-
         // Indexer uses the intake state also
-        robot.intake.set(intakeState);
         boolean operatorWantsShoot = shootDebounce.calculate(operator.b.isPressed());
         robot.indexer.setFeedToShooter(operatorWantsShoot);
 
@@ -241,10 +252,7 @@ public class ControlBoard extends SubsystemBase {
 
         if (operator.rightBumper.isRising()) {
             boolean extended = climberState == ClimberArm.State.EXTENDED;
-            climberState = extended ? ClimberArm.State.RETRACTED_IDLE : ClimberArm.State.EXTENDED;
-        }
-        if (operator.rightTrigger.isOutside(TRIGGER_BUTTON_THRESHOLD)) {
-            climberState = ClimberArm.State.RETRACTED_HOLD;
+            climberState = extended ? ClimberArm.State.RETRACTED : ClimberArm.State.EXTENDED;
         }
         robot.climber.setState(climberState);
 

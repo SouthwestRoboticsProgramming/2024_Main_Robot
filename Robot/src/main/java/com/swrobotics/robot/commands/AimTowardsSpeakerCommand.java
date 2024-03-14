@@ -54,7 +54,7 @@ public final class AimTowardsSpeakerCommand extends Command {
         double flightTime = distToTarget / horizNoteVelocity;
         double tangentialVel = -(angleToTarget.getSin() * robotSpeeds.vxMetersPerSecond + angleToTarget.getCos() * robotSpeeds.vyMetersPerSecond);
         double correctionRad = 0 * Math.atan2(tangentialVel * flightTime, distToTarget);
-        System.out.printf("FH: %.3f NH: %.3f D: %.3f FT: %.3f TV: %.3f C(d): %.3f\n", horizFlywheelVelocity, horizNoteVelocity, distToTarget, flightTime, tangentialVel, Math.toDegrees(correctionRad));
+        // System.out.printf("FH: %.3f NH: %.3f D: %.3f FT: %.3f TV: %.3f C(d): %.3f\n", horizFlywheelVelocity, horizNoteVelocity, distToTarget, flightTime, tangentialVel, Math.toDegrees(correctionRad));
 
         double setpointAngle = MathUtil.wrap(angleToTarget.getRadians() + correctionRad, -Math.PI, Math.PI);
         double currentAngle = MathUtil.wrap(robotPose.getRotation().getRadians(), -Math.PI, Math.PI);

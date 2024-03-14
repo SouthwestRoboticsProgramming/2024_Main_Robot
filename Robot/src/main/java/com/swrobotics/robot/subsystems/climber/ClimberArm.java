@@ -18,9 +18,8 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public final class ClimberArm extends SubsystemBase {
     public enum State {
-        RETRACTED_IDLE,
-        EXTENDED,
-        RETRACTED_HOLD
+        RETRACTED,
+        EXTENDED
     }
 
     private final TalonFX motor;
@@ -29,8 +28,6 @@ public final class ClimberArm extends SubsystemBase {
     private boolean hasCalibrated;
     private Debouncer calibrationDebounce;
     private State targetState;
-
-    private final StatusSignal<Double> motorPositionDebug;
 
     public ClimberArm(IOAllocation.CanId id, InvertedValue invert) {
         TalonFXConfiguration config = new TalonFXConfiguration();
@@ -49,10 +46,7 @@ public final class ClimberArm extends SubsystemBase {
 
         hasCalibrated = RobotBase.isSimulation();
         calibrationDebounce = null;
-        targetState = State.RETRACTED_IDLE;
-
-        motorPositionDebug = motor.getPosition();
-        positionDebug = new NTDouble("Climber/Debug Position (" + id.id() + ")", 0);
+        targetState = State.RETRACTED;
     }
 
     public void setState(State state) {
@@ -64,21 +58,11 @@ public final class ClimberArm extends SubsystemBase {
                 ? NTData.CLIMBER_EXTEND_POSITION.get()
                 : 0;
 
-        double feedforward = state == State.RETRACTED_HOLD
-                ? -NTData.CLIMBER_HOLD_VOLTS.get()
-                : 0;
-
-        motor.setControl(new PositionVoltage(position)
-                .withFeedForward(feedforward));
+        motor.setControl(new PositionVoltage(position));
     }
-
-    NTDouble positionDebug;
 
     @Override
     public void periodic() {
-        motorPositionDebug.refresh();
-        positionDebug.set(motorPositionDebug.getValue());
-
         if (DriverStation.isDisabled())
             return;
 

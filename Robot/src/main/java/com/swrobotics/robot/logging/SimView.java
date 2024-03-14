@@ -1,6 +1,8 @@
 package com.swrobotics.robot.logging;
 
 import com.swrobotics.mathlib.MathUtil;
+import com.swrobotics.robot.subsystems.speaker.IntakeSubsystem;
+import com.swrobotics.robot.subsystems.speaker.IntakeSubsystem.State;
 import com.swrobotics.robot.subsystems.speaker.aim.AimCalculator;
 import edu.wpi.first.wpilibj.smartdashboard.*;
 import edu.wpi.first.wpilibj.util.Color;
@@ -55,6 +57,14 @@ public final class SimView {
         intakeUp.setAngle(90 + angleRot * 360);
     }
 
+    public static void updateIntake(IntakeSubsystem.State state) {
+        if (state == State.OFF) {
+            intakeUp.setAngle(90);
+        } else {
+            intakeUp.setAngle(180);
+        }
+    }
+
     // Rotation from horizontal
     public static void updateAmpArm(double armPivotRot) {
         double pivotRel = armPivotRot - referencePivotAngle;
@@ -68,6 +78,16 @@ public final class SimView {
     public static void updateShooter(AimCalculator.Aim aim) {
         shooterPivot.setAngle(Math.toDegrees(aim.pivotAngle()));
         shooterPivot.setLength(aim.flywheelVelocity() / 100 * maxShooterLength);
+    }
+
+    public static void setShooting(boolean shooting) {
+        if (shooting) {
+            shooterPivot.setColor(new Color8Bit(Color.kBlueViolet));
+            view.setBackgroundColor(new Color8Bit(Color.kYellow));
+        } else {
+            shooterPivot.setColor(new Color8Bit(Color.kGreen));
+            view.setBackgroundColor(new Color8Bit(Color.kDarkGray));
+        }
     }
 
     // Do not use on real robot ever! This is very inefficient and only for debugging sim

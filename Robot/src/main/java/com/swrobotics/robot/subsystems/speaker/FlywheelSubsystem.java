@@ -31,6 +31,8 @@ public final class FlywheelSubsystem extends SubsystemBase {
     private final StatusSignal<Double> leftVelocity, rightVelocity;
 
     private double targetVelocity;
+    private double simVelocity;
+    private boolean isNeutral;
 
     public FlywheelSubsystem() {
         TalonFXConfiguration config = new TalonFXConfiguration();
@@ -48,27 +50,35 @@ public final class FlywheelSubsystem extends SubsystemBase {
         NTData.SHOOTER_FLYWHEEL_KP.onChange(this::updatePIDV);
         NTData.SHOOTER_FLYWHEEL_KD.onChange(this::updatePIDV);
         NTData.SHOOTER_FLYWHEEL_KV.onChange(this::updatePIDV);
+
+        simVelocity = 0;
+        isNeutral = true;
     }
 
     public void setTargetVelocity(double velocityRPS) {
         targetVelocity = velocityRPS;
         leftMotor.setControl(new VelocityVoltage(velocityRPS));
         rightMotor.setControl(new VelocityVoltage(velocityRPS));
+        isNeutral = false;
     }
 
     public void setDutyCycle(double percentOut) {
         DutyCycleOut cmd = new DutyCycleOut(percentOut);
         leftMotor.setControl(cmd);
         rightMotor.setControl(cmd);
+
+        isNeutral = true; // It's neutral enough
     }
 
     public void setNeutral() {
         leftMotor.setControl(new NeutralOut());
         rightMotor.setControl(new NeutralOut());
+
+        isNeutral = true;
     }
 
     public boolean isReadyToShoot() {
-        return RobotBase.isSimulation() || getPercentErr() < NTData.SHOOTER_FLYWHEEL_ALLOWABLE_PCT_ERR.get();
+        return getPercentErr() < NTData.SHOOTER_FLYWHEEL_ALLOWABLE_PCT_ERR.get();
     }
 
     @Override
@@ -78,20 +88,32 @@ public final class FlywheelSubsystem extends SubsystemBase {
 
     @Override
     public void simulationPeriodic() {
+        // Don't need realistic sim for flywheel
+        double error = (isNeutral ? 0 : targetVelocity) - simVelocity;
+        simVelocity += error * 0.15; // Inertia-ish thing
+
         leftMotor.updateSim(12);
         rightMotor.updateSim(12);
+    }
+
+    private double getLeftVelocity() {
+        return RobotBase.isSimulation() ? simVelocity : leftVelocity.getValue();
+    }
+
+    private double getRightVelocity() {
+        return RobotBase.isSimulation() ? simVelocity : rightVelocity.getValue();
     }
 
     // For the status indicator in lights
     // <1 if too slow, >1 if too high
     public double getPercentOfTarget() {
-        double min = Math.min(leftVelocity.getValue(), rightVelocity.getValue());
+        double min = Math.min(getLeftVelocity(), getRightVelocity());
         return min / targetVelocity;
     }
 
     public double getPercentErr() {
-        double err1 = Math.abs(MathUtil.signedPercentError(leftVelocity.getValue(), targetVelocity));
-        double err2 = Math.abs(MathUtil.signedPercentError(rightVelocity.getValue(), targetVelocity));
+        double err1 = Math.abs(MathUtil.signedPercentError(getLeftVelocity(), targetVelocity));
+        double err2 = Math.abs(MathUtil.signedPercentError(getRightVelocity(), targetVelocity));
         return Math.min(err1, err2);
     }
 
