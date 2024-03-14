@@ -1,6 +1,8 @@
 package com.swrobotics.robot.logging;
 
 import com.swrobotics.mathlib.MathUtil;
+import com.swrobotics.robot.subsystems.speaker.IntakeSubsystem;
+import com.swrobotics.robot.subsystems.speaker.IntakeSubsystem.State;
 import com.swrobotics.robot.subsystems.speaker.aim.AimCalculator;
 import edu.wpi.first.wpilibj.smartdashboard.*;
 import edu.wpi.first.wpilibj.util.Color;
@@ -41,10 +43,10 @@ public final class SimView {
         shooter.append(shooterPivot);
     }
 
-    public static final ShooterTrajectoryView targetTrajectory = new ShooterTrajectoryView(
-            view.getRoot("Target Trajectory", originX, originY + 0.4),
-            new Color8Bit(Color.kYellow)
-    );
+    // public static final ShooterTrajectoryView targetTrajectory = new ShooterTrajectoryView(
+    //         view.getRoot("Target Trajectory", originX, originY + 0.4),
+    //         new Color8Bit(Color.kYellow)
+    // );
 
     public static void publish() {
         SmartDashboard.putData("Robot", view);
@@ -52,6 +54,14 @@ public final class SimView {
 
     public static void updateIntake(double angleRot) {
         intakeUp.setAngle(90 + angleRot * 360);
+    }
+
+    public static void updateIntake(IntakeSubsystem.State state) {
+        if (state == State.OFF) {
+            intakeUp.setAngle(90);
+        } else {
+            intakeUp.setAngle(180);
+        }
     }
 
     // Rotation from horizontal
@@ -66,6 +76,14 @@ public final class SimView {
 
     public static void updateShooterPivot(double pivotRot) {
         shooterPivot.setAngle(pivotRot * 360);
+    }
+
+    public static void setShooting(boolean shooting) {
+        if (shooting) {
+            shooterPivot.setColor(new Color8Bit(Color.kBlueViolet));
+        } else {
+            shooterPivot.setColor(new Color8Bit(Color.kGreen));
+        }
     }
 
     // Do not use on real robot ever! This is very inefficient and only for debugging sim

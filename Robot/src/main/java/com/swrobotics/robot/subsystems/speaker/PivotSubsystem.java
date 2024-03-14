@@ -181,7 +181,8 @@ public final class PivotSubsystem extends SubsystemBase {
     public void simulationPeriodic() {
         motor.updateSim(12);
         position.refresh();
-        SimView.updateShooterPivot(position.getValue());
+        // SimView.updateShooterPivot(position.getValue());
+        SimView.updateShooterPivot(setpoint);
     }
 
     private void applyPID(Slot0Configs config) {

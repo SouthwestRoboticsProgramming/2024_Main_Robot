@@ -112,10 +112,10 @@ public final class ShooterSubsystem extends SubsystemBase {
 
     @Override
     public void simulationPeriodic() {
-        if (isPreparing)
-            SimView.targetTrajectory.update(targetAim);
-        else
-            SimView.targetTrajectory.clear();
+        // if (isPreparing)
+        //     SimView.targetTrajectory.update(targetAim);
+        // else
+        //     SimView.targetTrajectory.clear();
     }
 
     public boolean isPreparing() {

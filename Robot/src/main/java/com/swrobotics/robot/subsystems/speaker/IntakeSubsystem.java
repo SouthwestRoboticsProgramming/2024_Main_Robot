@@ -116,8 +116,9 @@ public final class IntakeSubsystem extends SubsystemBase {
 
     @Override
     public void simulationPeriodic() {
-        actuatorMotor.updateSim(12);
-        SimView.updateIntake(actuatorMotor.getEncoderPosition());
+        // actuatorMotor.updateSim(12);
+        // SimView.updateIntake(actuatorMotor.getEncoderPosition());
+        SimView.updateIntake(state);
     }
 
     public void setReverse(boolean reverse) {
