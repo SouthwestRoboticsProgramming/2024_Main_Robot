@@ -1,98 +1,97 @@
 package com.swrobotics.robot.subsystems.amp;
 
+import com.ctre.phoenix6.StatusSignal;
+import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
-import com.ctre.phoenix6.controls.NeutralOut;
 import com.ctre.phoenix6.controls.PositionVoltage;
-import com.ctre.phoenix6.controls.VoltageOut;
+import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
+import com.ctre.phoenix6.signals.NeutralModeValue;
+import com.ctre.phoenix6.signals.SensorDirectionValue;
 import com.swrobotics.lib.net.NTDouble;
 import com.swrobotics.lib.net.NTEntry;
-import com.swrobotics.lib.net.NTInteger;
 import com.swrobotics.mathlib.MathUtil;
 import com.swrobotics.robot.config.IOAllocation;
-import edu.wpi.first.math.system.plant.DCMotor;
-import edu.wpi.first.math.util.Units;
+import com.swrobotics.robot.config.NTData;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public final class AmpArm2Subsystem extends SubsystemBase {
     private final TalonFX motor = new TalonFX(IOAllocation.CAN.AMP_ARM_MOTOR.id(), IOAllocation.CAN.AMP_ARM_MOTOR.bus());
+    private final CANcoder encoder = new CANcoder(IOAllocation.CAN.AMP_ARM_CANCODER.id(), IOAllocation.CAN.AMP_ARM_CANCODER.bus());
 
-    public static final NTEntry<Double> kP = new NTDouble("Amp Arm Test/kP", 0);
-    public static final NTEntry<Double> kD = new NTDouble("Amp Arm Test/kD", 0);
-    public static final NTEntry<Double> target = new NTDouble("Amp Arm Test/Control Demand", 0);
-    public static final NTEntry<Double> initialPos = new NTDouble("Amp Arm Test/Initial Position (deg)", 90);
+    public static final NTEntry<Double> currentPosition = new NTDouble("Amp Arm Test/Current position (deg)", 0);
 
-    public static final NTEntry<Double> voltsPerNm = new NTDouble("Amp Arm Test/Volts per N-m", 0);
-
-    public static final NTEntry<Integer> controlType = new NTInteger("Amp Arm Test/Control Mode (0=off,1=volt,2=pos deg)", 0);
+    private final StatusSignal<Double> encoderPosition;
+    private final StatusSignal<Double> motorPosition;
 
     private static final double motorToArmRatio = 50;
+    private static final double encoderToArmRatio = 2;
 
-    // TODO
-    private static final double referenceBaseAngle = 0;
-    private static final double referenceIntakeAngle = 0;
+    private static final double cancoderOffset = 0.234619;
 
-    private static final double baseLength = Units.inchesToMeters(19.75);
-    private static final double baseRadius = baseLength / 2; // Half of length - distance to center of mass
-    private static final double baseMass = 0.25734; // kg
+    private static final double retractPos = 0;
 
-    private static final double intakeRadius = Units.inchesToMeters(7.490789); // Pivot to center of mass
-    private static final double intakeMass = 0; // kg
+    private double targetPos = retractPos;
 
     public AmpArm2Subsystem() {
         TalonFXConfiguration config = new TalonFXConfiguration();
-        config.Slot0.kP = kP.get();
-        config.Slot0.kD = kD.get();
-        config.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
+        config.Slot0.kP = NTData.AMP_ARM_2_KP.get();
+        config.Slot0.kD = NTData.AMP_ARM_2_KD.get();
+        config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+        config.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
         config.Feedback.SensorToMechanismRatio = motorToArmRatio;
         motor.getConfigurator().apply(config);
 
-        motor.setPosition(initialPos.get() / 360.0);
+        CANcoderConfiguration encoderConfig = new CANcoderConfiguration();
+        encoderConfig.MagnetSensor.SensorDirection = SensorDirectionValue.Clockwise_Positive;
+        encoderConfig.MagnetSensor.MagnetOffset = 0;
+        encoder.getConfigurator().apply(encoderConfig);
 
-        kP.onChange((p) -> updatePD());
-        kD.onChange((d) -> updatePD());
+        encoderPosition = encoder.getAbsolutePosition();
+        encoderPosition.refresh();
+        double encoderRangeCenter = (NTData.AMP_ARM_2_EXTEND_POS.get() / 360.0 + retractPos) / 2;
+        double pos = MathUtil.wrap((encoderPosition.getValue() + cancoderOffset) / encoderToArmRatio, encoderRangeCenter - 0.25, encoderRangeCenter + 0.25);
+        motor.setPosition(pos);
+
+        motorPosition = motor.getPosition();
+
+        NTData.AMP_ARM_2_KP.onChange((p) -> updatePD());
+        NTData.AMP_ARM_2_KD.onChange((d) -> updatePD());
     }
 
     private void updatePD() {
         motor.getConfigurator().apply(new Slot0Configs()
-        .withKP(kP.get())
-        .withKD(kD.get()));
+        .withKP(NTData.AMP_ARM_2_KP.get())
+        .withKD(NTData.AMP_ARM_2_KD.get()));
     }
+
+    public void setOut(boolean out) {
+        targetPos = out ? NTData.AMP_ARM_2_EXTEND_POS.get() / 360.0 : retractPos;
+    }
+
+    NTDouble d = new NTDouble("aaaaaaaaaaaaaaa", 0);
 
     @Override
     public void periodic() {
-        switch (controlType.get()) {
-            case 0:
-                motor.setControl(new NeutralOut());
-                break;
-            case 1:
-                motor.setControl(new VoltageOut(target.get()));
-                break;
-            case 2:
-                motor.setControl(new PositionVoltage(target.get() / 360.0));
-                break;
-        }
-    }
+        encoderPosition.refresh();
+        motorPosition.refresh();
+        motor.setControl(new PositionVoltage(targetPos));
+        currentPosition.set(motorPosition.getValue() * 360);
+        d.set(encoderPosition.getValue() * 360);
 
-    private double calcHoldFeedforward(double baseAngle) {
-        double baseGravityForce = MathUtil.G_ACCEL * baseMass * Math.cos(baseAngle);
-        double baseTorque = baseRadius * baseGravityForce;
-
-        double intakePivotX = baseLength * Math.cos(baseAngle);
-        double intakePivotY = baseLength * Math.sin(baseAngle);
-
-        double intakeAngle = 0; // Angle from horizontal of intake  TODO
-        double intakeCgX = intakePivotX + intakeRadius * Math.cos(intakeAngle);
-        double intakeCgY = intakePivotY + intakeRadius * Math.sin(intakeAngle);
-        double intakeCgDist = Math.hypot(intakeCgX, intakeCgY);
-
-        double intakeGravityForce = MathUtil.G_ACCEL * intakeMass * Math.cos(intakeAngle);
-        double intakeTorque = intakeCgDist * intakeGravityForce;
-
-        double netTorque = baseTorque + intakeTorque;
-        return netTorque * voltsPerNm.get(); // Probably wrong model of motor but too bad
+//        switch (controlType.get()) {
+//            case 0:
+//                motor.setControl(new NeutralOut());
+//                break;
+//            case 1:
+//                motor.setControl(new VoltageOut(target.get()));
+//                break;
+//            case 2:
+//                motor.setControl(new PositionVoltage(target.get() / 360.0));
+//                break;
+//        }
     }
 
     public TalonFX getMotor() {
