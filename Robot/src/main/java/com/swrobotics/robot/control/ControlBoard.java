@@ -72,6 +72,9 @@ public class ControlBoard extends SubsystemBase {
     private final Debouncer intakeDebounce = new Debouncer(0.075);
     private final Debouncer shootDebounce = new Debouncer(0.075);
 
+    // FIXME: This is horrible and bad and terrible and get rid of it
+    private int lobbing = 0;
+
     public ControlBoard(RobotContainer robot) {
         this.robot = robot;
 
@@ -90,12 +93,18 @@ public class ControlBoard extends SubsystemBase {
         driver.back.onFalling(() -> robot.drive.setRotation(new Rotation2d())); // Two buttons to reset gyro so the driver can't get confused
 
         new Trigger(driver.leftBumper::isPressed)
+                .onTrue(Commands.runOnce(() -> lobbing++))
             .whileTrue(new AimTowardsLobCommand(robot.drive, robot.shooter))
             .whileTrue(Commands.run(() -> robot.shooter.setTempAimCalculator(LobCalculator.INSTANCE)))
-            .debounce(0.2, DebounceType.kRising) // Only debounce the shooting
+            .onFalse(Commands.runOnce(() -> lobbing--))
+                .debounce(0.2, DebounceType.kRising) // Only debounce the shooting
+                .onTrue(Commands.runOnce(() -> lobbing++))
             .onFalse(
                 Commands.run(() -> robot.indexer.setFeedToShooter(true)).withTimeout(0.5)
-                .andThen(Commands.runOnce(() -> robot.indexer.setFeedToShooter(false))));
+                .andThen(Commands.runOnce(() -> {
+                    robot.indexer.setFeedToShooter(false);
+                    lobbing--;
+                })));
 
         new Trigger(this::driverWantsAim).whileTrue(new AimTowardsSpeakerCommand(
                 robot.drive,
@@ -265,7 +274,7 @@ public class ControlBoard extends SubsystemBase {
         ShooterSubsystem.FlywheelControl flywheelControl = ShooterSubsystem.FlywheelControl.IDLE;
         if (operator.start.isPressed())
             flywheelControl = ShooterSubsystem.FlywheelControl.REVERSE;
-        else if (driverWantsAim() || driverWantsFlywheels() || shootAmp || forceToSubwoofer || forceToStageCorner)
+        else if (driverWantsAim() || driverWantsFlywheels() || shootAmp || forceToSubwoofer || forceToStageCorner || lobbing != 0)
             flywheelControl = ShooterSubsystem.FlywheelControl.SHOOT;
         else if (operatorWantsShoot)
             flywheelControl = ShooterSubsystem.FlywheelControl.POOP;

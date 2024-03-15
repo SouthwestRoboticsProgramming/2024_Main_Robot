@@ -16,13 +16,15 @@ public final class TableAimCalculator implements AimCalculator {
 
     public TableAimCalculator() {
         // Calibration 1 (MURA)
-        double off = 5;
+//        double off = 5;
 //        addCalibratio?nSample(1.1429, 63 - off, 35);
 
-        addCalibrationSample(1.22, 60, 39);
-        addCalibrationSample(2.1, 46, 39);
-        addCalibrationSample(3.0, 34, 60);
-        addCalibrationSample(3.8, 29, 70);
+//        addCalibrationSample(1.22, 60, 39);
+//        addCalibrationSample(2.1, 46, 39);
+//        addCalibrationSample(3.0, 34, 60);
+//        addCalibrationSample(3.8, 29, 70);
+
+        addCalibrationSample(3.37, 29, 60);
 
 //        addCalibrationSample(1.924, 54 - off, 39);
 //        addCalibrationSample(2.765, 41 - off, 45);
