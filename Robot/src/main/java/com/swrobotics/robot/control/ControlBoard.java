@@ -2,11 +2,13 @@ package com.swrobotics.robot.control;
 
 import com.ctre.phoenix6.mechanisms.swerve.SwerveModule.DriveRequestType;
 import com.swrobotics.lib.input.XboxController;
+import com.swrobotics.lib.net.NTBoolean;
 import com.swrobotics.lib.net.NTEntry;
 import com.swrobotics.mathlib.MathUtil;
 import com.swrobotics.robot.RobotContainer;
 import com.swrobotics.robot.commands.AimTowardsLobCommand;
 import com.swrobotics.robot.commands.AimTowardsSpeakerCommand;
+import com.swrobotics.robot.commands.CharactarizeWheelCommand;
 import com.swrobotics.robot.commands.SnapDistanceCommand;
 import com.swrobotics.robot.config.NTData;
 import com.swrobotics.robot.subsystems.climber.ClimberArm;
@@ -54,6 +56,8 @@ public class ControlBoard extends SubsystemBase {
 
     private static final double DEADBAND = 0.15;
     private static final double TRIGGER_BUTTON_THRESHOLD = 0.3;
+
+    private static final NTEntry<Boolean> CHARACTERISE_WHEEL_RADIUS = new NTBoolean("Drive/Charactarize Wheel Radius", false);
 
     private final RobotContainer robot;
     public final XboxController driver;
@@ -132,6 +136,8 @@ public class ControlBoard extends SubsystemBase {
 //        operator.a.onRising(() -> robot.intake.set(IntakeSubsystem.State.OFF));
         new Trigger(() -> robot.indexer.hasPiece() || !operator.a.isPressed())
                 .onTrue(Commands.runOnce(() -> robot.intake.set(IntakeSubsystem.State.OFF)));
+
+        new Trigger(() -> CHARACTERISE_WHEEL_RADIUS.get()).whileTrue(new CharactarizeWheelCommand(robot.drive));
     }
 
     private boolean driverWantsSnapCloser() {

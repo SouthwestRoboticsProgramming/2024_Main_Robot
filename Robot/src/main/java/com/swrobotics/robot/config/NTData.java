@@ -117,6 +117,7 @@ public final class NTData {
 
     public static final NTEntry<Double> SHOOTER_LOB_POWER_COEFFICIENT = new NTDouble("Shooter/Lob/Power Coefficient", 1.25).setPersistent(); // To go from real velocity to flywheel velocity
     public static final NTEntry<Double> SHOOTER_LOB_HEIGHT_METERS = new NTDouble("Shooter/Lob/Lob Height (m)", 3).setPersistent();
+    public static final NTEntry<Double> SHOOTER_FLY_TIME = new NTDouble("Shooter/Fly Time (s)", 0.25);
 
     private NTData() {
         throw new AssertionError();
