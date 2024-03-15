@@ -143,7 +143,7 @@ public class RobotContainer {
         FieldView.publish();
 
         char sep = File.separatorChar;
-        String whichSong = Math.random() > 0.95 ? "caramell-bert-expanded.chrp" : "xp.chrp";
+        String whichSong = Math.random() > 0.9 ? "caramell-bert-expanded.chrp" : "xp.chrp";
         CommandScheduler.getInstance().schedule(musicCommand = Commands.waitSeconds(5)
                 .andThen(new PlaySongCommand(music, "music" + sep + whichSong)));
 
