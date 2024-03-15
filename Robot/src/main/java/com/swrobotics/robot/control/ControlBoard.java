@@ -1,7 +1,5 @@
 package com.swrobotics.robot.control;
 
-import java.security.InvalidAlgorithmParameterException;
-
 import com.ctre.phoenix6.mechanisms.swerve.SwerveModule.DriveRequestType;
 import com.swrobotics.lib.input.XboxController;
 import com.swrobotics.lib.net.NTBoolean;
@@ -47,9 +45,7 @@ public class ControlBoard extends SubsystemBase {
      * A: intake
      * B: shoot
      * X: amp intake
-     * Y: aim at amp
-     * [disabled] Y: amp score
-     * [disabled] Left bumper: amp score in trap
+     * Y: aim at amp and amp bar
      * Left trigger: amp eject
      * Right bumper: toggle climber extend/retract
      * Back: intake eject
@@ -228,6 +224,8 @@ public class ControlBoard extends SubsystemBase {
         // Indexer uses the intake state also
         boolean operatorWantsShoot = shootDebounce.calculate(operator.b.isPressed());
         robot.indexer.setFeedToShooter(operatorWantsShoot);
+
+        robot.ampArm2.setOut(operator.y.isPressed());
 
 //        AmpArmSubsystem.Position ampArmPosition = AmpArmSubsystem.Position.STOW;
 //        AmpIntakeSubsystem.State ampIntakeState = AmpIntakeSubsystem.State.OFF;

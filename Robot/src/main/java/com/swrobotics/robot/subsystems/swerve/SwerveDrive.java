@@ -280,6 +280,12 @@ public final class SwerveDrive extends SubsystemBase {
 
     @AutoLogOutput(key = "Drive/Robot Rel Velocity")
     public ChassisSpeeds getRobotRelativeSpeeds() {
+        // TODO: does this work?
+//        return new ChassisSpeeds(
+//                gyro.getVelocityX(), gyro.getVelocityY(),
+//                Math.toRadians(gyro.getRate())
+//        );
+
         return kinematics.toChassisSpeeds(getCurrentModuleStates());
     }
 
