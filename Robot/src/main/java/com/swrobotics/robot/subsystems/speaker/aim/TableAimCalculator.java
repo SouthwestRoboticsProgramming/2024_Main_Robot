@@ -24,7 +24,16 @@ public final class TableAimCalculator implements AimCalculator {
 //        addCalibrationSample(3.0, 34, 60);
 //        addCalibrationSample(3.8, 29, 70);
 
-        addCalibrationSample(3.37, 29, 60);
+        // MURA 3-16, 3|1 wheel shooter configuration
+        addCalibrationSample(1.224203, 60, 55);
+        addCalibrationSample(1.657, 54, 55);
+        addCalibrationSample(2.239, 46, 55);
+        addCalibrationSample(2.875, 38, 55);
+        addCalibrationSample(2.993, 36, 63);
+        addCalibrationSample(3.506, 32, 63);
+        addCalibrationSample(3.903, 30, 67);
+
+//        addCalibrationSample(3.37, 29, 60);
 
 //        addCalibrationSample(1.924, 54 - off, 39);
 //        addCalibrationSample(2.765, 41 - off, 45);

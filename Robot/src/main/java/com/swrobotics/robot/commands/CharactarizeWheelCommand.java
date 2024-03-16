@@ -1,6 +1,7 @@
 package com.swrobotics.robot.commands;
 
 import com.swrobotics.robot.subsystems.swerve.SwerveDrive;
+import com.swrobotics.lib.net.NTDouble;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
@@ -20,13 +21,18 @@ public class CharactarizeWheelCommand extends Command {
     @Override
     public void initialize() {
         startingPositions = drive.getCurrentModulePositions(true);
+        gyroAccumulatorRad = 0;
+        lastGyroRad = drive.getRawGyroRotation().getRadians();
     }
 
+    NTDouble acc = new NTDouble("Drive/Wheel Radius acc", 0);
+    
     @Override
     public void execute() {
         double currentGyroRad = drive.getRawGyroRotation().getRadians();
         gyroAccumulatorRad += MathUtil.angleModulus(currentGyroRad - lastGyroRad);
         lastGyroRad = currentGyroRad;
+	acc.set(gyroAccumulatorRad);
     }
 
     @Override
@@ -40,6 +46,7 @@ public class CharactarizeWheelCommand extends Command {
         averageWheelDisplacement /= 4;
 
         double effectiveWheelRadius = (gyroAccumulatorRad * SwerveDrive.DRiVE_RADIUS) / averageWheelDisplacement;
+	new NTDouble("Drive/Wheel radius result", 0).set(effectiveWheelRadius);
         System.out.println("Effective Wheel Radius: " + Units.metersToInches(effectiveWheelRadius) + " inches");
     }
 }

@@ -29,7 +29,7 @@ public final class AmpArm2Subsystem extends SubsystemBase {
     private static final double motorToArmRatio = 50;
     private static final double encoderToArmRatio = 2;
 
-    private static final double cancoderOffset = 0.149658;
+    private static final double cancoderOffset = 0.244629;
 
     private static final double retractPos = 0;
 
