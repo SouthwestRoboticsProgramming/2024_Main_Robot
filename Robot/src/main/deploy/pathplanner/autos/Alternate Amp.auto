@@ -1,0 +1,61 @@
+{
+  "version": 1.0,
+  "startingPose": {
+    "position": {
+      "x": 1.3875830173492432,
+      "y": 5.564249038696289
+    },
+    "rotation": -179.96604345059157
+  },
+  "command": {
+    "type": "sequential",
+    "data": {
+      "commands": [
+        {
+          "type": "named",
+          "data": {
+            "name": "Shoot"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Amp Side Start B.1"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Wait and Shoot"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Amp Side Start B.2"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Wait and Shoot"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Amp Side Mid A"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Shoot"
+          }
+        }
+      ]
+    }
+  },
+  "folder": "New Autos",
+  "choreoAuto": true
+}

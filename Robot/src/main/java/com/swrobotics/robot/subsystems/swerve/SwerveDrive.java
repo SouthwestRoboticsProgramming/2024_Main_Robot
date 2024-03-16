@@ -69,6 +69,8 @@ public final class SwerveDrive extends SubsystemBase {
             new SwerveModule.Info(IOAllocation.CAN.SWERVE_BR, -HALF_SPACING_X, -HALF_SPACING_Y, NTData.DRIVE_BR_OFFSET, "Back Right")
     };
 
+    public static final double DRiVE_RADIUS = Math.hypot(HALF_SPACING_X, HALF_SPACING_Y);
+
     /**
      * Meters per second
      */
@@ -278,6 +280,12 @@ public final class SwerveDrive extends SubsystemBase {
 
     @AutoLogOutput(key = "Drive/Robot Rel Velocity")
     public ChassisSpeeds getRobotRelativeSpeeds() {
+        // TODO: does this work?
+//        return new ChassisSpeeds(
+//                gyro.getVelocityX(), gyro.getVelocityY(),
+//                Math.toRadians(gyro.getRate())
+//        );
+
         return kinematics.toChassisSpeeds(getCurrentModuleStates());
     }
 
@@ -296,6 +304,10 @@ public final class SwerveDrive extends SubsystemBase {
                 tx.getX(), tx.getY(),
                 robotRel.omegaRadiansPerSecond
         );
+    }
+
+    public Rotation2d getRawGyroRotation() {
+        return gyro.getRotation2d();
     }
 
     @Override

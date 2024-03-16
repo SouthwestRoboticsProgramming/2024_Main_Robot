@@ -1,18 +1,18 @@
 package com.swrobotics.robot.control;
 
-import java.security.InvalidAlgorithmParameterException;
-
 import com.ctre.phoenix6.mechanisms.swerve.SwerveModule.DriveRequestType;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.path.PathConstraints;
 import com.swrobotics.lib.input.XboxController;
+import com.swrobotics.lib.net.NTBoolean;
 import com.swrobotics.lib.net.NTEntry;
 import com.swrobotics.mathlib.MathUtil;
 import com.swrobotics.robot.RobotContainer;
-
+import com.swrobotics.robot.commands.AimTowardsLobCommand;
 import com.swrobotics.robot.commands.AimTowardsSpeakerCommand;
 import com.swrobotics.robot.commands.AmpAlignCommand;
 import com.swrobotics.robot.commands.DriveIntoWallCommand;
+import com.swrobotics.robot.commands.CharactarizeWheelCommand;
 import com.swrobotics.robot.commands.SnapDistanceCommand;
 import com.swrobotics.robot.config.NTData;
 import com.swrobotics.robot.subsystems.climber.ClimberArm;
@@ -20,9 +20,11 @@ import com.swrobotics.robot.subsystems.speaker.IntakeSubsystem;
 import com.swrobotics.robot.subsystems.speaker.PivotSubsystem;
 import com.swrobotics.robot.subsystems.speaker.ShooterSubsystem;
 import com.swrobotics.robot.subsystems.speaker.aim.AmpAimCalculator;
+import com.swrobotics.robot.subsystems.speaker.aim.LobCalculator;
 import com.swrobotics.robot.subsystems.speaker.aim.TableAimCalculator;
 import com.swrobotics.robot.subsystems.swerve.SwerveDrive;
 import edu.wpi.first.math.filter.Debouncer;
+import edu.wpi.first.math.filter.Debouncer.DebounceType;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -37,7 +39,6 @@ public class ControlBoard extends SubsystemBase {
      * Driver:
      * Left stick: translation
      * Right stick X: rotation
-     * Left trigger: fast mode
      * Left bumper: robot relative
      * Right trigger: aim at speaker
      * Right bumper: spin up flywheel
@@ -50,9 +51,7 @@ public class ControlBoard extends SubsystemBase {
      * A: intake
      * B: shoot
      * X: amp intake
-     * Y: aim at amp
-     * [disabled] Y: amp score
-     * [disabled] Left bumper: amp score in trap
+     * Y: aim at amp and amp bar
      * Left trigger: amp eject
      * Right bumper: toggle climber extend/retract
      * Back: intake eject
@@ -61,6 +60,8 @@ public class ControlBoard extends SubsystemBase {
 
     private static final double DEADBAND = 0.15;
     private static final double TRIGGER_BUTTON_THRESHOLD = 0.3;
+
+    private static final NTEntry<Boolean> CHARACTERISE_WHEEL_RADIUS = new NTBoolean("Drive/Charactarize Wheel Radius", false);
 
     private final RobotContainer robot;
     public final XboxController driver;
@@ -79,6 +80,9 @@ public class ControlBoard extends SubsystemBase {
     private final Debouncer intakeDebounce = new Debouncer(0.075);
     private final Debouncer shootDebounce = new Debouncer(0.075);
 
+    // FIXME: This is horrible and bad and terrible and get rid of it
+    private int lobbing = 0;
+
     public ControlBoard(RobotContainer robot) {
         this.robot = robot;
 
@@ -96,13 +100,27 @@ public class ControlBoard extends SubsystemBase {
         driver.start.onFalling(() -> robot.drive.setRotation(new Rotation2d()));
         driver.back.onFalling(() -> robot.drive.setRotation(new Rotation2d())); // Two buttons to reset gyro so the driver can't get confused
 
+        new Trigger(driver.leftBumper::isPressed)
+                .onTrue(Commands.runOnce(() -> lobbing++))
+            .whileTrue(new AimTowardsLobCommand(robot.drive, robot.shooter))
+            .whileTrue(Commands.run(() -> robot.shooter.setTempAimCalculator(LobCalculator.INSTANCE)))
+            .onFalse(Commands.runOnce(() -> lobbing--))
+                .debounce(0.2, DebounceType.kRising) // Only debounce the shooting
+                .onTrue(Commands.runOnce(() -> lobbing++))
+            .onFalse(
+                Commands.run(() -> robot.indexer.setFeedToShooter(true)).withTimeout(0.5)
+                .andThen(Commands.runOnce(() -> {
+                    robot.indexer.setFeedToShooter(false);
+                    lobbing--;
+                })));
+
         new Trigger(this::driverWantsAim).whileTrue(new AimTowardsSpeakerCommand(
                 robot.drive,
                 robot.shooter
         ));
 
         // Full auto amp
-        new Trigger(() -> driver.b.isPressed()).or(() -> driver.b.isPressed()).whileTrue(
+        new Trigger(() -> driver.x.isPressed()).or(() -> driver.b.isPressed()).whileTrue(
             AutoBuilder.pathfindToPose(
                 new Pose2d(new Translation2d(1.84, 7.4),
                 Rotation2d.fromDegrees(90)),
@@ -134,6 +152,8 @@ public class ControlBoard extends SubsystemBase {
 //        operator.a.onRising(() -> robot.intake.set(IntakeSubsystem.State.OFF));
         new Trigger(() -> robot.indexer.hasPiece() || !operator.a.isPressed())
                 .onTrue(Commands.runOnce(() -> robot.intake.set(IntakeSubsystem.State.OFF)));
+
+        new Trigger(() -> CHARACTERISE_WHEEL_RADIUS.get()).whileTrue(new CharactarizeWheelCommand(robot.drive));
     }
 
     private boolean driverWantsSnapCloser() {
@@ -159,17 +179,21 @@ public class ControlBoard extends SubsystemBase {
         return Math.copySign(squared, value);
     }
 
+    private double powerWithSign(double value, double power) {
+        double powered = Math.pow(Math.abs(value), power);
+        return Math.copySign(powered, value);
+    }
+
     private Translation2d getDriveTranslation() {
-        double speed = NTData.DRIVE_SPEED_NORMAL.get();
-        if (driverSlowDebounce.calculate(driver.leftBumper.isPressed()))
-            speed = NTData.DRIVE_SPEED_SLOW.get();
-        if (driver.leftTrigger.isOutside(TRIGGER_BUTTON_THRESHOLD))
-            speed = SwerveDrive.MAX_LINEAR_SPEED;
-//            speed = NTData.DRIVE_SPEED_FAST.get();
+        // double speed = NTData.DRIVE_SPEED_NORMAL.get();
+        double speed = SwerveDrive.MAX_LINEAR_SPEED;
 
         Translation2d leftStick = driver.getLeftStick();
-        double x = -squareWithSign(leftStick.getY()) * speed;
-        double y = -squareWithSign(leftStick.getX()) * speed;
+        // double x = -squareWithSign(leftStick.getY()) * speed;
+        // double y = -squareWithSign(leftStick.getX()) * speed;
+        double power = 2.5;
+        double x = -powerWithSign(leftStick.getY(), power) * speed;
+        double y = -powerWithSign(leftStick.getX(), power) * speed;
         return new Translation2d(x, y);
     }
 
@@ -178,7 +202,8 @@ public class ControlBoard extends SubsystemBase {
     }
 
     private boolean getRobotRelativeDrive() {
-        return driverRobotRelDebounce.calculate(driver.leftBumper.isPressed());
+        // return driverRobotRelDebounce.calculate(driver.leftBumper.isPressed());
+        return false;
     }
 
     @Override
@@ -236,6 +261,8 @@ public class ControlBoard extends SubsystemBase {
         boolean operatorWantsShoot = shootDebounce.calculate(operator.b.isPressed());
         robot.indexer.setFeedToShooter(operatorWantsShoot);
 
+        robot.ampArm2.setOut(operator.y.isPressed());
+
 //        AmpArmSubsystem.Position ampArmPosition = AmpArmSubsystem.Position.STOW;
 //        AmpIntakeSubsystem.State ampIntakeState = AmpIntakeSubsystem.State.OFF;
 //        if (operator.x.isPressed()) {
@@ -269,7 +296,7 @@ public class ControlBoard extends SubsystemBase {
         ShooterSubsystem.FlywheelControl flywheelControl = ShooterSubsystem.FlywheelControl.IDLE;
         if (operator.start.isPressed())
             flywheelControl = ShooterSubsystem.FlywheelControl.REVERSE;
-        else if (driverWantsAim() || driverWantsFlywheels() || shootAmp || forceToSubwoofer || forceToStageCorner)
+        else if (driverWantsAim() || driverWantsFlywheels() || shootAmp || forceToSubwoofer || forceToStageCorner || lobbing != 0)
             flywheelControl = ShooterSubsystem.FlywheelControl.SHOOT;
         else if (operatorWantsShoot)
             flywheelControl = ShooterSubsystem.FlywheelControl.POOP;

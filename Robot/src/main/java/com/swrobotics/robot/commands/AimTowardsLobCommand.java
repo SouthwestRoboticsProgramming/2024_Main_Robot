@@ -1,5 +1,7 @@
 package com.swrobotics.robot.commands;
 
+import org.littletonrobotics.junction.AutoLogOutput;
+
 import com.swrobotics.lib.net.NTUtil;
 import com.swrobotics.mathlib.MathUtil;
 import com.swrobotics.robot.config.NTData;
@@ -10,17 +12,20 @@ import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.math.kinematics.proto.ChassisSpeedsProto;
+import edu.wpi.first.math.kinematics.struct.ChassisSpeedsStruct;
 import edu.wpi.first.wpilibj2.command.Command;
 
-public final class AimTowardsSpeakerCommand extends Command {
+public final class AimTowardsLobCommand extends Command {
     private final SwerveDrive drive;
     private final ShooterSubsystem shooter;
 
     private final PIDController pid;
     private double errorRad;
 
-    public AimTowardsSpeakerCommand(SwerveDrive drive, ShooterSubsystem shooter) {
+    public AimTowardsLobCommand(SwerveDrive drive, ShooterSubsystem shooter) {
         this.drive = drive;
         this.shooter = shooter;
 
@@ -38,22 +43,20 @@ public final class AimTowardsSpeakerCommand extends Command {
     @Override
     public void execute() {
         Pose2d robotPose = drive.getEstimatedPose();
-        ChassisSpeeds robotSpeeds = drive.getFieldRelativeSpeeds();
-
         Translation2d robotPos = robotPose.getTranslation();
-
-        Translation2d target = shooter.getSpeakerPosition();
-        double distToTarget = target.getDistance(robotPos);
+        ChassisSpeeds robotSpeeds = drive.getFieldRelativeSpeeds();
+        
+        Translation2d target = shooter.getLobZonePosition();
         Rotation2d angleToTarget = target.minus(robotPos).getAngle();
-
+        
         // Relative to the target
         Translation2d robotVelocity = new Translation2d(robotSpeeds.vxMetersPerSecond, robotSpeeds.vyMetersPerSecond).rotateBy(angleToTarget);
 
-        double flyTime = NTData.SHOOTER_FLY_TIME.get();
+        AimCalculator.Aim currentAim = shooter.getTargetAim();
+        double flyTime = getFlyTime(currentAim);
         double missAmount = flyTime * robotVelocity.getY();
 
-        double correctionRad = -Math.atan2(missAmount, distToTarget);
-        // System.out.printf("FH: %.3f NH: %.3f D: %.3f FT: %.3f TV: %.3f C(d): %.3f\n", horizFlywheelVelocity, horizNoteVelocity, distToTarget, flightTime, tangentialVel, Math.toDegrees(correctionRad));
+        double correctionRad = -Math.atan2(missAmount, currentAim.distanceToSpeaker());
 
         double setpointAngle = MathUtil.wrap(angleToTarget.getRadians() + correctionRad, -Math.PI, Math.PI);
         double currentAngle = MathUtil.wrap(robotPose.getRotation().getRadians(), -Math.PI, Math.PI);
@@ -68,13 +71,9 @@ public final class AimTowardsSpeakerCommand extends Command {
 
     public boolean isInTolerance(double tolRotations) {
         return errorRad < tolRotations * MathUtil.TAU;
-//        Pose2d robotPose = drive.getEstimatedPose();
-//        Translation2d robotPos = robotPose.getTranslation();
-//        Translation2d target = targetSupplier.get();
-//
-//        double angleToTarget = target.minus(robotPos).getAngle().getRadians();
-//        double currentAngle = MathUtil.wrap(robotPose.getRotation().getRadians(), -Math.PI, Math.PI);
-//
-//        return MathUtil.absDiffRad(currentAngle, angleToTarget) < tolRotations * MathUtil.TAU;
+    }
+
+    private double getFlyTime(AimCalculator.Aim aim) {
+        return Math.cos(aim.pivotAngle()) * aim.flywheelVelocity() / NTData.SHOOTER_LOB_POWER_COEFFICIENT.get() / 9.8;
     }
 }

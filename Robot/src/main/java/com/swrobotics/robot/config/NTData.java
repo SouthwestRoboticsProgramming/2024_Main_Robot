@@ -64,6 +64,10 @@ public final class NTData {
     public static final NTEntry<Double> AMP_ARM_KD = new NTDouble("Amp/Arm/PID/kD", 0).setPersistent();
     public static final NTEntry<Double> AMP_ARM_GRAVITY_AMOUNT = new NTDouble("Amp/Arm/Gravity (volts at horiz)", 0).setPersistent();
 
+    public static final NTEntry<Double> AMP_ARM_2_KP = new NTDouble("Amp Arm 2/kP", 50).setPersistent();
+    public static final NTEntry<Double> AMP_ARM_2_KD = new NTDouble("Amp Arm 2/kD", 0).setPersistent();
+    public static final NTEntry<Double> AMP_ARM_2_EXTEND_POS = new NTDouble("Amp Arm 2/Extend Pos (deg)", 110).setPersistent();
+
     // FIXME TUNE
     public static final NTEntry<Double> AMP_INTAKE_INTAKE_SPEED = new NTDouble("Amp/Intake/Intake Speed (pct)", 0.5).setPersistent();
     public static final NTEntry<Double> AMP_INTAKE_OUTTAKE_SPEED = new NTDouble("Amp/Intake/Outtake Speed (pct)", 0.5).setPersistent();
@@ -110,6 +114,10 @@ public final class NTData {
     public static final NTEntry<Double> SHOOTER_PIVOT_ALLOWABLE_PCT_ERR = new NTDouble("Shooter/Pivot/Allowable Pct Error", 0.01).setPersistent(); // FIXME TUNE
     public static final NTEntry<Double> SHOOTER_PIVOT_ANGLE_ADJUST_BLUE = new NTDouble("Shooter/Pivot/Angle Adjust Blue (deg)", -1).setPersistent();
     public static final NTEntry<Double> SHOOTER_PIVOT_ANGLE_ADJUST_RED = new NTDouble("Shooter/Pivot/Angle Adjust Red (deg)", 1).setPersistent();
+
+    public static final NTEntry<Double> SHOOTER_LOB_POWER_COEFFICIENT = new NTDouble("Shooter/Lob/Power Coefficient", 1.25).setPersistent(); // To go from real velocity to flywheel velocity
+    public static final NTEntry<Double> SHOOTER_LOB_HEIGHT_METERS = new NTDouble("Shooter/Lob/Lob Height (m)", 3).setPersistent();
+    public static final NTEntry<Double> SHOOTER_FLY_TIME = new NTDouble("Shooter/Fly Time (s)", 0.25);
 
     private NTData() {
         throw new AssertionError();

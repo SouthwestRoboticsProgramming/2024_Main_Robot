@@ -1,6 +1,8 @@
 package com.swrobotics.robot.logging;
 
 import com.swrobotics.mathlib.MathUtil;
+import com.swrobotics.robot.subsystems.speaker.IntakeSubsystem;
+import com.swrobotics.robot.subsystems.speaker.IntakeSubsystem.State;
 import com.swrobotics.robot.subsystems.speaker.aim.AimCalculator;
 import edu.wpi.first.wpilibj.smartdashboard.*;
 import edu.wpi.first.wpilibj.util.Color;
@@ -36,13 +38,14 @@ public final class SimView {
     }
 
     private static final MechanismRoot2d shooter = view.getRoot("Shooter", originX - 0.5, originY);
-    private static final MechanismLigament2d shooterPivot = new MechanismLigament2d("Pivot", 0.7, 0, 3, new Color8Bit(Color.kGreen));
+    private static final double maxShooterLength = 0.7;
+    private static final MechanismLigament2d shooterPivot = new MechanismLigament2d("Pivot", maxShooterLength, 0, 3, new Color8Bit(Color.kGreen));
     static {
         shooter.append(shooterPivot);
     }
 
-    public static final ShooterTrajectoryView targetTrajectory = new ShooterTrajectoryView(
-            view.getRoot("Target Trajectory", originX, originY + 0.4),
+    public static final ShooterTrajectoryView lobTrajectory = new ShooterTrajectoryView(
+            view.getRoot("Lob Trajectory", originX, originY + 0.4),
             new Color8Bit(Color.kYellow)
     );
 
@@ -52,6 +55,14 @@ public final class SimView {
 
     public static void updateIntake(double angleRot) {
         intakeUp.setAngle(90 + angleRot * 360);
+    }
+
+    public static void updateIntake(IntakeSubsystem.State state) {
+        if (state == State.OFF) {
+            intakeUp.setAngle(90);
+        } else {
+            intakeUp.setAngle(180);
+        }
     }
 
     // Rotation from horizontal
@@ -64,13 +75,24 @@ public final class SimView {
         ampIntake.setAngle(intakeRot * 360 - 180);
     }
 
-    public static void updateShooterPivot(double pivotRot) {
-        shooterPivot.setAngle(pivotRot * 360);
+    public static void updateShooter(AimCalculator.Aim aim) {
+        shooterPivot.setAngle(Math.toDegrees(aim.pivotAngle()));
+        shooterPivot.setLength(aim.flywheelVelocity() / 100 * maxShooterLength);
+    }
+
+    public static void setShooting(boolean shooting) {
+        if (shooting) {
+            shooterPivot.setColor(new Color8Bit(Color.kBlueViolet));
+            view.setBackgroundColor(new Color8Bit(Color.kYellow));
+        } else {
+            shooterPivot.setColor(new Color8Bit(Color.kGreen));
+            view.setBackgroundColor(new Color8Bit(Color.kDarkGray));
+        }
     }
 
     // Do not use on real robot ever! This is very inefficient and only for debugging sim
     public static final class ShooterTrajectoryView {
-        private static final double maxTime = 1;
+        private static final double maxTime = 2;
         private static final int segments = 16;
 
         private final MechanismLigament2d[] ligaments;
@@ -96,10 +118,11 @@ public final class SimView {
             }
         }
 
-        public void update(AimCalculator.Aim aim) {
-            double vx = aim.flywheelVelocity() * Math.cos(aim.pivotAngle());
-            double vy = aim.flywheelVelocity() * Math.sin(aim.pivotAngle());
+        public void update(double initialVelocityMPS, double pivotAngleRad) {
+            double vx = initialVelocityMPS * Math.cos(pivotAngleRad);
+            double vy = initialVelocityMPS * Math.sin(pivotAngleRad);
 
+            // Plot free-fall trajectory
             double px = 0, py = 0;
             double pa = 0;
             for (int i = 0; i < segments; i++) {

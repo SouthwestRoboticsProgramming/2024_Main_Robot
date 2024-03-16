@@ -20,4 +20,13 @@ public final class RobotCommands {
 
         return new ParallelDeadlineGroup(shootSeq, aim);
     }
+
+    public static Command ejectHard(RobotContainer robot) {
+        return Commands.sequence(
+            Commands.waitUntil(() -> robot.shooter.isReadyToShoot())
+                    .withTimeout(NTData.SHOOTER_AUTO_READY_TIMEOUT.get()),
+                // Commands.waitSeconds(NTData.SHOOTER_AUTO_AFTER_READY_DELAY.get()),
+                new IndexerFeedCommand(robot.indexer)
+        );
+    }
 }

@@ -25,7 +25,8 @@ public final class ManualAimCalculator implements AimCalculator {
 
         return new Aim(
                 velocitySetpoint.get(),
-                Math.toRadians(pivotSetpoint.get())
+                Math.toRadians(pivotSetpoint.get()),
+                distanceToSpeaker
         );
     }
 }

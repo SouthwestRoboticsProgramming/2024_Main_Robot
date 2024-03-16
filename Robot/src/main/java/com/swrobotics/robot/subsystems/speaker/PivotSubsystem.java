@@ -59,7 +59,7 @@ public final class PivotSubsystem extends SubsystemBase {
     }
 
     private static final double motorToPivotRatio = 10 * 9 * 4;
-    private static final double hardStopAngle = 27 / 360.0;
+    private static final double hardStopAngle = 22 / 360.0;
     private static final double maxAngle = (90 - 20) / 360.0;
 
     private final TalonFXWithSim motor = new TalonFXWithSim(
@@ -111,8 +111,8 @@ public final class PivotSubsystem extends SubsystemBase {
 
         angleRot = MathUtil.clamp(
                 angleRot,
-                hardStopAngle + 0.5 / 360.0,
-                maxAngle - 2 / 360.0);
+                hardStopAngle,
+                maxAngle - 1/ 360.0);
 
         motor.setControl(new PositionVoltage(angleRot));
         state = State.SHOOTING;
@@ -181,7 +181,6 @@ public final class PivotSubsystem extends SubsystemBase {
     public void simulationPeriodic() {
         motor.updateSim(12);
         position.refresh();
-        SimView.updateShooterPivot(position.getValue());
     }
 
     private void applyPID(Slot0Configs config) {

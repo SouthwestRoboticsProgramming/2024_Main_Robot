@@ -120,6 +120,7 @@ public class RobotContainer {
         NamedCommands.registerCommand("Intake Off", new IntakeSetCommand(intake, IntakeSubsystem.State.OFF));
         NamedCommands.registerCommand("Shoot", RobotCommands.aimAndShoot(this, false));
         NamedCommands.registerCommand("Wait and Shoot", RobotCommands.aimAndShoot(this, true)); // Waits for indexer to have note
+        NamedCommands.registerCommand("Eject Hard", RobotCommands.ejectHard(this));
 
         // Create a chooser to select the autonomous
         List<AutoEntry> autos = buildPathPlannerAutos();
@@ -142,7 +143,7 @@ public class RobotContainer {
         FieldView.publish();
 
         char sep = File.separatorChar;
-        String whichSong = Math.random() > 0.95 ? "caramell-bert-expanded.chrp" : "xp.chrp";
+        String whichSong = Math.random() > 0.9 ? "caramell-bert-expanded.chrp" : "xp.chrp";
         CommandScheduler.getInstance().schedule(musicCommand = Commands.waitSeconds(5)
                 .andThen(new PlaySongCommand(music, "music" + sep + whichSong)));
 
