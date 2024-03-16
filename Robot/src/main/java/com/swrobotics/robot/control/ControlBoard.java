@@ -120,13 +120,13 @@ public class ControlBoard extends SubsystemBase {
         ));
 
         // Full auto amp
-        new Trigger(() -> driver.x.isPressed()).or(() -> driver.b.isPressed()).whileTrue(
-            AutoBuilder.pathfindToPose(
-                new Pose2d(new Translation2d(1.84, 7.4),
-                Rotation2d.fromDegrees(90)),
-                new PathConstraints(3.0, 3.0, 540, 640))
-            .andThen(new DriveIntoWallCommand(robot.drive).withTimeout(1.0)
-            .alongWith())); // FIXME: Make the bar go up too
+//        new Trigger(() -> driver.x.isPressed()).or(() -> driver.b.isPressed()).whileTrue(
+//            AutoBuilder.pathfindToPose(
+//                new Pose2d(new Translation2d(1.84, 7.4),
+//                Rotation2d.fromDegrees(90)),
+//                new PathConstraints(3.0, 3.0, 540, 640))
+//            .andThen(new DriveIntoWallCommand(robot.drive).withTimeout(1.0)
+//            .alongWith())); // FIXME: Make the bar go up too
 
         // Just angle amp
         new Trigger(() -> driver.a.isPressed()).whileTrue(new AmpAlignCommand(robot.drive).alongWith()); // FIXME: Make the bar go up too
