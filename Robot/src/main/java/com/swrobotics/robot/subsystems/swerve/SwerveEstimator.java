@@ -77,8 +77,10 @@ public final class SwerveEstimator {
         }
         FieldView.aprilTagPoses.setPoses(tagPoses);
 
-        if (ignoreVision)
+        if (ignoreVision) {
+            update();
             return;
+        }
 
         for (TagTrackerInput.VisionUpdate visionUpdate : visionData) {
             double timestamp = visionUpdate.timestamp;

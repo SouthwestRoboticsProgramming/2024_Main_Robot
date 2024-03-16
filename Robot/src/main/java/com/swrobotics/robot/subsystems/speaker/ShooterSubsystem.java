@@ -184,4 +184,8 @@ public final class ShooterSubsystem extends SubsystemBase {
     public TalonFX getPivotMotor() {
         return pivot.getMotor();
     }
+
+    public boolean isCalibrated() {
+        return pivot.hasCalibrated();
+    }
 }

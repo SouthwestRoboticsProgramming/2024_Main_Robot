@@ -19,6 +19,8 @@ import edu.wpi.first.math.kinematics.struct.ChassisSpeedsStruct;
 import edu.wpi.first.wpilibj2.command.Command;
 
 public final class AimTowardsLobCommand extends Command {
+    private static final double OFFSET = -Math.atan2(64 - 17, (54*12 - 134) - 113);
+
     private final SwerveDrive drive;
     private final ShooterSubsystem shooter;
 
@@ -56,7 +58,7 @@ public final class AimTowardsLobCommand extends Command {
         double flyTime = getFlyTime(currentAim);
         double missAmount = flyTime * robotVelocity.getY();
 
-        double correctionRad = -Math.atan2(missAmount, currentAim.distanceToSpeaker());
+        double correctionRad = -Math.atan2(missAmount, currentAim.distanceToSpeaker()) + OFFSET;
 
         double setpointAngle = MathUtil.wrap(angleToTarget.getRadians() + correctionRad, -Math.PI, Math.PI);
         double currentAngle = MathUtil.wrap(robotPose.getRotation().getRadians(), -Math.PI, Math.PI);

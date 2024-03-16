@@ -10,6 +10,7 @@ public final class RobotCommands {
     public static Command aimAndShoot(RobotContainer robot, boolean waitForNote) {
         AimTowardsSpeakerCommand aim = new AimTowardsSpeakerCommand(robot.drive, robot.shooter);
         Command shootSeq = Commands.sequence(
+                Commands.waitUntil(robot.shooter::isCalibrated),
                 Commands.waitUntil(() -> (!waitForNote || robot.indexer.hasPiece())
                         && aim.isInTolerance(NTData.DRIVE_AIM_TOLERANCE.get())
                         && robot.shooter.isReadyToShoot())

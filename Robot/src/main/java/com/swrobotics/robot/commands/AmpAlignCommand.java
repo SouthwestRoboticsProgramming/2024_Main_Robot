@@ -54,7 +54,7 @@ public final class AmpAlignCommand extends Command {
         output = MathUtil.clamp(output, -max, max);
 
         drive.turn(new SwerveDrive.TurnRequest(SwerveDrive.SNAP_PRIORITY, new Rotation2d(output)));
-        drive.drive(new DriveRequest(SwerveDrive.SNAP_PRIORITY, new Translation2d(), DriveRequestType.OpenLoopVoltage));
+//        drive.drive(new DriveRequest(SwerveDrive.SNAP_PRIORITY, new Translation2d(), DriveRequestType.OpenLoopVoltage));
     }
 
     public boolean isInTolerance(double tolRotations) {

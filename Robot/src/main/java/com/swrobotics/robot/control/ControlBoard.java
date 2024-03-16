@@ -213,6 +213,9 @@ public class ControlBoard extends SubsystemBase {
             robot.indexer.setReverse(false);
             robot.intake.setReverse(false);
             robot.shooter.setFlywheelControl(ShooterSubsystem.FlywheelControl.SHOOT); // Always aim with note when not teleop
+
+            robot.drive.setEstimatorIgnoreVision(DriverStation.isAutonomous());
+
             return;
         }
 
