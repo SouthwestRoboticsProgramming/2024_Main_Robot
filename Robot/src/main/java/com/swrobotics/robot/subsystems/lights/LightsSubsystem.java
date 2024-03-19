@@ -1,5 +1,6 @@
 package com.swrobotics.robot.subsystems.lights;
 
+import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.swrobotics.mathlib.MathUtil;
 import com.swrobotics.robot.RobotContainer;
 import com.swrobotics.robot.config.IOAllocation;
@@ -80,6 +81,10 @@ public final class LightsSubsystem extends SubsystemBase {
         }
     }
 
+    private void showCoastDriving() {
+        applySolid(Color.kMagenta);
+    }
+
     private void showAutoDriving() {
         // Rainbow
         applyStripes(5f,
@@ -104,13 +109,15 @@ public final class LightsSubsystem extends SubsystemBase {
     @Override
     public void periodic() {
         // Special indicator to swap battery
-        boolean batteryLow = RobotController.getBatteryVoltage() < 10;
+        boolean batteryLow = RobotController.getBatteryVoltage() < 11;
 
         boolean resetShooterBlink = true;
         if (batteryLowDebounce.calculate(batteryLow)) {
             showLowBattery();
         } else if (DriverStation.isDisabled()) {
             prideSequencer.apply(this);
+        } else if (robot.drive.getCurrentNeutralMode() == NeutralModeValue.Coast) {
+            showCoastDriving();
         } else if (robot.shooter.isPreparing()) {
             resetShooterBlink = false;
             showShooterStatus();

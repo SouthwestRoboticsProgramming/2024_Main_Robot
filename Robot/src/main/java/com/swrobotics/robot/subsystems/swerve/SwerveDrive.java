@@ -16,6 +16,7 @@ import org.littletonrobotics.junction.Logger;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveModuleConstants;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveModule.SteerRequestType;
+import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.kauailabs.navx.frc.AHRS;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.pathfinding.Pathfinding;
@@ -36,6 +37,7 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.SPI;
+import edu.wpi.first.wpilibj.DriverStation.MatchType;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 import com.swrobotics.lib.net.NTEntry;
@@ -89,6 +91,7 @@ public final class SwerveDrive extends SubsystemBase {
     private DriveRequest currentDriveRequest;
     private TurnRequest currentTurnRequest;
     private int lastSelectedPriority;
+    private NeutralModeValue currentNeutralMode;
 
     public SwerveDrive(FieldInfo fieldInfo, MessengerClient msg) {
         this.fieldInfo = fieldInfo;
@@ -118,6 +121,7 @@ public final class SwerveDrive extends SubsystemBase {
         prevPositions = null;
         currentDriveRequest = NULL_DRIVE;
         currentTurnRequest = NULL_TURN;
+        currentNeutralMode = NeutralModeValue.Brake;
 
         // Configure pathing
         AutoBuilder.configureHolonomic(
@@ -242,6 +246,15 @@ public final class SwerveDrive extends SubsystemBase {
             }
         }
 
+        // Coast if we are really close to the end of the match
+        // (lets us slide into the stage at the end to clutch up the 1 pt)
+        double time = DriverStation.getMatchTime();
+        if (DriverStation.isTeleopEnabled() && time < 3) {
+            setNeutralMode(NeutralModeValue.Coast);
+        } else {
+            setNeutralMode(NeutralModeValue.Brake);
+        }
+
         // Update estimator
         // Do refresh here, so we get the most up-to-date data
         SwerveModulePosition[] positions = getCurrentModulePositions(true);
@@ -329,7 +342,21 @@ public final class SwerveDrive extends SubsystemBase {
         return modules[module].getSteerMotor();
     }
 
+    public void setNeutralMode(NeutralModeValue neutralMode) {
+        if (neutralMode == currentNeutralMode)
+            return;
+
+        currentNeutralMode = neutralMode;
+        for (SwerveModule module : modules) {
+            module.configNeutralMode(neutralMode);
+        }
+    }
+
     public void setEstimatorIgnoreVision(boolean ignoreVision) {
         estimator.setIgnoreVision(ignoreVision);
+    }
+
+    public NeutralModeValue getCurrentNeutralMode() {
+        return currentNeutralMode;
     }
 }
