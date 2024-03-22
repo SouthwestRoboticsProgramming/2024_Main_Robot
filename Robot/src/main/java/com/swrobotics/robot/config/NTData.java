@@ -114,6 +114,7 @@ public final class NTData {
     public static final NTEntry<Double> SHOOTER_PIVOT_ALLOWABLE_PCT_ERR = new NTDouble("Shooter/Pivot/Allowable Pct Error", 0.01).setPersistent(); // FIXME TUNE
     public static final NTEntry<Double> SHOOTER_PIVOT_ANGLE_ADJUST_BLUE = new NTDouble("Shooter/Pivot/Angle Adjust Blue (deg)", -1).setPersistent();
     public static final NTEntry<Double> SHOOTER_PIVOT_ANGLE_ADJUST_RED = new NTDouble("Shooter/Pivot/Angle Adjust Red (deg)", 1).setPersistent();
+    public static final NTEntry<Double> SHOOTER_PIVOT_REVERSE_ANGLE = new NTDouble("Shooter/Pivot/Reverse Angle (deg)", 35).setPersistent();
 
     public static final NTEntry<Double> SHOOTER_LOB_POWER_COEFFICIENT = new NTDouble("Shooter/Lob/Power Coefficient", 1.25).setPersistent(); // To go from real velocity to flywheel velocity
     public static final NTEntry<Double> SHOOTER_LOB_HEIGHT_METERS = new NTDouble("Shooter/Lob/Lob Height (m)", 3).setPersistent();

@@ -112,7 +112,7 @@ public final class ShooterSubsystem extends SubsystemBase {
             flywheel.setTargetVelocity(aim.flywheelVelocity());
             pivot.setTargetAngle(aim.pivotAngle() / MathUtil.TAU);
         } else if (flywheelControl == FlywheelControl.REVERSE) {
-            // Don't touch pivot so it won't move and squish stuck note
+	    pivot.setTargetAngle(NTData.SHOOTER_PIVOT_REVERSE_ANGLE.get() / 360.0);
             flywheel.setDutyCycle(-NTData.SHOOTER_FLYWHEEL_REVERSE_SPEED.get());
         } else if (flywheelControl == FlywheelControl.SHOOT || afterShootDelay.calculate(indexer.hasPiece())) {
             if (aim != null) {
@@ -131,7 +131,10 @@ public final class ShooterSubsystem extends SubsystemBase {
                     flywheel.setDutyCycle(NTData.SHOOTER_FLYWHEEL_IDLE_SPEED.get());
                 pivot.setIdle();
             }
-        } else {
+        } else if (flywheelControl == FlywheelControl.POOP) {
+	    flywheel.setDutyCycle(NTData.SHOOTER_FLYWHEEL_POOP_SPEED.get());
+	    pivot.setNeutral();
+	} else {
             flywheel.setNeutral();
             pivot.setNeutral();
         }
