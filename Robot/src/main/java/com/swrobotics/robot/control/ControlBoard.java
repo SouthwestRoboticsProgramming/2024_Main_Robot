@@ -154,6 +154,10 @@ public class ControlBoard extends SubsystemBase {
                 .onTrue(Commands.runOnce(() -> robot.intake.set(IntakeSubsystem.State.OFF)));
 
         new Trigger(() -> CHARACTERISE_WHEEL_RADIUS.get()).whileTrue(new CharactarizeWheelCommand(robot.drive));
+
+        new Trigger(operator.start::isPressed)
+                .onTrue(Commands.runOnce(robot.indexer::beginReverse))
+                .onFalse(Commands.runOnce(robot.indexer::endReverse));
     }
 
     private boolean driverWantsSnapCloser() {
@@ -210,7 +214,7 @@ public class ControlBoard extends SubsystemBase {
     public void periodic() {
         if (!DriverStation.isTeleop()) {
             climberState = ClimberArm.State.RETRACTED;
-            robot.indexer.setReverse(false);
+            robot.indexer.endReverse();
             robot.intake.setReverse(false);
             robot.shooter.setFlywheelControl(ShooterSubsystem.FlywheelControl.SHOOT); // Always aim with note when not teleop
 
@@ -289,7 +293,6 @@ public class ControlBoard extends SubsystemBase {
         robot.climber.setState(climberState);
 
         robot.intake.setReverse(operator.back.isPressed());
-        robot.indexer.setReverse(operator.start.isPressed());
 
         boolean shootAmp = operator.y.isPressed();
         if (shootAmp)
