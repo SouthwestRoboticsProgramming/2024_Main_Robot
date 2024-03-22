@@ -11,6 +11,7 @@ import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj.RobotBase;
+import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.motorcontrol.PWMSparkMax;
 import edu.wpi.first.wpilibj.motorcontrol.PWMTalonSRX;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -77,24 +78,8 @@ public final class IntakeSubsystem extends SubsystemBase {
             return;
 
         if (!hasCalibrated) {
-//        // Defer debouncer initialization until now so the first edge still applies
-//        if (actuatorStillDebounce == null) {
-//            // Defaults to false, which gives the motor a little time to start
-//            // moving before we stop
-//            actuatorStillDebounce = new Debouncer(NTData.INTAKE_CALIBRATE_DEBOUNCE.get(), Debouncer.DebounceType.kBoth);
-//        }
-//
-//        boolean isStill = Math.abs(actuatorMotor.getEncoderVelocity()) < NTData.INTAKE_CALIBRATE_STALL_THRESHOLD.get();
-//        if (actuatorStillDebounce.calculate(isStill)) {
             hasCalibrated = true;
-
-            // Fully retracted now, set position
             actuatorMotor.setEncoderPosition(-NTData.INTAKE_CALIBRATE_SETPOINT.get() / 360.0);
-//            NTData.INTAKE_CALIBRATING.set(false);
-//        } else {
-//            actuatorMotor.setVoltage(-NTData.INTAKE_CALIBRATE_VOLTS.get());
-//            NTData.INTAKE_CALIBRATING.set(true);
-//        }
         }
 
         boolean extend = state != State.OFF;
@@ -104,15 +89,19 @@ public final class IntakeSubsystem extends SubsystemBase {
         };
         if (reverse)
             speed = -1;
-        System.out.println("Intake: " + speed);
 
         // Manual voltage compensation
-        double supplyVolts = pdp.getVoltage();
+        // FIXME: This may be why the intake sometimes "wiggles"
+        //  in the sim supplyVolts is sometimes randomly 0 when using PDP
+//        double supplyVolts = pdp.getVoltage();
+        double supplyVolts = RobotController.getBatteryVoltage(); // Use RIO power input instead (should be same voltage)
         double comp = 12.0 / supplyVolts;
         speed *= comp;
 
         actuatorMotor.setPosition(extend ? NTData.INTAKE_RANGE.get() / 360 : 0);
-        spinMotor.set(MathUtil.clamp(speed, -1, 1));
+        double spinOut = MathUtil.clamp(speed, -1, 1);
+        spinMotor.set(spinOut);
+//        System.out.println("Intake: " + speed + " -> " + spinOut + " (Supply " + supplyVolts + "V)");
     }
 
     @Override
