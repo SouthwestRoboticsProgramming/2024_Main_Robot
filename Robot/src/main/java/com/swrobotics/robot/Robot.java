@@ -1,6 +1,7 @@
 package com.swrobotics.robot;
 
 import com.swrobotics.lib.ThreadUtils;
+import com.swrobotics.robot.config.IOAllocation;
 import com.swrobotics.robot.config.Settings;
 import com.swrobotics.robot.config.Settings.Mode;
 import com.swrobotics.robot.config.Settings.RobotType;
@@ -65,7 +66,7 @@ public class Robot extends LoggedRobot {
                 Logger.addDataReceiver(new NT4Publisher());
                 if (Settings.robot == RobotType.COMPETITION) {
                     LoggedPowerDistribution.getInstance(
-                            50, ModuleType.kRev); // FIXME: Correct ID
+                            IOAllocation.CAN.PDP.id(), ModuleType.kRev);
                 }
                 break;
 
