@@ -174,6 +174,12 @@ public class RobotContainer {
             autoDelay.addOption(time + " seconds", time);
         }
         autoDelaySelector = new LoggedDashboardChooser<>("Auto Delay", autoDelay);
+
+        // Don't brown out in matches
+        new Trigger(DriverStation::isFMSAttached)
+                .onTrue(Commands.runOnce(() -> {
+                    RobotController.setBrownoutVoltage(0);
+                }));
     }
 
     private static final record AutoEntry(String name, Command cmd) {}
