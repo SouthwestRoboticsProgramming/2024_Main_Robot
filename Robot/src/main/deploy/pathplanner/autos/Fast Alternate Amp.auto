@@ -38,7 +38,37 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Amp Side Mid B"
+            "pathName": "Amp Side Mid B.1"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Shoot"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Amp Side Mid B.2"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Shoot"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Amp Side Mid B.3"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Amp Side Mid B.4"
           }
         },
         {
