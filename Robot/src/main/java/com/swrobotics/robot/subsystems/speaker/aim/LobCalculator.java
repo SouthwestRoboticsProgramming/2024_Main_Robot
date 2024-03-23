@@ -10,15 +10,26 @@ public class LobCalculator implements AimCalculator {
     public static final LobCalculator INSTANCE = new LobCalculator();
 
     private static final double twoG = 9.8 * 2;
-    private double sqrt2gh;
+    private double tallSqrt2gh;
+    private double shortSqrt2gh;
 
     public LobCalculator() {
-        NTData.SHOOTER_LOB_HEIGHT_METERS.onChange((a) -> this.updateHeight());
-        sqrt2gh = Math.sqrt(twoG * NTData.SHOOTER_LOB_HEIGHT_METERS.get());
+        NTData.SHOOTER_LOB_TALL_HEIGHT_METERS.onChange((a) -> this.updateHeight());
+        NTData.SHOOTER_LOB_SHORT_HEIGHT_METERS.onChange((a) -> this.updateHeight());
+        tallSqrt2gh = Math.sqrt(twoG * NTData.SHOOTER_LOB_TALL_HEIGHT_METERS.get());
+        shortSqrt2gh = Math.sqrt(twoG * NTData.SHOOTER_LOB_SHORT_HEIGHT_METERS.get());
     }
 
     public Aim calculateAim(double distanceToSpeaker, double velocityTowardsGoal) {
-        double angleRad = Math.atan2(4 * NTData.SHOOTER_LOB_HEIGHT_METERS.get(), distanceToSpeaker);
+        boolean inWing = distanceToSpeaker > 5;
+        double angleRad = 0;
+
+        if (inWing) {
+            angleRad = Math.atan2(4 * NTData.SHOOTER_LOB_TALL_HEIGHT_METERS.get(), distanceToSpeaker);
+        }
+
+        double sqrt2gh = (inWing) ? tallSqrt2gh : shortSqrt2gh;
+
         double velocity = sqrt2gh / Math.sin(angleRad);
 
         Translation2d velocityVector = new Translation2d(velocity, new Rotation2d(angleRad));
@@ -37,7 +48,8 @@ public class LobCalculator implements AimCalculator {
     }
 
     private void updateHeight() {
-        sqrt2gh = Math.sqrt(twoG * NTData.SHOOTER_LOB_HEIGHT_METERS.get());
+        tallSqrt2gh = Math.sqrt(twoG * NTData.SHOOTER_LOB_TALL_HEIGHT_METERS.get());
+        shortSqrt2gh = Math.sqrt(twoG * NTData.SHOOTER_LOB_SHORT_HEIGHT_METERS.get());
     }
     
 }

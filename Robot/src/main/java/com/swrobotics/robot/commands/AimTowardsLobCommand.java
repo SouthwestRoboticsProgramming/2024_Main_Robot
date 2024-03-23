@@ -1,7 +1,5 @@
 package com.swrobotics.robot.commands;
 
-import org.littletonrobotics.junction.AutoLogOutput;
-
 import com.swrobotics.lib.net.NTUtil;
 import com.swrobotics.mathlib.MathUtil;
 import com.swrobotics.robot.config.NTData;
@@ -12,10 +10,7 @@ import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
-import edu.wpi.first.math.kinematics.proto.ChassisSpeedsProto;
-import edu.wpi.first.math.kinematics.struct.ChassisSpeedsStruct;
 import edu.wpi.first.wpilibj2.command.Command;
 
 public final class AimTowardsLobCommand extends Command {

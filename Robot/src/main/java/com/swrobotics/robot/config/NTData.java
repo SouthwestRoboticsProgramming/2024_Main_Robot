@@ -117,7 +117,8 @@ public final class NTData {
     public static final NTEntry<Double> SHOOTER_PIVOT_REVERSE_ANGLE = new NTDouble("Shooter/Pivot/Reverse Angle (deg)", 35).setPersistent();
 
     public static final NTEntry<Double> SHOOTER_LOB_POWER_COEFFICIENT = new NTDouble("Shooter/Lob/Power Coefficient", 1.25).setPersistent(); // To go from real velocity to flywheel velocity
-    public static final NTEntry<Double> SHOOTER_LOB_HEIGHT_METERS = new NTDouble("Shooter/Lob/Lob Height (m)", 3).setPersistent();
+    public static final NTEntry<Double> SHOOTER_LOB_TALL_HEIGHT_METERS = new NTDouble("Shooter/Lob/Tall Lob Height (m)", 4).setPersistent();
+    public static final NTEntry<Double> SHOOTER_LOB_SHORT_HEIGHT_METERS = new NTDouble("Shooter/Lob/Short Lob Height (m)", 1).setPersistent();
     public static final NTEntry<Double> SHOOTER_FLY_TIME = new NTDouble("Shooter/Fly Time (s)", 0.25);
 
     private NTData() {
