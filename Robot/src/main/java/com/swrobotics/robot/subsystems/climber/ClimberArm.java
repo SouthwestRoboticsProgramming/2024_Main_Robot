@@ -29,6 +29,9 @@ public final class ClimberArm extends SubsystemBase {
     private Debouncer calibrationDebounce;
     private State targetState;
 
+    private final StatusSignal<Double> tuningMotorPosition;
+    private final NTDouble tuningMotorPositionLog;
+
     public ClimberArm(IOAllocation.CanId id, InvertedValue invert) {
         TalonFXConfiguration config = new TalonFXConfiguration();
         config.MotorOutput.Inverted = invert;
@@ -47,6 +50,9 @@ public final class ClimberArm extends SubsystemBase {
         hasCalibrated = RobotBase.isSimulation();
         calibrationDebounce = null;
         targetState = State.RETRACTED;
+
+        tuningMotorPosition = motor.getPosition();
+        tuningMotorPositionLog = new NTDouble("Climber/Log " + id.id(), 0);
     }
 
     public void setState(State state) {
@@ -63,6 +69,9 @@ public final class ClimberArm extends SubsystemBase {
 
     @Override
     public void periodic() {
+        tuningMotorPosition.refresh();
+        tuningMotorPositionLog.set(tuningMotorPosition.getValue());
+
         if (DriverStation.isDisabled())
             return;
 

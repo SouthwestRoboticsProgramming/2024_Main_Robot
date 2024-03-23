@@ -1,6 +1,7 @@
 package com.swrobotics.robot.subsystems.speaker;
 
 import com.revrobotics.CANSparkLowLevel;
+import com.swrobotics.lib.net.NTDouble;
 import com.swrobotics.mathlib.MathUtil;
 import com.swrobotics.robot.config.IOAllocation;
 import com.swrobotics.robot.config.NTData;
@@ -95,14 +96,19 @@ public final class IntakeSubsystem extends SubsystemBase {
         //  in the sim supplyVolts is sometimes randomly 0 when using PDP
 //        double supplyVolts = pdp.getVoltage();
         double supplyVolts = RobotController.getBatteryVoltage(); // Use RIO power input instead (should be same voltage)
-        double comp = 12.0 / supplyVolts;
-        speed *= comp;
+        if (supplyVolts != 0) {
+            double comp = 12.0 / supplyVolts;
+            speed *= comp;
+        }
 
         actuatorMotor.setPosition(extend ? NTData.INTAKE_RANGE.get() / 360 : 0);
         double spinOut = MathUtil.clamp(speed, -1, 1);
         spinMotor.set(spinOut);
+        out.set(spinOut);
 //        System.out.println("Intake: " + speed + " -> " + spinOut + " (Supply " + supplyVolts + "V)");
     }
+
+    NTDouble out = new NTDouble("Intake/Debug out", 1234);
 
     @Override
     public void simulationPeriodic() {

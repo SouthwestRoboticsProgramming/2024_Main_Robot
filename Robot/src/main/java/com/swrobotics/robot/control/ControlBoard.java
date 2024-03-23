@@ -1,8 +1,6 @@
 package com.swrobotics.robot.control;
 
 import com.ctre.phoenix6.mechanisms.swerve.SwerveModule.DriveRequestType;
-import com.pathplanner.lib.auto.AutoBuilder;
-import com.pathplanner.lib.path.PathConstraints;
 import com.swrobotics.lib.input.XboxController;
 import com.swrobotics.lib.net.NTBoolean;
 import com.swrobotics.lib.net.NTEntry;
@@ -11,7 +9,6 @@ import com.swrobotics.robot.RobotContainer;
 import com.swrobotics.robot.commands.AimTowardsLobCommand;
 import com.swrobotics.robot.commands.AimTowardsSpeakerCommand;
 import com.swrobotics.robot.commands.AmpAlignCommand;
-import com.swrobotics.robot.commands.DriveIntoWallCommand;
 import com.swrobotics.robot.commands.CharactarizeWheelCommand;
 import com.swrobotics.robot.commands.SnapDistanceCommand;
 import com.swrobotics.robot.config.NTData;
@@ -21,6 +18,7 @@ import com.swrobotics.robot.subsystems.speaker.PivotSubsystem;
 import com.swrobotics.robot.subsystems.speaker.ShooterSubsystem;
 import com.swrobotics.robot.subsystems.speaker.aim.AmpAimCalculator;
 import com.swrobotics.robot.subsystems.speaker.aim.LobCalculator;
+import com.swrobotics.robot.subsystems.speaker.aim.ManualAimCalculator;
 import com.swrobotics.robot.subsystems.speaker.aim.TableAimCalculator;
 import com.swrobotics.robot.subsystems.swerve.SwerveDrive;
 import edu.wpi.first.math.filter.Debouncer;
@@ -69,6 +67,10 @@ public class ControlBoard extends SubsystemBase {
 
     private ClimberArm.State climberState;
     private boolean pieceRumble;
+
+    // TODO: Maybe auto-adjust based on battery voltage?
+    private static final double MAX_DRIVE_ACCEL = 5; // Meters / second^2
+    private final DriveAccelFilter driveFilter = new DriveAccelFilter(MAX_DRIVE_ACCEL);
 
     private final Debouncer driverSlowDebounce = new Debouncer(0.075);
     private final Debouncer driverRobotRelDebounce = new Debouncer(0.075);
@@ -196,9 +198,19 @@ public class ControlBoard extends SubsystemBase {
         // double x = -squareWithSign(leftStick.getY()) * speed;
         // double y = -squareWithSign(leftStick.getX()) * speed;
         double power = 2.5;
-        double x = -powerWithSign(leftStick.getY(), power) * speed;
-        double y = -powerWithSign(leftStick.getX(), power) * speed;
-        return new Translation2d(x, y);
+//        double x = -powerWithSign(leftStick.getY(), power) * speed;
+//        double y = -powerWithSign(leftStick.getX(), power) * speed;
+
+        double rawMag = leftStick.getNorm();
+        double powerMag = powerWithSign(rawMag, power);
+
+        if (rawMag == 0 || powerMag == 0)
+            return new Translation2d(0, 0); // No division by 0
+
+        double targetSpeed = powerMag * speed;
+        double filteredSpeed = driveFilter.calculate(targetSpeed);
+
+        return new Translation2d(-leftStick.getY(), -leftStick.getX()).div(rawMag).times(filteredSpeed);
     }
 
     private double getDriveRotation() {
@@ -297,12 +309,15 @@ public class ControlBoard extends SubsystemBase {
         boolean shootAmp = operator.y.isPressed();
         if (shootAmp)
             robot.shooter.setTempAimCalculator(AmpAimCalculator.INSTANCE);
+        boolean shootManual = operator.x.isPressed();
+        if (shootManual)
+            robot.shooter.setTempAimCalculator(ManualAimCalculator.INSTANCE);
 
 //        robot.shooter.setFlywheelControl(driverWantsAim() || driverWantsFlywheels());
         ShooterSubsystem.FlywheelControl flywheelControl = ShooterSubsystem.FlywheelControl.IDLE;
         if (operator.start.isPressed())
             flywheelControl = ShooterSubsystem.FlywheelControl.REVERSE;
-        else if (driverWantsAim() || driverWantsFlywheels() || shootAmp || forceToSubwoofer || forceToStageCorner || lobbing != 0)
+        else if (driverWantsAim() || driverWantsFlywheels() || shootAmp || shootManual || forceToSubwoofer || forceToStageCorner || lobbing != 0)
             flywheelControl = ShooterSubsystem.FlywheelControl.SHOOT;
         else if (operatorWantsShoot)
             flywheelControl = ShooterSubsystem.FlywheelControl.POOP;

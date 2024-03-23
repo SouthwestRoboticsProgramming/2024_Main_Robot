@@ -4,13 +4,15 @@ import com.swrobotics.lib.net.NTBoolean;
 import com.swrobotics.lib.net.NTDouble;
 
 public final class ManualAimCalculator implements AimCalculator {
+    public static final ManualAimCalculator INSTANCE = new ManualAimCalculator();
+
     private static final NTDouble velocitySetpoint = new NTDouble("Shooter/Manual Aim/Velocity (rot per sec)", 0);
     private static final NTDouble pivotSetpoint = new NTDouble("Shooter/Manual Aim/Pivot Angle (deg)", 30);
     private static final NTDouble logDistance = new NTDouble("Shooter/Manual Aim/Est Distance (m)", 0);
 
     private static final NTBoolean setFromTable = new NTBoolean("Shooter/Manual Aim/Set From Table", false);
 
-    private final TableAimCalculator tableRef = new TableAimCalculator();
+    private final TableAimCalculator tableRef = TableAimCalculator.INSTANCE;
 
     @Override
     public Aim calculateAim(double distanceToSpeaker) {
