@@ -1,5 +1,6 @@
 package com.swrobotics.robot.commands;
 
+import com.swrobotics.lib.net.NTEntry;
 import com.swrobotics.lib.net.NTUtil;
 import com.swrobotics.mathlib.MathUtil;
 import com.swrobotics.robot.config.NTData;
@@ -11,6 +12,7 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.Command;
 
 public final class AimTowardsLobCommand extends Command {
@@ -53,7 +55,12 @@ public final class AimTowardsLobCommand extends Command {
         double flyTime = getFlyTime(currentAim);
         double missAmount = flyTime * robotVelocity.getY();
 
-        double correctionRad = -Math.atan2(missAmount, currentAim.distanceToSpeaker()) + OFFSET;
+        // For some reason it's different per alliance???
+        NTEntry<Double> offset = DriverStation.getAlliance().orElse(DriverStation.Alliance.Blue) == DriverStation.Alliance.Blue
+                ? NTData.SHOOTER_LOB_DRIVE_ANGLE_CORRECTION_BLUE
+                : NTData.SHOOTER_LOB_DRIVE_ANGLE_CORRECTION_RED;
+
+        double correctionRad = -Math.atan2(missAmount, currentAim.distanceToSpeaker()) + Math.toRadians(offset.get());
 
         double setpointAngle = MathUtil.wrap(angleToTarget.getRadians() + correctionRad, -Math.PI, Math.PI);
         double currentAngle = MathUtil.wrap(robotPose.getRotation().getRadians(), -Math.PI, Math.PI);
