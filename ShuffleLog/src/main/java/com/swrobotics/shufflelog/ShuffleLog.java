@@ -148,7 +148,7 @@ public final class ShuffleLog extends PApplet {
         NetworkTablesTool nt = new NetworkTablesTool(threadPool);
         nt.addListener(smartDashboard);
 
-        tools.add(new MenuBarTool(smartDashboard));
+        tools.add(new MenuBarTool(this, smartDashboard));
         MessengerTool msg = new MessengerTool(this);
         tools.add(msg);
         tools.add(new ShuffleLogProfilerTool(this));
