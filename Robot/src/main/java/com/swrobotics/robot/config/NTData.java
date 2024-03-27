@@ -122,6 +122,7 @@ public final class NTData {
     public static final NTEntry<Double> SHOOTER_LOB_DRIVE_ANGLE_CORRECTION_BLUE = new NTDouble("Shooter/Lob/Drive Angle Correction Blue (deg)", -25).setPersistent();
     public static final NTEntry<Double> SHOOTER_LOB_DRIVE_ANGLE_CORRECTION_RED = new NTDouble("Shooter/Lob/Drive Angle Correction Red (deg)", -25).setPersistent();
     public static final NTEntry<Double> SHOOTER_FLY_TIME = new NTDouble("Shooter/Fly Time (s)", 0.25);
+    public static final NTEntry<Double> SHOOTER_FADEAWAY_COEFFICIENT = new NTDouble("Shooter/Fadeaway Coefficient", 0.2);
 
     private NTData() {
         throw new AssertionError();
