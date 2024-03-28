@@ -2,8 +2,8 @@
   "version": 1.0,
   "startingPose": {
     "position": {
-      "x": 1.406426755846387,
-      "y": 2.6909332678522846
+      "x": 1.2796798990272578,
+      "y": 4.32889264828411
     },
     "rotation": 133.38969939750103
   },
@@ -14,7 +14,7 @@
         {
           "type": "named",
           "data": {
-            "name": "Shoot"
+            "name": "Shoot Quick"
           }
         },
         {
@@ -70,6 +70,24 @@
           "type": "path",
           "data": {
             "pathName": "Source Center B Score"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Shoot"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Source End Grab"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Source End Score"
           }
         },
         {

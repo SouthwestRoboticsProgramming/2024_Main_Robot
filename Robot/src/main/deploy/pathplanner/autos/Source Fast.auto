@@ -46,6 +46,24 @@
           "data": {
             "name": "Shoot"
           }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Source End Grab"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Source End Score"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Shoot"
+          }
         }
       ]
     }
