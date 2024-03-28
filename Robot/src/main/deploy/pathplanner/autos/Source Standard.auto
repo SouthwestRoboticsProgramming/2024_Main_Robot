@@ -1,0 +1,86 @@
+{
+  "version": 1.0,
+  "startingPose": {
+    "position": {
+      "x": 1.406426755846387,
+      "y": 2.6909332678522846
+    },
+    "rotation": 133.38969939750103
+  },
+  "command": {
+    "type": "sequential",
+    "data": {
+      "commands": [
+        {
+          "type": "named",
+          "data": {
+            "name": "Shoot"
+          }
+        },
+        {
+          "type": "race",
+          "data": {
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "Source Start Standard"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "Intake Until Note"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Wait and Shoot"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Source Center A Grab"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Source Center A Score"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Shoot"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Source Center B Grab"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Source Center B Score"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Shoot"
+          }
+        }
+      ]
+    }
+  },
+  "folder": "Source",
+  "choreoAuto": false
+}

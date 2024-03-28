@@ -1,0 +1,111 @@
+{
+  "version": 1.0,
+  "startingPose": {
+    "position": {
+      "x": 1.2991794154609702,
+      "y": 6.737082927847566
+    },
+    "rotation": -134.31522249299087
+  },
+  "command": {
+    "type": "sequential",
+    "data": {
+      "commands": [
+        {
+          "type": "named",
+          "data": {
+            "name": "Shoot"
+          }
+        },
+        {
+          "type": "race",
+          "data": {
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "Amp Start Standard"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "Intake Until Note"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Wait and Shoot"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Amp Center A Grab"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Amp Center A Score"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Shoot"
+          }
+        },
+        {
+          "type": "race",
+          "data": {
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "Amp Center B Grab"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "Intake Until Note"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Amp Center B Score"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Shoot"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Amp End"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Shoot"
+          }
+        }
+      ]
+    }
+  },
+  "folder": "Amp",
+  "choreoAuto": false
+}

@@ -1,0 +1,70 @@
+{
+  "version": 1.0,
+  "waypoints": [
+    {
+      "anchor": {
+        "x": 3.0541358944950683,
+        "y": 3.2271699697793705
+      },
+      "prevControl": null,
+      "nextControl": {
+        "x": 5.24783149328769,
+        "y": 1.296717842841861
+      },
+      "isLocked": false,
+      "linkedName": "Score Location Source"
+    },
+    {
+      "anchor": {
+        "x": 7.929015002923118,
+        "y": 2.281443422744329
+      },
+      "prevControl": {
+        "x": 6.203307798539589,
+        "y": 1.3162173592755742
+      },
+      "nextControl": null,
+      "isLocked": false,
+      "linkedName": null
+    }
+  ],
+  "rotationTargets": [],
+  "constraintZones": [],
+  "eventMarkers": [
+    {
+      "name": "New Event Marker",
+      "waypointRelativePos": 0.5,
+      "command": {
+        "type": "parallel",
+        "data": {
+          "commands": [
+            {
+              "type": "named",
+              "data": {
+                "name": "Intake Until Note"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "globalConstraints": {
+    "maxVelocity": 4.0,
+    "maxAcceleration": 3.8,
+    "maxAngularVelocity": 540.0,
+    "maxAngularAcceleration": 640.0
+  },
+  "goalEndState": {
+    "velocity": 0,
+    "rotation": -151.0948368231641,
+    "rotateFast": false
+  },
+  "reversed": false,
+  "folder": "Source",
+  "previewStartingState": {
+    "rotation": 141.15310415119677,
+    "velocity": 0
+  },
+  "useDefaultConstraints": true
+}

@@ -8,6 +8,7 @@ import com.pathplanner.lib.path.PathPlannerPath;
 import com.swrobotics.lib.field.FieldInfo;
 import com.swrobotics.messenger.client.MessengerClient;
 import com.swrobotics.robot.commands.RobotCommands;
+import com.swrobotics.robot.commands.DriveTowardsClosestNote;
 import com.swrobotics.robot.commands.IntakeSetCommand;
 import com.swrobotics.robot.commands.PlaySongCommand;
 import com.swrobotics.robot.config.IOAllocation;
@@ -118,7 +119,10 @@ public class RobotContainer {
         // Register Named Commands for Auto
         NamedCommands.registerCommand("Intake On", new IntakeSetCommand(intake, IntakeSubsystem.State.INTAKE));
         NamedCommands.registerCommand("Intake Off", new IntakeSetCommand(intake, IntakeSubsystem.State.OFF));
+        NamedCommands.registerCommand("Intake Until Note", RobotCommands.intakeUntilNote(this));
         NamedCommands.registerCommand("Shoot", RobotCommands.aimAndShoot(this, false));
+        NamedCommands.registerCommand("Shoot Quick", RobotCommands.shootQuick(this));
+        NamedCommands.registerCommand("Fling", RobotCommands.flingNote(this));
         NamedCommands.registerCommand("Wait and Shoot", RobotCommands.aimAndShoot(this, true)); // Waits for indexer to have note
         NamedCommands.registerCommand("Eject Hard", RobotCommands.ejectHard(this));
 
@@ -189,6 +193,7 @@ public class RobotContainer {
 
         List<PathPlannerAuto> options = new ArrayList<>();
         for (String autoName : autoNames) {
+            System.out.println(autoName);
             PathPlannerAuto auto = new PathPlannerAuto(autoName);
 
             options.add(auto);

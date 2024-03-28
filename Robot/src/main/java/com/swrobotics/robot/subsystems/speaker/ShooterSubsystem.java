@@ -70,6 +70,10 @@ public final class ShooterSubsystem extends SubsystemBase {
         return drive.getFieldInfo().flipPoseForAlliance(blueLobZone).getTranslation();
     }
 
+    public void forcePivotCalibration(double angleDeg) {
+        pivot.overrideCalibration(angleDeg);
+    }
+
     @Override
     public void periodic() {
         // Use the selected aim calculator
