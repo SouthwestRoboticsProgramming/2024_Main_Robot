@@ -71,11 +71,11 @@ public final class TableAimCalculator implements AimCalculator {
         if (distCloser == null)
             distCloser = distFarther;
         if (distFarther == null) {
-            // double angle = MathUtil.clamp(Math.pow(0.578366, distanceToSpeaker - 7.90303) + 20.21, 22, 40);
-            // double velocity = MathUtil.clamp(distanceToSpeaker * 3.94923 + 48.5462, 10, 100);
+            double angle = Math.toRadians(MathUtil.clamp(Math.pow(0.578366, distanceToSpeaker - 7.90303) + 20.21, 22, 40));
+            double velocity = MathUtil.clamp(distanceToSpeaker * 3.94923 + 48.5462, 10, 100);
             
-            // if (map == flywheelVelocityMap) { return velocity;}
-            // if (map == pivotAngleMap) { return angle; }
+            if (map == flywheelVelocityMap) { return velocity;}
+            if (map == pivotAngleMap) { return angle; }
             distFarther = distCloser;
         }
 

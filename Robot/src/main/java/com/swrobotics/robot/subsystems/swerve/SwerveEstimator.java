@@ -11,6 +11,7 @@ import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.*;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
 
 import java.util.ArrayList;
@@ -22,11 +23,13 @@ public final class SwerveEstimator {
     private static final double[] STATE_STD_DEVS = {0.003, 0.003, 0.0002};
     private static final double HISTORY_TIME = 0.3;
 
+    private static final double INITIAL_ANGLE_STDDEV = 0.02; // Really trust it for beginning of match
+
     private final TagTrackerInput tagTracker;
 
     private Pose2d basePose, latestPose;
     private final TreeMap<Double, PoseUpdate> updates = new TreeMap<>();
-    private final Matrix<N3, N1> q;
+    private final Matrix<N3, N1> q, qWithMoreTrustAngle;
 
     private boolean ignoreVision;
 
@@ -51,6 +54,11 @@ public final class SwerveEstimator {
             q.set(i, 0, MathUtil.square(STATE_STD_DEVS[i]));
         }
 
+        qWithMoreTrustAngle = new Matrix<>(Nat.N3(), Nat.N1());
+        for (int i = 0; i < 3; i++) {
+            qWithMoreTrustAngle.set(i, 0, MathUtil.square(i == 2 ? INITIAL_ANGLE_STDDEV : STATE_STD_DEVS[i]));
+        }
+
         ignoreVision = false;
     }
 
@@ -65,10 +73,26 @@ public final class SwerveEstimator {
     public void resetPose(Pose2d newPose) {
         basePose = newPose;
         updates.clear();
-        update();
+        update(false);
     }
 
+    private double enabledTimestamp = Double.NaN;
+
     public void update(Twist2d driveTwist) {
+        // Trust vision angle estimates for 5 seconds at start of teleop
+        boolean trustTurnMore = false;
+        if (DriverStation.isTeleopEnabled() && !DriverStation.isFMSAttached()) {
+            if (Double.isNaN(enabledTimestamp)) {
+                enabledTimestamp = Timer.getFPGATimestamp();
+            }
+
+            if (Timer.getFPGATimestamp() - enabledTimestamp < 5) {
+                trustTurnMore = true;
+            }
+        } else {
+            enabledTimestamp = Double.NaN;
+        }
+
         // Sample vision data before updating drive so the drive is guaranteed
         // to be the most recent update
         List<TagTrackerInput.VisionUpdate> visionData = tagTracker.getNewUpdates();
@@ -81,7 +105,7 @@ public final class SwerveEstimator {
         FieldView.aprilTagPoses.setPoses(tagPoses);
 
         if (ignoreVision) {
-            update();
+            update(false);
             return;
         }
 
@@ -117,18 +141,20 @@ public final class SwerveEstimator {
             }
         }
 
-        update();
+        update(trustTurnMore);
     }
 
-    private void update() {
+    private void update(boolean trustTurnMore) {
+        Matrix<N3, N1> selectedQ = trustTurnMore ? qWithMoreTrustAngle : q;
+
         while (updates.size() > 1 && updates.firstKey() < Timer.getFPGATimestamp() - HISTORY_TIME) {
             Map.Entry<Double, PoseUpdate> update = updates.pollFirstEntry();
-            basePose = update.getValue().apply(basePose, q);
+            basePose = update.getValue().apply(basePose, selectedQ);
         }
 
         latestPose = basePose;
         for (Map.Entry<Double, PoseUpdate> entry : updates.entrySet()) {
-            latestPose = entry.getValue().apply(latestPose, q);
+            latestPose = entry.getValue().apply(latestPose, selectedQ);
         }
 
         // Debug field stuffs
