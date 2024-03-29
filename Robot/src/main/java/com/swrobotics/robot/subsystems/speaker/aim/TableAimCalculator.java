@@ -1,10 +1,10 @@
 package com.swrobotics.robot.subsystems.speaker.aim;
 
+import java.util.TreeMap;
+
 import com.swrobotics.lib.net.NTDouble;
 import com.swrobotics.mathlib.MathUtil;
 import com.swrobotics.robot.config.NTData;
-
-import java.util.TreeMap;
 
 public final class TableAimCalculator implements AimCalculator {
     public static final TableAimCalculator INSTANCE = new TableAimCalculator();
@@ -25,10 +25,10 @@ public final class TableAimCalculator implements AimCalculator {
 //        addCalibrationSample(3.8, 29, 70);
 
         // MURA 3-16, 3|1 wheel shooter configuration
-        addCalibrationSample(1.224203, 58, 55);
-        addCalibrationSample(1.657, 52, 55);
-        addCalibrationSample(2.239, 44, 55);
-        addCalibrationSample(2.875, 36, 55);
+        addCalibrationSample(1.224203 - .2, 58, 55);
+        addCalibrationSample(1.657 - .2, 52, 55);
+        addCalibrationSample(2.239 - .2, 44, 55);
+        addCalibrationSample(2.875 - .2, 36, 55);
         addCalibrationSample(2.993, 34, 63);
         addCalibrationSample(3.506, 30, 63);
         addCalibrationSample(3.903, 28, 67);
@@ -70,8 +70,15 @@ public final class TableAimCalculator implements AimCalculator {
         // Clamp to min or max known sample if out of range
         if (distCloser == null)
             distCloser = distFarther;
-        if (distFarther == null)
+        if (distFarther == null) {
+            // double angle = MathUtil.clamp(Math.pow(0.578366, distanceToSpeaker - 7.90303) + 20.21, 22, 40);
+            // double velocity = MathUtil.clamp(distanceToSpeaker * 3.94923 + 48.5462, 10, 100);
+            
+            // if (map == flywheelVelocityMap) { return velocity;}
+            // if (map == pivotAngleMap) { return angle; }
             distFarther = distCloser;
+        }
+
 
         // Prevent divide by 0 in MathUtil.percent() below
         if (distCloser.equals(distFarther))

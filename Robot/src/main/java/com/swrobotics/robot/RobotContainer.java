@@ -62,7 +62,7 @@ public class RobotContainer {
     private final LoggedDashboardChooser<Double> autoDelaySelector;
 
     public final MessengerClient messenger;
-    private final ControlBoard controlboard;
+    public final ControlBoard controlboard;
 
     public final PowerDistribution pdp;
 
@@ -73,7 +73,6 @@ public class RobotContainer {
     public final ShooterSubsystem shooter;
 //    public final AmpArmSubsystem ampArm;
     public final AmpArm2Subsystem ampArm2;
-    public final AmpIntakeSubsystem ampIntake;
     public final ClimberSubsystem climber;
 
     // Fun
@@ -106,8 +105,6 @@ public class RobotContainer {
 
 //        ampArm = new AmpArmSubsystem();
         ampArm2 = new AmpArm2Subsystem();
-        ampIntake = new AmpIntakeSubsystem();
-
         climber = new ClimberSubsystem();
 
         // ControlBoard must be initialized last

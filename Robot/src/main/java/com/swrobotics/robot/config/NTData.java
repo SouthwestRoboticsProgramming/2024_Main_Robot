@@ -66,7 +66,14 @@ public final class NTData {
 
     public static final NTEntry<Double> AMP_ARM_2_KP = new NTDouble("Amp Arm 2/kP", 50).setPersistent();
     public static final NTEntry<Double> AMP_ARM_2_KD = new NTDouble("Amp Arm 2/kD", 0).setPersistent();
+    public static final NTEntry<Double> AMP_ARM_2_RETRACT_POS = new NTDouble("Amp Arm 2/Retract Pos (deg)", 4).setPersistent();
     public static final NTEntry<Double> AMP_ARM_2_EXTEND_POS = new NTDouble("Amp Arm 2/Extend Pos (deg)", 110).setPersistent();
+    public static final NTEntry<Double> AMP_ARM_2_OUT_OF_THE_WAY_POS = new NTDouble("Amp Arm/Climb Out of the Way Pos (deg)", 90).setPersistent();
+    public static final NTEntry<Double> AMP_ARM_2_GRAVITY_AMOUNT = new NTDouble("Amp Arm 2/Gravity (volts at horiz)", 0/1).setPersistent();
+
+
+    public static final NTEntry<Double> TRAP_FINGER_HOLD_ANGLE = new NTDouble("Trap Finger/Hold Angle (deg)", 0).setPersistent();
+    public static final NTEntry<Double> TRAP_FINGER_RELEASE_ANGLE = new NTDouble("Trap Finger/Release Angle (deg)", 90).setPersistent();
 
     // FIXME TUNE
     public static final NTEntry<Double> AMP_INTAKE_INTAKE_SPEED = new NTDouble("Amp/Intake/Intake Speed (pct)", 0.5).setPersistent();
