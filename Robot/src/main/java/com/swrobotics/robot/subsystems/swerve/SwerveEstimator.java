@@ -34,18 +34,39 @@ public final class SwerveEstimator {
     private boolean ignoreVision;
 
     public SwerveEstimator(FieldInfo field) {
-        tagTracker = new TagTrackerInput(
-                field,
-                new TagTrackerInput.CameraInfo( // 16 ft + 1
-                        "front",
-                        new Pose3d(new Translation3d(0.34, -0.225, 0.2), new Rotation3d(Math.PI, Math.toRadians(90-67), 0))),
-		new TagTrackerInput.CameraInfo(
-			"zoom",
-			new Pose3d(new Translation3d(0.235, 0.18, 0.395), new Rotation3d(0, Math.toRadians(16.88), 0)))
-			//		new TagTrackerInput.CameraInfo(
+//         tagTracker = new TagTrackerInput(
+//                 field,
+//                 new TagTrackerInput.CameraInfo( // 16 ft + 1
+//                         "front",
+//                         new Pose3d(new Translation3d(0.34, -0.225, 0.2), new Rotation3d(Math.PI, Math.toRadians(90-67), 0))),
+// 		new TagTrackerInput.CameraInfo(
+// 			"zoom",
+// 			new Pose3d(new Translation3d(0.235, 0.18, 0.395), new Rotation3d(0, Math.toRadians(16.88), 0)))
+// 			//		new TagTrackerInput.CameraInfo(
+// //			"back",
+// //			new Pose3d(new Translation3d(0, 0, 0), new Rotation3d(0, 0, 0)))
+//         );
+
+double halfFrameL = 0.77 / 2;
+double halfFrameW = 0.695 / 2;
+tagTracker = new TagTrackerInput(
+    field,
+    new TagTrackerInput.CameraInfo( // 16 ft + 1
+            "front",
+            new Pose3d(new Translation3d(-halfFrameL + 0.695, -halfFrameW + 0.12, 0.19), new Rotation3d(Math.PI, Math.toRadians(90-67), 0))),
+new TagTrackerInput.CameraInfo(
+"zoom",
+new Pose3d(new Translation3d(halfFrameL - 0.16, halfFrameW - 0.133, 0.39), new Rotation3d(0, Math.toRadians(16.88), 0)))
+//		new TagTrackerInput.CameraInfo(
 //			"back",
 //			new Pose3d(new Translation3d(0, 0, 0), new Rotation3d(0, 0, 0)))
-        );
+);
+
+        // tagTracker = new TagTrackerInput(field, new TagTrackerInput.CameraInfo("zoom", new Pose3d(new Translation3d(0, 0, 0.39), new Rotation3d(0, Math.toRadians(16.88), 0))));
+        // tagTracker = new TagTrackerInput(
+        //     field, 
+        //     new TagTrackerInput.CameraInfo("zoom", new Transform3d(new Pose3d(new Translation3d(0, 0, -0.39), new Rotation3d(0, Math.toRadians(16.88), 0)), new Pose3d())));
+
         latestPose = new Pose2d();
         basePose = new Pose2d();
 

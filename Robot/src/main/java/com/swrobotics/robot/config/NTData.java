@@ -15,6 +15,7 @@ public final class NTData {
     public static final NTEntry<Double> DRIVE_AIM_KD = new NTDouble("Drive/Aim/PID/kD", 0.4).setPersistent();
     public static final NTEntry<Double> DRIVE_AIM_MAX_TURN = new NTDouble("Drive/Aim/Max Turn Speed (rot per sec)", 1).setPersistent();
     public static final NTEntry<Double> DRIVE_AIM_TOLERANCE = new NTDouble("Drive/Aim/Tolerance (rot)", 0.05).setPersistent();
+    public static final NTEntry<Double> DRIVE_AIM_OFFSET = new NTDouble("Drive/Aim/Offset (ccw deg)", 5).setPersistent();
 
     public static final NTEntry<Double> DRIVE_SNAP_KP = new NTDouble("Drive/Snap/PID/kP", 8).setPersistent();
     public static final NTEntry<Double> DRIVE_SNAP_KD = new NTDouble("Drive/Snap/PID/kD", 0).setPersistent();

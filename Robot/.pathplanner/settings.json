@@ -10,8 +10,8 @@
     "Amp",
     "Source"
   ],
-  "defaultMaxVel": 4.5,
-  "defaultMaxAccel": 3.8,
+  "defaultMaxVel": 4.75,
+  "defaultMaxAccel": 3.9,
   "defaultMaxAngVel": 540.0,
   "defaultMaxAngAccel": 640.0,
   "maxModuleSpeed": 5.64
