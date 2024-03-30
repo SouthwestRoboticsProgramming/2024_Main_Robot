@@ -29,11 +29,21 @@ public final class AmpArm2Subsystem extends SubsystemBase {
     private static final double motorToArmRatio = 50;
     private static final double encoderToArmRatio = 2;
 
-    private static final double cancoderOffset = 0.059082;
+    private static final double cancoderOffset = 0.045410;
 
-    private static final double retractPos = 0;
+    private Position targetPos;
 
-    private double targetPos = retractPos;
+    public enum Position {
+        RETRACT(NTData.AMP_ARM_2_RETRACT_POS),
+        AMP(NTData.AMP_ARM_2_EXTEND_POS),
+        CLIMB_OUT_OF_THE_WAY(NTData.AMP_ARM_2_OUT_OF_THE_WAY_POS);
+
+        final NTEntry<Double> positionNt;
+
+        Position(NTEntry<Double> positionNt) {
+            this.positionNt = positionNt;
+        }
+    }
 
     public AmpArm2Subsystem() {
         TalonFXConfiguration config = new TalonFXConfiguration();
@@ -51,11 +61,13 @@ public final class AmpArm2Subsystem extends SubsystemBase {
 
         encoderPosition = encoder.getAbsolutePosition();
         encoderPosition.refresh();
-        double encoderRangeCenter = (NTData.AMP_ARM_2_EXTEND_POS.get() / 360.0 + retractPos) / 2;
+        double encoderRangeCenter = (NTData.AMP_ARM_2_EXTEND_POS.get() / 360.0 + NTData.AMP_ARM_2_RETRACT_POS.get() / 360.0) / 2;
         double pos = MathUtil.wrap((encoderPosition.getValue() + cancoderOffset) / encoderToArmRatio, encoderRangeCenter - 0.25, encoderRangeCenter + 0.25);
         motor.setPosition(pos);
 
         motorPosition = motor.getPosition();
+
+        targetPos = Position.RETRACT;
 
         NTData.AMP_ARM_2_KP.onChange((p) -> updatePD());
         NTData.AMP_ARM_2_KD.onChange((d) -> updatePD());
@@ -67,31 +79,27 @@ public final class AmpArm2Subsystem extends SubsystemBase {
         .withKD(NTData.AMP_ARM_2_KD.get()));
     }
 
-    public void setOut(boolean out) {
-        targetPos = out ? NTData.AMP_ARM_2_EXTEND_POS.get() / 360.0 : retractPos;
+    // public void setOut(boolean out) {
+    //     targetPos = out ? NTData.AMP_ARM_2_EXTEND_POS.get() / 360.0 : retractPos;
+    // }
+
+    public void setPosition(Position pos) {
+        targetPos = pos;
     }
 
     NTDouble d = new NTDouble("aaaaaaaaaaaaaaa", 0);
+
+    private double calcFeedforwardVolts(double armAngle) {
+        return NTData.AMP_ARM_2_GRAVITY_AMOUNT.get() * Math.cos(armAngle * MathUtil.TAU);
+    }
 
     @Override
     public void periodic() {
         encoderPosition.refresh();
         motorPosition.refresh();
-        motor.setControl(new PositionVoltage(targetPos));
+        motor.setControl(new PositionVoltage(targetPos.positionNt.get() / 360.0).withFeedForward(calcFeedforwardVolts(motorPosition.getValue())));
         currentPosition.set(motorPosition.getValue() * 360);
         d.set(encoderPosition.getValue() * 360);
-
-//        switch (controlType.get()) {
-//            case 0:
-//                motor.setControl(new NeutralOut());
-//                break;
-//            case 1:
-//                motor.setControl(new VoltageOut(target.get()));
-//                break;
-//            case 2:
-//                motor.setControl(new PositionVoltage(target.get() / 360.0));
-//                break;
-//        }
     }
 
     public TalonFX getMotor() {

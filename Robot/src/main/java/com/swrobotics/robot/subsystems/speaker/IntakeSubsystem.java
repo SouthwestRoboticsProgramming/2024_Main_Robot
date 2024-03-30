@@ -1,5 +1,12 @@
 package com.swrobotics.robot.subsystems.speaker;
 
+import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
+import com.ctre.phoenix6.configs.MotorOutputConfigs;
+import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.controls.VoltageOut;
+import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.InvertedValue;
+import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.revrobotics.CANSparkLowLevel;
 import com.swrobotics.lib.net.NTDouble;
 import com.swrobotics.mathlib.MathUtil;
@@ -14,7 +21,6 @@ import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.motorcontrol.PWMSparkMax;
-import edu.wpi.first.wpilibj.motorcontrol.PWMTalonSRX;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import org.littletonrobotics.junction.Logger;
 
@@ -32,7 +38,8 @@ public final class IntakeSubsystem extends SubsystemBase {
             DCMotor.getNEO(1),
             motorToIntakeRatio,
             0.005);
-    private final PWMSparkMax spinMotor;
+    // private final PWMSparkMax spinMotor;
+    private final TalonFX spinMotor;
 
     private final PowerDistribution pdp;
     private State state;
@@ -48,8 +55,17 @@ public final class IntakeSubsystem extends SubsystemBase {
         actuatorMotor.setRotorToMechanismRatio(motorToIntakeRatio);
         actuatorMotor.setInverted(false); // FIXME
 
-        spinMotor = new PWMSparkMax(IOAllocation.RIO.PWM_INTAKE_MOTOR);
-        spinMotor.setInverted(true);
+        spinMotor = new TalonFX(IOAllocation.CAN.INTAKE_SPIN_MOTOR.id());
+
+        TalonFXConfiguration config = new TalonFXConfiguration();
+        config.CurrentLimits.SupplyCurrentLimit = 30;
+        config.CurrentLimits.SupplyCurrentLimitEnable = true;
+        config.CurrentLimits.StatorCurrentLimitEnable = false;
+        config.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
+        config.MotorOutput.NeutralMode = NeutralModeValue.Coast;
+        spinMotor.getConfigurator().apply(config);
+
+        // spinMotor.setInverted(true);
         actuatorStillDebounce = null;
 
         // The hard-stop the calibration relies on does not exist in simulation
@@ -95,15 +111,12 @@ public final class IntakeSubsystem extends SubsystemBase {
         // FIXME: This may be why the intake sometimes "wiggles"
         //  in the sim supplyVolts is sometimes randomly 0 when using PDP
 //        double supplyVolts = pdp.getVoltage();
-        double supplyVolts = RobotController.getBatteryVoltage(); // Use RIO power input instead (should be same voltage)
-        if (supplyVolts != 0) {
-            double comp = 12.0 / supplyVolts;
-            speed *= comp;
-        }
 
         actuatorMotor.setPosition(extend ? NTData.INTAKE_RANGE.get() / 360 : 0);
         double spinOut = MathUtil.clamp(speed, -1, 1);
-        spinMotor.set(spinOut);
+        spinOut *= 12;
+        // spinMotor.set(spinOut);
+        spinMotor.setControl(new VoltageOut(spinOut).withEnableFOC(true));
         out.set(spinOut);
 //        System.out.println("Intake: " + speed + " -> " + spinOut + " (Supply " + supplyVolts + "V)");
     }
@@ -119,5 +132,9 @@ public final class IntakeSubsystem extends SubsystemBase {
 
     public void setReverse(boolean reverse) {
         this.reverse = reverse;
+    }
+
+    public TalonFX getSpinMotor() {
+        return spinMotor;
     }
 }

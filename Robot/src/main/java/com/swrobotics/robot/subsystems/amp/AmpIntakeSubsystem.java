@@ -13,7 +13,7 @@ public final class AmpIntakeSubsystem extends SubsystemBase {
         OFF
     }
 
-    private final PWMTalonSRX motor = new PWMTalonSRX(IOAllocation.RIO.PWM_AMP_INTAKE_MOTOR);
+    private final PWMTalonSRX motor = new PWMTalonSRX(-1);
     private final Timer backoutTimer = new Timer();
 
     public void setState(State state) {

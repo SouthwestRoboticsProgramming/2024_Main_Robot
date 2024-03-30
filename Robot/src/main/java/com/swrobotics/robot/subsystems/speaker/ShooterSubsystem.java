@@ -16,6 +16,7 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -28,7 +29,7 @@ public final class ShooterSubsystem extends SubsystemBase {
         REVERSE
     }
 
-    private static final Pose2d blueSpeakerPose = new Pose2d(0, 5.5475, new Rotation2d(0));
+    private static final Pose2d blueSpeakerPose = new Pose2d(Units.inchesToMeters(8), 5.5475, new Rotation2d(0)); // Opening extends 18" out
     private static final Pose2d blueLobZone = new Pose2d(1, 6, new Rotation2d()); // Between the speaker and the amp
 
     private final PivotSubsystem pivot;

@@ -47,6 +47,7 @@ public final class MusicSubsystem extends SubsystemBase {
         addInstrument(robot.shooter.getLeftFlywheelMotor());
         addInstrument(robot.shooter.getRightFlywheelMotor());
         addInstrument(robot.shooter.getPivotMotor());
+        addInstrument(robot.intake.getSpinMotor());
     }
 
     private void addInstrument(TalonFX fx) {

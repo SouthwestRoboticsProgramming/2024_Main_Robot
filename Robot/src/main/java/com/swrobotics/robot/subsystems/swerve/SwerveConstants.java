@@ -43,7 +43,7 @@ public class SwerveConstants {
 
     private static final double driveGearRatio = (50.0/16) * (16.0/28) * (45.0/15);
     private static final double steerGearRatio = 150.0 / 7;
-    private static final double wheelRadiusInches = 1.9 * 0.981162 * 1.022136; // Estimated at first, then fudge-factored to make odom match record
+    private static final double wheelRadiusInches = 1.9 * 0.981162 * 1.022136 * 0.991; // Estimated at first, then fudge-factored to make odom match record
 
     private static final boolean steerMotorReversed = true;
 
