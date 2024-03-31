@@ -1,18 +1,24 @@
 package com.swrobotics.robot.subsystems.speaker;
 
+import edu.wpi.first.wpilibj.RobotBase;
+
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.swrobotics.lib.net.NTDouble;
 import com.swrobotics.mathlib.MathUtil;
 import com.swrobotics.robot.config.NTData;
 import com.swrobotics.robot.logging.SimView;
 import com.swrobotics.robot.subsystems.speaker.aim.AimCalculator;
+import com.swrobotics.robot.subsystems.speaker.aim.LobCalculator;
 import com.swrobotics.robot.subsystems.speaker.aim.TableAimCalculator;
 import com.swrobotics.robot.subsystems.swerve.SwerveDrive;
 import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public final class ShooterSubsystem extends SubsystemBase {
@@ -23,7 +29,8 @@ public final class ShooterSubsystem extends SubsystemBase {
         REVERSE
     }
 
-    private static final Pose2d blueSpeakerPose = new Pose2d(0, 5.5475, new Rotation2d(0));
+    private static final Pose2d blueSpeakerPose = new Pose2d(Units.inchesToMeters(6), 5.5475, new Rotation2d(0)); // Opening extends 18" out
+    private static final Pose2d blueLobZone = new Pose2d(1, 6, new Rotation2d()); // Between the speaker and the amp
 
     private final PivotSubsystem pivot;
     private final FlywheelSubsystem flywheel;
@@ -60,11 +67,40 @@ public final class ShooterSubsystem extends SubsystemBase {
         return drive.getFieldInfo().flipPoseForAlliance(blueSpeakerPose).getTranslation();
     }
 
+    public Translation2d getLobZonePosition() {
+        return drive.getFieldInfo().flipPoseForAlliance(blueLobZone).getTranslation();
+    }
+
     @Override
     public void periodic() {
-        double distToSpeaker = getSpeakerPosition().getDistance(drive.getEstimatedPose().getTranslation());
-        AimCalculator.Aim aim = aimCalculator.calculateAim(distToSpeaker);
+        // Use the selected aim calculator
+        AimCalculator.Aim aim;
+        if (aimCalculator instanceof LobCalculator) {
+            double distToLob = getLobZonePosition().getDistance(drive.getEstimatedPose().getTranslation());
+            Pose2d robotPose = drive.getEstimatedPose();
+            Translation2d robotPos = robotPose.getTranslation();
+            ChassisSpeeds robotSpeeds = drive.getFieldRelativeSpeeds();
+        
+            Translation2d target = getLobZonePosition();
+            Rotation2d angleToTarget = target.minus(robotPos).getAngle();
+        
+            // Relative to the target
+            Translation2d robotVelocity = new Translation2d(robotSpeeds.vxMetersPerSecond, robotSpeeds.vyMetersPerSecond).rotateBy(angleToTarget);
+            aim = LobCalculator.INSTANCE.calculateAim(distToLob, robotVelocity.getX());
+
+            if (RobotBase.isSimulation())
+                SimView.lobTrajectory.update(
+                        aim.flywheelVelocity() / NTData.SHOOTER_LOB_POWER_COEFFICIENT.get(),
+                        aim.pivotAngle());
+        } else {
+            double distToSpeaker = getSpeakerPosition().getDistance(drive.getEstimatedPose().getTranslation());
+            aim = aimCalculator.calculateAim(distToSpeaker);
+
+            if (RobotBase.isSimulation())
+                SimView.lobTrajectory.clear();
+        }
         targetAim = aim;
+        aimCalculator = tableAimCalculator;
 
         if (DriverStation.isDisabled() || !pivot.hasCalibrated())
             return;
@@ -77,7 +113,7 @@ public final class ShooterSubsystem extends SubsystemBase {
             flywheel.setTargetVelocity(aim.flywheelVelocity());
             pivot.setTargetAngle(aim.pivotAngle() / MathUtil.TAU);
         } else if (flywheelControl == FlywheelControl.REVERSE) {
-            // Don't touch pivot so it won't move and squish stuck note
+	    pivot.setTargetAngle(NTData.SHOOTER_PIVOT_REVERSE_ANGLE.get() / 360.0);
             flywheel.setDutyCycle(-NTData.SHOOTER_FLYWHEEL_REVERSE_SPEED.get());
         } else if (flywheelControl == FlywheelControl.SHOOT || afterShootDelay.calculate(indexer.hasPiece())) {
             if (aim != null) {
@@ -96,7 +132,10 @@ public final class ShooterSubsystem extends SubsystemBase {
                     flywheel.setDutyCycle(NTData.SHOOTER_FLYWHEEL_IDLE_SPEED.get());
                 pivot.setIdle();
             }
-        } else {
+        } else if (flywheelControl == FlywheelControl.POOP) {
+	    flywheel.setDutyCycle(NTData.SHOOTER_FLYWHEEL_POOP_SPEED.get());
+	    pivot.setNeutral();
+	} else {
             flywheel.setNeutral();
             pivot.setNeutral();
         }
@@ -104,18 +143,13 @@ public final class ShooterSubsystem extends SubsystemBase {
 
         NTData.SHOOTER_READY.set(isReadyToShoot());
         pctErr.set(flywheel.getPercentErr());
-
-        aimCalculator = tableAimCalculator;
     }
 
     NTDouble pctErr = new NTDouble("Shooter/Debug/Percent Error", 0);
 
     @Override
     public void simulationPeriodic() {
-        if (isPreparing)
-            SimView.targetTrajectory.update(targetAim);
-        else
-            SimView.targetTrajectory.clear();
+        SimView.updateShooter(targetAim);
     }
 
     public boolean isPreparing() {
@@ -123,6 +157,7 @@ public final class ShooterSubsystem extends SubsystemBase {
     }
 
     public boolean isReadyToShoot() {
+        if (RobotBase.isSimulation()) { return true; }
         return isPreparing && flywheel.isReadyToShoot() && pivot.isAtSetpoint();
     }
 
@@ -152,5 +187,9 @@ public final class ShooterSubsystem extends SubsystemBase {
 
     public TalonFX getPivotMotor() {
         return pivot.getMotor();
+    }
+
+    public boolean isCalibrated() {
+        return pivot.hasCalibrated();
     }
 }

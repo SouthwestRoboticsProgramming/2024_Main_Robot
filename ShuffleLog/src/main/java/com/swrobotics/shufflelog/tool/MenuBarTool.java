@@ -1,8 +1,10 @@
 package com.swrobotics.shufflelog.tool;
 
+import com.swrobotics.shufflelog.ShuffleLog;
 import com.swrobotics.shufflelog.Styles;
 import com.swrobotics.shufflelog.tool.smartdashboard.SmartDashboard;
 
+import com.swrobotics.shufflelog.tool.tetris.TetrisTool;
 import imgui.ImGui;
 import imgui.extension.implot.ImPlot;
 import imgui.type.ImBoolean;
@@ -11,14 +13,20 @@ public final class MenuBarTool implements Tool {
     private final SmartDashboard smartDashboard;
     private final ImBoolean showDemo, showPlotDemo;
     private final ImBoolean plotDemoOpen;
+    private final ImBoolean showTetris;
 
-    public MenuBarTool(SmartDashboard smartDashboard) {
+    private final TetrisTool tetris;
+
+    public MenuBarTool(ShuffleLog log, SmartDashboard smartDashboard) {
         this.smartDashboard = smartDashboard;
 
         showDemo = new ImBoolean(false);
         showPlotDemo = new ImBoolean(false);
 
         plotDemoOpen = new ImBoolean(true);
+        showTetris = new ImBoolean(false);
+
+        tetris = new TetrisTool(log);
     }
 
     @Override
@@ -27,6 +35,7 @@ public final class MenuBarTool implements Tool {
             if (ImGui.beginMenu("Debug")) {
                 ImGui.menuItem("Show demo", null, showDemo);
                 ImGui.menuItem("Show plot demo", null, showPlotDemo);
+                ImGui.menuItem("Show Tetris", null, showTetris);
 
                 ImGui.endMenu();
             }
@@ -44,5 +53,6 @@ public final class MenuBarTool implements Tool {
 
         if (showDemo.get()) ImGui.showDemoWindow();
         if (showPlotDemo.get()) ImPlot.showDemoWindow(plotDemoOpen);
+        if (showTetris.get()) tetris.process();
     }
 }

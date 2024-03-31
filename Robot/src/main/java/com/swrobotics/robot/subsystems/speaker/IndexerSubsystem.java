@@ -16,7 +16,9 @@ public final class IndexerSubsystem extends SubsystemBase {
 
     private final IntakeSubsystem intake;
     private boolean feedToShooter;
-    private boolean reverse;
+
+    private boolean reverseTake, waitingForPiece;
+    private boolean hadPiece;
 
     public IndexerSubsystem(IntakeSubsystem intake) {
         this.intake = intake;
@@ -24,6 +26,10 @@ public final class IndexerSubsystem extends SubsystemBase {
         sidesMotor.setInverted(true);
 
         feedToShooter = false;
+
+        reverseTake = false;
+        waitingForPiece = false;
+        hadPiece = false;
     }
 
     public void setFeedToShooter(boolean feedToShooter) {
@@ -37,29 +43,38 @@ public final class IndexerSubsystem extends SubsystemBase {
 
     @Override
     public void periodic() {
-        NTData.INDEXER_HAS_PIECE.set(hasPiece());
+        boolean hasPiece = hasPiece();
+        NTData.INDEXER_HAS_PIECE.set(hasPiece);
 
         double sides = 0, top = 0;
         if (feedToShooter) {
             sides = NTData.INDEXER_SIDES_FEED_SPEED.get();
             top = NTData.INDEXER_TOP_FEED_SPEED.get();
-        } else {
-            if (intake.getState() == IntakeSubsystem.State.INTAKE && !hasPiece()) {
-                sides = NTData.INDEXER_SIDES_TAKE_SPEED.get();
-                top = NTData.INDEXER_TOP_TAKE_SPEED.get();
-            }
-        }
-
-        if (reverse) {
+        } else if (reverseTake && waitingForPiece) {
             sides = -NTData.INDEXER_SIDES_FEED_SPEED.get();
             top = -NTData.INDEXER_TOP_FEED_SPEED.get();
+
+            // Stop reversing once the piece has gone fully past the beam break
+            // Then the case below will run indexer forward to get it to normal position
+            if (!hasPiece && hadPiece)
+                waitingForPiece = false;
+        } else if ((intake.getState() == IntakeSubsystem.State.INTAKE || reverseTake) && !hasPiece) {
+            sides = NTData.INDEXER_SIDES_TAKE_SPEED.get();
+            top = NTData.INDEXER_TOP_TAKE_SPEED.get();
         }
 
         sidesMotor.set(sides);
         topMotor.set(top);
+
+        hadPiece = hasPiece;
     }
 
-    public void setReverse(boolean reverse) {
-        this.reverse = reverse;
+    public void beginReverse() {
+        reverseTake = true;
+        waitingForPiece = true;
+    }
+
+    public void endReverse() {
+        reverseTake = false;
     }
 }

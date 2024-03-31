@@ -35,8 +35,11 @@ public final class SwerveEstimator {
                 field,
                 new TagTrackerInput.CameraInfo( // 16 ft + 1
                         "front",
-                        new Pose3d(new Translation3d(0.34, -0.225, 0), new Rotation3d(Math.PI, Math.toRadians(90-67), 0)))
-//		new TagTrackerInput.CameraInfo(
+                        new Pose3d(new Translation3d(0.34, -0.225, 0.2), new Rotation3d(Math.PI, Math.toRadians(90-67), 0))),
+		new TagTrackerInput.CameraInfo(
+			"zoom",
+			new Pose3d(new Translation3d(0.235, 0.18, 0.395), new Rotation3d(0, Math.toRadians(16.88), 0)))
+			//		new TagTrackerInput.CameraInfo(
 //			"back",
 //			new Pose3d(new Translation3d(0, 0, 0), new Rotation3d(0, 0, 0)))
         );
@@ -77,8 +80,10 @@ public final class SwerveEstimator {
         }
         FieldView.aprilTagPoses.setPoses(tagPoses);
 
-        if (ignoreVision)
+        if (ignoreVision) {
+            update();
             return;
+        }
 
         for (TagTrackerInput.VisionUpdate visionUpdate : visionData) {
             double timestamp = visionUpdate.timestamp;

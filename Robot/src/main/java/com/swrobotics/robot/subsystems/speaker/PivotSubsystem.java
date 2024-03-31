@@ -8,6 +8,7 @@ import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
+import com.ctre.phoenix6.signals.ReverseLimitTypeValue;
 import com.ctre.phoenix6.signals.ReverseLimitValue;
 import com.swrobotics.lib.net.NTBoolean;
 import com.swrobotics.lib.net.NTEntry;
@@ -58,7 +59,7 @@ public final class PivotSubsystem extends SubsystemBase {
     }
 
     private static final double motorToPivotRatio = 10 * 9 * 4;
-    private static final double hardStopAngle = 27 / 360.0;
+    private static final double hardStopAngle = 22 / 360.0;
     private static final double maxAngle = (90 - 20) / 360.0;
 
     private final TalonFXWithSim motor = new TalonFXWithSim(
@@ -80,6 +81,8 @@ public final class PivotSubsystem extends SubsystemBase {
         config.Feedback.SensorToMechanismRatio = motorToPivotRatio;
         config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
         config.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
+        config.HardwareLimitSwitch.ReverseLimitEnable = true;
+        config.HardwareLimitSwitch.ReverseLimitType = ReverseLimitTypeValue.NormallyClosed;
 
         motor.getConfigurator().apply(config);
         position = motor.getPosition();
@@ -108,8 +111,8 @@ public final class PivotSubsystem extends SubsystemBase {
 
         angleRot = MathUtil.clamp(
                 angleRot,
-                hardStopAngle + 0.5 / 360.0,
-                maxAngle - 2 / 360.0);
+                hardStopAngle,
+                maxAngle - 1/ 360.0);
 
         motor.setControl(new PositionVoltage(angleRot));
         state = State.SHOOTING;
@@ -149,7 +152,7 @@ public final class PivotSubsystem extends SubsystemBase {
         if (state != State.SHOOTING && !calibrated) {
             motor.setControl(new VoltageOut(-NTData.SHOOTER_PIVOT_CALIBRATE_VOLTS.get()));
             limitSwitch.refresh();
-            boolean atLimit = limitSwitch.getValue() == ReverseLimitValue.ClosedToGround;
+            boolean atLimit = limitSwitch.getValue() == ReverseLimitValue.Open; // Normally closed
             limitSw.set(atLimit);
 
             if (atLimit) {
@@ -178,7 +181,6 @@ public final class PivotSubsystem extends SubsystemBase {
     public void simulationPeriodic() {
         motor.updateSim(12);
         position.refresh();
-        SimView.updateShooterPivot(position.getValue());
     }
 
     private void applyPID(Slot0Configs config) {

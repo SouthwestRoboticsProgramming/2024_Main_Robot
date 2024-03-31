@@ -1,6 +1,8 @@
 package com.swrobotics.robot.subsystems.speaker;
 
 import com.revrobotics.CANSparkLowLevel;
+import com.swrobotics.lib.net.NTDouble;
+import com.swrobotics.mathlib.MathUtil;
 import com.swrobotics.robot.config.IOAllocation;
 import com.swrobotics.robot.config.NTData;
 import com.swrobotics.robot.logging.SimView;
@@ -10,6 +12,7 @@ import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj.RobotBase;
+import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.motorcontrol.PWMSparkMax;
 import edu.wpi.first.wpilibj.motorcontrol.PWMTalonSRX;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -59,24 +62,6 @@ public final class IntakeSubsystem extends SubsystemBase {
 
     public void set(State state) {
         this.state = state;
-        if (!hasCalibrated)
-            return;
-
-        boolean extend = state != State.OFF;
-        double speed = switch (state) {
-            case INTAKE -> NTData.INTAKE_SPEED.get();
-            case OFF -> 0;
-        };
-        if (reverse)
-            speed = -NTData.INTAKE_SPEED.get();
-
-        // Manual voltage compensation
-        double supplyVolts = pdp.getVoltage();
-        double comp = 12.0 / supplyVolts;
-        speed *= comp;
-
-        actuatorMotor.setPosition(extend ? NTData.INTAKE_RANGE.get() / 360 : 0);
-        spinMotor.set(speed);
     }
 
     public State getState() {
@@ -90,34 +75,46 @@ public final class IntakeSubsystem extends SubsystemBase {
             hasCalibrated = false;
             actuatorStillDebounce = null;
         }
-        if (hasCalibrated || DriverStation.isDisabled())
+        if (DriverStation.isDisabled())
             return;
 
-//        // Defer debouncer initialization until now so the first edge still applies
-//        if (actuatorStillDebounce == null) {
-//            // Defaults to false, which gives the motor a little time to start
-//            // moving before we stop
-//            actuatorStillDebounce = new Debouncer(NTData.INTAKE_CALIBRATE_DEBOUNCE.get(), Debouncer.DebounceType.kBoth);
-//        }
-//
-//        boolean isStill = Math.abs(actuatorMotor.getEncoderVelocity()) < NTData.INTAKE_CALIBRATE_STALL_THRESHOLD.get();
-//        if (actuatorStillDebounce.calculate(isStill)) {
+        if (!hasCalibrated) {
             hasCalibrated = true;
-
-            // Fully retracted now, set position
             actuatorMotor.setEncoderPosition(-NTData.INTAKE_CALIBRATE_SETPOINT.get() / 360.0);
-            set(state);
-//            NTData.INTAKE_CALIBRATING.set(false);
-//        } else {
-//            actuatorMotor.setVoltage(-NTData.INTAKE_CALIBRATE_VOLTS.get());
-//            NTData.INTAKE_CALIBRATING.set(true);
-//        }
+        }
+
+        boolean extend = state != State.OFF;
+        double speed = switch (state) {
+            case INTAKE -> NTData.INTAKE_SPEED.get();
+            case OFF -> 0;
+        };
+        if (reverse)
+            speed = -1;
+
+        // Manual voltage compensation
+        // FIXME: This may be why the intake sometimes "wiggles"
+        //  in the sim supplyVolts is sometimes randomly 0 when using PDP
+//        double supplyVolts = pdp.getVoltage();
+        double supplyVolts = RobotController.getBatteryVoltage(); // Use RIO power input instead (should be same voltage)
+        if (supplyVolts != 0) {
+            double comp = 12.0 / supplyVolts;
+            speed *= comp;
+        }
+
+        actuatorMotor.setPosition(extend ? NTData.INTAKE_RANGE.get() / 360 : 0);
+        double spinOut = MathUtil.clamp(speed, -1, 1);
+        spinMotor.set(spinOut);
+        out.set(spinOut);
+//        System.out.println("Intake: " + speed + " -> " + spinOut + " (Supply " + supplyVolts + "V)");
     }
+
+    NTDouble out = new NTDouble("Intake/Debug out", 1234);
 
     @Override
     public void simulationPeriodic() {
-        actuatorMotor.updateSim(12);
-        SimView.updateIntake(actuatorMotor.getEncoderPosition());
+        // actuatorMotor.updateSim(12);
+        // SimView.updateIntake(actuatorMotor.getEncoderPosition());
+        SimView.updateIntake(state);
     }
 
     public void setReverse(boolean reverse) {

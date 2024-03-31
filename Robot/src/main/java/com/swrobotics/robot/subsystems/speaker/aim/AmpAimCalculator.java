@@ -10,6 +10,7 @@ public class AmpAimCalculator implements AimCalculator {
         // Always returns the same aim regardless of distance to speaker
         return new Aim(
             NTData.SHOOTER_AMP_VELOCITY.get(),
-            Math.toRadians(NTData.SHOOTER_AMP_ANGLE.get()));
+            Math.toRadians(NTData.SHOOTER_AMP_ANGLE.get()),
+            distanceToSpeaker);
     }
 }

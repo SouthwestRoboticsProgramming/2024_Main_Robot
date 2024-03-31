@@ -53,7 +53,7 @@ public final class InputButton implements InputElement {
      * @return if button was just pressed
      */
     public boolean isFalling() {
-        return !wasPressed && pressed;
+        return !pressed && wasPressed;
     }
 
     /**

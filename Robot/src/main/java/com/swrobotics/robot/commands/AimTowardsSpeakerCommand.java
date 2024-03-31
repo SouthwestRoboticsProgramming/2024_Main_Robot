@@ -46,15 +46,14 @@ public final class AimTowardsSpeakerCommand extends Command {
         double distToTarget = target.getDistance(robotPos);
         Rotation2d angleToTarget = target.minus(robotPos).getAngle();
 
-        AimCalculator.Aim aim = shooter.getTargetAim();
-        double horizFlywheelVelocity = aim.flywheelVelocity() * Math.cos(aim.pivotAngle());
-        double horizNoteVelocity = horizFlywheelVelocity
-                / NTData.SHOOTER_MOVING_FLYWHEEL_VELOCITY.get()
-                * NTData.SHOOTER_MOVING_EXIT_VELOCITY.get();
-        double flightTime = distToTarget / horizNoteVelocity;
-        double tangentialVel = -(angleToTarget.getSin() * robotSpeeds.vxMetersPerSecond + angleToTarget.getCos() * robotSpeeds.vyMetersPerSecond);
-        double correctionRad = 0 * Math.atan2(tangentialVel * flightTime, distToTarget);
-        System.out.printf("FH: %.3f NH: %.3f D: %.3f FT: %.3f TV: %.3f C(d): %.3f\n", horizFlywheelVelocity, horizNoteVelocity, distToTarget, flightTime, tangentialVel, Math.toDegrees(correctionRad));
+        // Relative to the target
+        Translation2d robotVelocity = new Translation2d(robotSpeeds.vxMetersPerSecond, robotSpeeds.vyMetersPerSecond).rotateBy(angleToTarget);
+
+        double flyTime = NTData.SHOOTER_FLY_TIME.get();
+        double missAmount = flyTime * robotVelocity.getY();
+
+        double correctionRad = -Math.atan2(missAmount, distToTarget);
+        // System.out.printf("FH: %.3f NH: %.3f D: %.3f FT: %.3f TV: %.3f C(d): %.3f\n", horizFlywheelVelocity, horizNoteVelocity, distToTarget, flightTime, tangentialVel, Math.toDegrees(correctionRad));
 
         double setpointAngle = MathUtil.wrap(angleToTarget.getRadians() + correctionRad, -Math.PI, Math.PI);
         double currentAngle = MathUtil.wrap(robotPose.getRotation().getRadians(), -Math.PI, Math.PI);

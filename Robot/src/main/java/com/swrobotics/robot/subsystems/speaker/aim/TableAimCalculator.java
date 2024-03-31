@@ -16,13 +16,30 @@ public final class TableAimCalculator implements AimCalculator {
 
     public TableAimCalculator() {
         // Calibration 1 (MURA)
-        double off = 5;
+//        double off = 5;
 //        addCalibratio?nSample(1.1429, 63 - off, 35);
 
-        addCalibrationSample(1.22, 60, 39);
-        addCalibrationSample(2.1, 46, 39);
-        addCalibrationSample(3.0, 34, 60);
-        addCalibrationSample(3.8, 29, 70);
+//        addCalibrationSample(1.22, 60, 39);
+//        addCalibrationSample(2.1, 46, 39);
+//        addCalibrationSample(3.0, 34, 60);
+//        addCalibrationSample(3.8, 29, 70);
+
+        // MURA 3-16, 3|1 wheel shooter configuration
+        addCalibrationSample(1.224203, 58, 55);
+        addCalibrationSample(1.657, 52, 55);
+        addCalibrationSample(2.239, 44, 55);
+        addCalibrationSample(2.875, 36, 55);
+        addCalibrationSample(2.993, 34, 63);
+        addCalibrationSample(3.506, 30, 63);
+        addCalibrationSample(3.903, 28, 67);
+
+        // MURA 3-23, 3|1 wheel shooter
+        addCalibrationSample(4.34, 28, 67);
+        addCalibrationSample(4.67, 27, 67);
+        addCalibrationSample(5.06, 25, 67);
+        addCalibrationSample(5.58, 24, 70);
+
+//        addCalibrationSample(3.37, 29, 60);
 
 //        addCalibrationSample(1.924, 54 - off, 39);
 //        addCalibrationSample(2.765, 41 - off, 45);
@@ -78,7 +95,8 @@ public final class TableAimCalculator implements AimCalculator {
 
         return new Aim(
                 sample(flywheelVelocityMap, distanceToSpeaker),
-                sample(pivotAngleMap, distanceToSpeaker)
+                sample(pivotAngleMap, distanceToSpeaker),
+                distanceToSpeaker
         );
     }
 

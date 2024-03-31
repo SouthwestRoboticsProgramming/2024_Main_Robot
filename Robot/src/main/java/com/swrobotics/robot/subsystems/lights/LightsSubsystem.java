@@ -92,13 +92,14 @@ public final class LightsSubsystem extends SubsystemBase {
     }
 
     private void showIdle() {
-        Optional<DriverStation.Alliance> alliance = DriverStation.getAlliance();
-
-        Color color = alliance
-                .map(value -> value == DriverStation.Alliance.Blue ? Color.kBlue : Color.kRed)
-                .orElse(Color.kPurple);
-
-        applySolid(color);
+//        Optional<DriverStation.Alliance> alliance = DriverStation.getAlliance();
+//
+//        Color color = alliance
+//                .map(value -> value == DriverStation.Alliance.Blue ? Color.kBlue : Color.kRed)
+//                .orElse(Color.kPurple);
+//
+//        applySolid(color);
+        applySolid(Color.kBlack);
     }
 
     @Override
