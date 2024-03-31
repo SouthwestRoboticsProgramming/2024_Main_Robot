@@ -186,7 +186,6 @@ public class RobotContainer {
 
         List<PathPlannerAuto> options = new ArrayList<>();
         for (String autoName : autoNames) {
-            System.out.println(autoName);
             PathPlannerAuto auto = new PathPlannerAuto(autoName);
 
             options.add(auto);
