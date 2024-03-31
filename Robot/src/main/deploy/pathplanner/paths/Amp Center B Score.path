@@ -3,49 +3,49 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 2.396284537906334,
-        "y": 5.531335051274091
+        "x": 7.627078046178885,
+        "y": 5.952324611201929
       },
       "prevControl": null,
       "nextControl": {
-        "x": 1.4296311760281815,
-        "y": 5.417216251607919
+        "x": 6.847097388830397,
+        "y": 6.478811554912159
       },
       "isLocked": false,
-      "linkedName": "End of Short Center"
+      "linkedName": null
     },
     {
       "anchor": {
-        "x": 2.2011061450668787,
-        "y": 4.455810178297569
+        "x": 4.779843098878597,
+        "y": 6.249595017004761
       },
       "prevControl": {
-        "x": 1.3418587122862988,
-        "y": 4.872008153550663
+        "x": 5.871816019166482,
+        "y": 6.639585345679005
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "End of Stage Note"
+      "linkedName": "End of Center A Score"
     }
   ],
   "rotationTargets": [],
   "constraintZones": [],
   "eventMarkers": [],
   "globalConstraints": {
-    "maxVelocity": 4.0,
-    "maxAcceleration": 3.8,
-    "maxAngularVelocity": 600.0,
-    "maxAngularAcceleration": 960.0
+    "maxVelocity": 4.75,
+    "maxAcceleration": 3.9,
+    "maxAngularVelocity": 540.0,
+    "maxAngularAcceleration": 640.0
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 152.10973077514154,
+    "rotation": -171.31689910452678,
     "rotateFast": false
   },
   "reversed": false,
-  "folder": null,
+  "folder": "Amp",
   "previewStartingState": {
-    "rotation": -178.91137511276565,
+    "rotation": 177.51044707800088,
     "velocity": 0
   },
   "useDefaultConstraints": true

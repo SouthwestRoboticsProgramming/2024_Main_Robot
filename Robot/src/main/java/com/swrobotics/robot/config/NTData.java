@@ -15,6 +15,7 @@ public final class NTData {
     public static final NTEntry<Double> DRIVE_AIM_KD = new NTDouble("Drive/Aim/PID/kD", 0.4).setPersistent();
     public static final NTEntry<Double> DRIVE_AIM_MAX_TURN = new NTDouble("Drive/Aim/Max Turn Speed (rot per sec)", 1).setPersistent();
     public static final NTEntry<Double> DRIVE_AIM_TOLERANCE = new NTDouble("Drive/Aim/Tolerance (rot)", 0.05).setPersistent();
+    public static final NTEntry<Double> DRIVE_AIM_OFFSET = new NTDouble("Drive/Aim/Offset (ccw deg)", 5).setPersistent();
 
     public static final NTEntry<Double> DRIVE_SNAP_KP = new NTDouble("Drive/Snap/PID/kP", 8).setPersistent();
     public static final NTEntry<Double> DRIVE_SNAP_KD = new NTDouble("Drive/Snap/PID/kD", 0).setPersistent();
@@ -66,7 +67,14 @@ public final class NTData {
 
     public static final NTEntry<Double> AMP_ARM_2_KP = new NTDouble("Amp Arm 2/kP", 50).setPersistent();
     public static final NTEntry<Double> AMP_ARM_2_KD = new NTDouble("Amp Arm 2/kD", 0).setPersistent();
+    public static final NTEntry<Double> AMP_ARM_2_RETRACT_POS = new NTDouble("Amp Arm 2/Retract Pos (deg)", 4).setPersistent();
     public static final NTEntry<Double> AMP_ARM_2_EXTEND_POS = new NTDouble("Amp Arm 2/Extend Pos (deg)", 110).setPersistent();
+    public static final NTEntry<Double> AMP_ARM_2_OUT_OF_THE_WAY_POS = new NTDouble("Amp Arm/Climb Out of the Way Pos (deg)", 90).setPersistent();
+    public static final NTEntry<Double> AMP_ARM_2_GRAVITY_AMOUNT = new NTDouble("Amp Arm 2/Gravity (volts at horiz)", 0/1).setPersistent();
+
+
+    public static final NTEntry<Double> TRAP_FINGER_HOLD_ANGLE = new NTDouble("Trap Finger/Hold Angle (deg)", 0).setPersistent();
+    public static final NTEntry<Double> TRAP_FINGER_RELEASE_ANGLE = new NTDouble("Trap Finger/Release Angle (deg)", 90).setPersistent();
 
     // FIXME TUNE
     public static final NTEntry<Double> AMP_INTAKE_INTAKE_SPEED = new NTDouble("Amp/Intake/Intake Speed (pct)", 0.5).setPersistent();

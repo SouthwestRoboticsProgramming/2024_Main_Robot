@@ -2,10 +2,10 @@
   "version": 1.0,
   "startingPose": {
     "position": {
-      "x": 1.3875830173492432,
-      "y": 5.564249038696289
+      "x": 1.2796798990272578,
+      "y": 4.32889264828411
     },
-    "rotation": -179.96604345059157
+    "rotation": 134.2986105099582
   },
   "command": {
     "type": "sequential",
@@ -14,13 +14,26 @@
         {
           "type": "named",
           "data": {
-            "name": "Shoot"
+            "name": "Shoot Quick"
           }
         },
         {
-          "type": "path",
+          "type": "race",
           "data": {
-            "pathName": "Amp Side Start B.1"
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "Source Start Standard"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "Intake Until Note"
+                }
+              }
+            ]
           }
         },
         {
@@ -32,19 +45,13 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Amp Side Start B.2"
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "Wait and Shoot"
+            "pathName": "Source Center A Grab"
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "Amp Side Mid A.1"
+            "pathName": "Source Center A Score"
           }
         },
         {
@@ -56,7 +63,13 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Amp Side Mid A.2"
+            "pathName": "Source Center B Grab"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Source Center B Score"
           }
         },
         {
@@ -68,19 +81,13 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Amp Side Mid A.3"
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "Shoot"
+            "pathName": "Source End Grab"
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "Amp Side Mid A.4"
+            "pathName": "Source End Score"
           }
         },
         {
@@ -92,6 +99,6 @@
       ]
     }
   },
-  "folder": "New Autos",
-  "choreoAuto": true
+  "folder": "Source",
+  "choreoAuto": false
 }

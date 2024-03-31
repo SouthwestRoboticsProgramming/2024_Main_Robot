@@ -2,38 +2,25 @@
   "version": 1.0,
   "startingPose": {
     "position": {
-      "x": 1.2572877760264258,
-      "y": 4.357561722902037
+      "x": 1.4844248215812361,
+      "y": 1.50146276539584
     },
-    "rotation": 139.6972999395381
+    "rotation": 90.0
   },
   "command": {
     "type": "sequential",
     "data": {
       "commands": [
         {
-          "type": "parallel",
+          "type": "path",
           "data": {
-            "commands": [
-              {
-                "type": "named",
-                "data": {
-                  "name": "Shoot"
-                }
-              },
-              {
-                "type": "named",
-                "data": {
-                  "name": "Intake On"
-                }
-              }
-            ]
+            "pathName": "Source Center A Fast"
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "Stage Note"
+            "pathName": "Source Center A Score"
           }
         },
         {
@@ -45,13 +32,13 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Grab B Long Go to note"
+            "pathName": "Source Center B Grab"
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "Grab B Long Go back"
+            "pathName": "Source Center B Score"
           }
         },
         {
@@ -63,13 +50,13 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Grab Long C"
+            "pathName": "Source End Grab"
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "Score Long C"
+            "pathName": "Source End Score"
           }
         },
         {
@@ -81,6 +68,6 @@
       ]
     }
   },
-  "folder": null,
+  "folder": "Source",
   "choreoAuto": false
 }

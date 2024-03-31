@@ -102,6 +102,13 @@ public final class LightsSubsystem extends SubsystemBase {
         applySolid(Color.kBlack);
     }
 
+    private void showClimbing() {
+        // 0.5 Hz purple/white fade
+        applySolid(interpolate(
+            Color.kPurple, Color.kWhite,
+            0.5f + 0.5f * (float) Math.sin(Timer.getFPGATimestamp() * Math.PI)));
+    }
+
     @Override
     public void periodic() {
         // Special indicator to swap battery
@@ -112,6 +119,8 @@ public final class LightsSubsystem extends SubsystemBase {
             showLowBattery();
         } else if (DriverStation.isDisabled()) {
             prideSequencer.apply(this);
+        } else if (robot.controlboard.isClimbing()) {
+            showClimbing();
         } else if (robot.shooter.isPreparing()) {
             resetShooterBlink = false;
             showShooterStatus();

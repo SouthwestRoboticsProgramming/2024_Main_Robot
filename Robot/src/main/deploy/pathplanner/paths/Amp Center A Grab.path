@@ -3,37 +3,43 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 8.094844223876482,
-        "y": 2.2803601162757885
+        "x": 3.1418837184467727,
+        "y": 7.0198259161363925
       },
       "prevControl": null,
       "nextControl": {
-        "x": 4.820480979993299,
-        "y": 0.8536732742981157
+        "x": 3.4246267067355998,
+        "y": 7.0490751907869615
       },
       "isLocked": false,
-      "linkedName": "Note C"
+      "linkedName": null
     },
     {
       "anchor": {
-        "x": 1.8384715971711143,
-        "y": 3.7421294215807808
+        "x": 8.036373451664282,
+        "y": 7.449176379834242
       },
       "prevControl": {
-        "x": 2.832474724778509,
-        "y": 2.9118444561675454
+        "x": 7.090646904629241,
+        "y": 7.361428555882537
       },
       "nextControl": null,
       "isLocked": false,
       "linkedName": null
     }
   ],
-  "rotationTargets": [],
+  "rotationTargets": [
+    {
+      "waypointRelativePos": 0.55,
+      "rotationDegrees": -173.99275277029824,
+      "rotateFast": false
+    }
+  ],
   "constraintZones": [],
   "eventMarkers": [
     {
-      "name": "New Event Marker",
-      "waypointRelativePos": 0.25,
+      "name": "Intake",
+      "waypointRelativePos": 0.55,
       "command": {
         "type": "parallel",
         "data": {
@@ -41,7 +47,7 @@
             {
               "type": "named",
               "data": {
-                "name": "Intake Off"
+                "name": "Intake Until Note"
               }
             }
           ]
@@ -50,20 +56,20 @@
     }
   ],
   "globalConstraints": {
-    "maxVelocity": 4.0,
-    "maxAcceleration": 3.8,
-    "maxAngularVelocity": 600.0,
-    "maxAngularAcceleration": 960.0
+    "maxVelocity": 4.75,
+    "maxAcceleration": 3.9,
+    "maxAngularVelocity": 540.0,
+    "maxAngularAcceleration": 640.0
   },
   "goalEndState": {
-    "velocity": 0,
-    "rotation": 133.64414002389333,
+    "velocity": 0.0,
+    "rotation": -175.0497277657083,
     "rotateFast": false
   },
   "reversed": false,
-  "folder": null,
+  "folder": "Amp",
   "previewStartingState": {
-    "rotation": -145.30484646876607,
+    "rotation": -150.43752417653195,
     "velocity": 0
   },
   "useDefaultConstraints": true

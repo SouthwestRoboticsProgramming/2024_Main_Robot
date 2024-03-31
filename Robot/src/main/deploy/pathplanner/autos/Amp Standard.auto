@@ -1,24 +1,79 @@
 {
   "version": 1.0,
-  "startingPose": null,
+  "startingPose": {
+    "position": {
+      "x": 1.2991794154609702,
+      "y": 6.737082927847566
+    },
+    "rotation": -136.30933403146403
+  },
   "command": {
     "type": "sequential",
     "data": {
       "commands": [
         {
-          "type": "parallel",
+          "type": "named",
+          "data": {
+            "name": "Shoot Quick"
+          }
+        },
+        {
+          "type": "race",
           "data": {
             "commands": [
               {
-                "type": "named",
+                "type": "path",
                 "data": {
-                  "name": "Shoot"
+                  "pathName": "Amp Start Standard"
                 }
               },
               {
                 "type": "named",
                 "data": {
-                  "name": "Intake On"
+                  "name": "Intake Until Note"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Wait and Shoot"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Amp Center A Grab"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Amp Center A Score"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Shoot"
+          }
+        },
+        {
+          "type": "race",
+          "data": {
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "Amp Center B Grab"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "Intake Until Note"
                 }
               }
             ]
@@ -27,13 +82,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Short Center"
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "Amp Note"
+            "pathName": "Amp Center B Score"
           }
         },
         {
@@ -45,31 +94,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Grab Long A"
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "Score Long A"
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "Shoot"
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "Intake On"
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "Stage Note"
+            "pathName": "Amp End"
           }
         },
         {
@@ -81,6 +106,6 @@
       ]
     }
   },
-  "folder": null,
+  "folder": "Amp",
   "choreoAuto": false
 }

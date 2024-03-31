@@ -172,6 +172,12 @@ public final class PivotSubsystem extends SubsystemBase {
         return state != State.CALIBRATING;
     }
 
+    public void overrideCalibration(double angleDeg) {
+        calibrated = true;
+        state = State.IDLE;
+        motor.setPosition(angleDeg / 360.0);
+    }
+
     public boolean isAtSetpoint() {
         return state == State.SHOOTING
                 && MathUtil.percentError(position.getValue(), setpoint) < NTData.SHOOTER_PIVOT_ALLOWABLE_PCT_ERR.get();

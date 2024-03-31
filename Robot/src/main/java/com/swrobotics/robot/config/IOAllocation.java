@@ -19,6 +19,7 @@ public final class IOAllocation {
         public static final CanId FLYWHEEL_RIGHT_MOTOR = new CanId(2, RIO); // falcon -> kraken
         public static final CanId SHOOTER_PIVOT_MOTOR = new CanId(3, RIO); // neo
         public static final CanId INTAKE_ACTUATOR_MOTOR = new CanId(5, RIO); // neo
+        public static final CanId INTAKE_SPIN_MOTOR = new CanId(10, RIO); // falcon
         public static final CanId CLIMBER_L_MOTOR = new CanId(6, RIO); // falcon
         public static final CanId CLIMBER_R_MOTOR = new CanId(7, RIO); // falcon
 
@@ -30,7 +31,7 @@ public final class IOAllocation {
 
     public static final class RIO {
         public static final int PWM_INTAKE_MOTOR = 0; // NEO
-        public static final int PWM_AMP_INTAKE_MOTOR = 1; // small
+        public static final int PWM_TRAP_FINGER_SERVO = 1; // small
 
         // Should have brake mode saved into SRX flash
         // Use button so that red light is ON (indicates brake mode is on)

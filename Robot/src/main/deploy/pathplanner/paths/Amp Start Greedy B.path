@@ -3,50 +3,50 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 1.9045071999557515,
-        "y": 6.335587861072428
+        "x": 2.430151368616278,
+        "y": 4.416640472235815
       },
       "prevControl": null,
       "nextControl": {
-        "x": 3.202558343066583,
-        "y": 6.592859258806106
+        "x": 1.8939146666891922,
+        "y": 4.670134185874073
       },
       "isLocked": false,
-      "linkedName": "End of Amp Note"
+      "linkedName": "End of Start Greedy A"
     },
     {
       "anchor": {
-        "x": 8.106722725535569,
-        "y": 7.399459867416654
+        "x": 2.7323938733388164,
+        "y": 5.430615326788848
       },
       "prevControl": {
-        "x": 6.554254599692627,
-        "y": 7.130353045246832
+        "x": 2.430151368616277,
+        "y": 5.0796240309820275
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "Judge Note"
+      "linkedName": null
     }
   ],
   "rotationTargets": [],
   "constraintZones": [],
   "eventMarkers": [],
   "globalConstraints": {
-    "maxVelocity": 4.0,
+    "maxVelocity": 2.0,
     "maxAcceleration": 3.8,
-    "maxAngularVelocity": 600.0,
-    "maxAngularAcceleration": 960.0
+    "maxAngularVelocity": 420.0,
+    "maxAngularAcceleration": 420.0
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": -169.45913715414108,
+    "rotation": -133.60281897270355,
     "rotateFast": true
   },
   "reversed": false,
-  "folder": null,
+  "folder": "Amp",
   "previewStartingState": {
-    "rotation": 180.0,
+    "rotation": 152.62943733449626,
     "velocity": 0
   },
-  "useDefaultConstraints": true
+  "useDefaultConstraints": false
 }
