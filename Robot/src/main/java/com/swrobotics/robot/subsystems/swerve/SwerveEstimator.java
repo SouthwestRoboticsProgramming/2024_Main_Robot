@@ -31,18 +31,49 @@ public final class SwerveEstimator {
     private boolean ignoreVision;
 
     public SwerveEstimator(FieldInfo field) {
+//        tagTracker = new TagTrackerInput(
+//                field,
+//                new TagTrackerInput.CameraInfo( // 16 ft + 1
+//                        "front",
+//                        new Pose3d(new Translation3d(0.34, -0.225, 0.2), new Rotation3d(Math.PI, Math.toRadians(90-67), 0))),
+//		new TagTrackerInput.CameraInfo(
+//			"zoom",
+//			new Pose3d(new Translation3d(0.235, 0.18, 0.395), new Rotation3d(0, Math.toRadians(16.88), 0)))
+//			//		new TagTrackerInput.CameraInfo(
+////			"back",
+////			new Pose3d(new Translation3d(0, 0, 0), new Rotation3d(0, 0, 0)))
+//        );
+
+        double halfFrameL = 0.77 / 2;
+        double halfFrameW = 0.695 / 2;
+
         tagTracker = new TagTrackerInput(
                 field,
-                new TagTrackerInput.CameraInfo( // 16 ft + 1
+
+                new TagTrackerInput.CameraInfo(
                         "front",
-                        new Pose3d(new Translation3d(0.34, -0.225, 0.2), new Rotation3d(Math.PI, Math.toRadians(90-67), 0))),
-		new TagTrackerInput.CameraInfo(
-			"zoom",
-			new Pose3d(new Translation3d(0.235, 0.18, 0.395), new Rotation3d(0, Math.toRadians(16.88), 0)))
-			//		new TagTrackerInput.CameraInfo(
-//			"back",
-//			new Pose3d(new Translation3d(0, 0, 0), new Rotation3d(0, 0, 0)))
+                        (camPose) -> {
+                            return camPose
+                                    // Compensate for mounting angle
+//                                    .transformBy(new Transform3d(new Translation3d(), new Rotation3d(Math.PI, Math.toRadians(90-67), 0)))
+                                    .transformBy(new Transform3d(new Translation3d(), new Rotation3d(Math.PI, 0, 0)))
+                                    .transformBy(new Transform3d(new Translation3d(), new Rotation3d(0, Math.toRadians(90-67), 0)))
+                                    // Compensate for mounting position
+                                    .transformBy(new Transform3d(new Translation3d(halfFrameL - 0.046, -halfFrameW + 0.12, 0.19).unaryMinus(), new Rotation3d()));
+                        }),
+
+                new TagTrackerInput.CameraInfo(
+                        "zoom",
+                        (camPose) -> {
+                            return camPose
+                                    // Compensate for mounting angle
+                                    .transformBy(new Transform3d(new Translation3d(), new Rotation3d(0, Math.toRadians(16.88), 0)))
+                                    // Compensate for mounting position
+                                    .transformBy(new Transform3d(new Translation3d(halfFrameL - 0.16, halfFrameW - 0.133, 0.39).unaryMinus(), new Rotation3d()));
+                        })
         );
+
+
         latestPose = new Pose2d();
         basePose = new Pose2d();
 
