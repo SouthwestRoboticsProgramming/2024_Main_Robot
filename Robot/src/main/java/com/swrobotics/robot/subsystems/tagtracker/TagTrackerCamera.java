@@ -9,6 +9,7 @@ import org.littletonrobotics.junction.Logger;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Function;
 
 public final class TagTrackerCamera {
     public static final class PoseEstimate {
@@ -86,21 +87,23 @@ public final class TagTrackerCamera {
     }
 
     private final String name;
-    private final Transform3d toRobotTransform;
+//    private final Transform3d toRobotTransform;
+    private final Function<Pose3d, Pose3d> cameraToRobot;
 
     private final TagTrackerCameraIO io;
     private final TagTrackerCameraIO.Inputs inputs;
 
-    public TagTrackerCamera(String name, NetworkTable table, Transform3d toRobotTransform) {
+    public TagTrackerCamera(String name, NetworkTable table, Function<Pose3d, Pose3d> cameraToRobot) {
         this.name = name;
-        this.toRobotTransform = toRobotTransform;
+//        this.toRobotTransform = toRobotTransform;
+        this.cameraToRobot = cameraToRobot;
 
         io = new NTCameraIO(table);
         inputs = new TagTrackerCameraIO.Inputs();
     }
 
-    public Transform3d getToRobotTransform() {
-        return toRobotTransform;
+    public Function<Pose3d, Pose3d> getToRobotTransform() {
+        return cameraToRobot;
     }
 
     public List<EstimateInput> getEstimates() {
