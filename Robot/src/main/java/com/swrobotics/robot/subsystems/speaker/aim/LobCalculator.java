@@ -21,13 +21,14 @@ public class LobCalculator implements AimCalculator {
     }
 
     public Aim calculateAim(double distanceToSpeaker, double velocityTowardsGoal) {
-        double angleRad = Math.atan2(4 * NTData.SHOOTER_LOB_TALL_HEIGHT_METERS.get(), distanceToSpeaker);
+        boolean inWing = distanceToSpeaker > 5;
+        double angleRad = 0;
 
-        if (Math.toDegrees(angleRad) > 65) { // If we're really close, aim for the lower arc that hits the target
-            angleRad = Math.toRadians(45 - (Math.toDegrees(angleRad) - 45));
+        if (inWing) {
+            angleRad = Math.atan2(4 * NTData.SHOOTER_LOB_TALL_HEIGHT_METERS.get(), distanceToSpeaker);
         }
 
-        double sqrt2gh = tallSqrt2gh;
+        double sqrt2gh = (inWing) ? tallSqrt2gh : shortSqrt2gh;
 
         double velocity = sqrt2gh / Math.sin(angleRad);
 
@@ -43,13 +44,12 @@ public class LobCalculator implements AimCalculator {
 
     @Override
     public Aim calculateAim(double distanceToSpeaker) {
-        throw new RuntimeException("oh no");
-//        return calculateAim(distanceToSpeaker, 0);
+        return calculateAim(distanceToSpeaker, 0);
     }
 
     private void updateHeight() {
         tallSqrt2gh = Math.sqrt(twoG * NTData.SHOOTER_LOB_TALL_HEIGHT_METERS.get());
         shortSqrt2gh = Math.sqrt(twoG * NTData.SHOOTER_LOB_SHORT_HEIGHT_METERS.get());
     }
-    
+
 }
