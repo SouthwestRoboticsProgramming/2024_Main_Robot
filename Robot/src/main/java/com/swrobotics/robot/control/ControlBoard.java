@@ -348,6 +348,7 @@ public class ControlBoard extends SubsystemBase {
         robot.ampArm2.setPosition(ampArmPos);
         robot.climber.setState(climbState.climberState);
 
+        robot.climber.applyManualAdjust(-operator.leftStickY.get(), -operator.rightStickY.get());
 
         // if (operator.rightBumper.isRising()) {
         //     boolean extended = climbStateClimberArm.State.EXTENDED;

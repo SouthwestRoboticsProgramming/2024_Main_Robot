@@ -33,6 +33,7 @@ public final class ClimberArm extends SubsystemBase {
     private final NTDouble tuningMotorPositionLog;
 
     private double targetPos;
+    private double manualAdjust;
 
     public ClimberArm(IOAllocation.CanId id, InvertedValue invert) {
         TalonFXConfiguration config = new TalonFXConfiguration();
@@ -57,6 +58,7 @@ public final class ClimberArm extends SubsystemBase {
         tuningMotorPositionLog = new NTDouble("Climber/Log " + id.id(), 0);
 
         targetPos = 0;
+        manualAdjust = 0;
     }
 
     public void setState(State state) {
@@ -67,6 +69,9 @@ public final class ClimberArm extends SubsystemBase {
         double position = state == State.EXTENDED
                 ? NTData.CLIMBER_EXTEND_POSITION.get()
                 : 0;
+
+        if (state == State.EXTENDED)
+            position += manualAdjust;
 
         motor.setControl(new PositionVoltage(position));
         targetPos = position;
@@ -126,5 +131,11 @@ public final class ClimberArm extends SubsystemBase {
     public boolean isAtPosition() {
         // Intentionally big tolerance
         return Math.abs(motorPosition.getValue() - targetPos) < 6;
+    }
+
+    public void applyManualAdjust(double adjust) {
+        if (targetState == State.EXTENDED) {
+            manualAdjust += adjust;
+        }
     }
 }

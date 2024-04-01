@@ -43,4 +43,9 @@ public final class ClimberSubsystem extends SubsystemBase {
     public boolean isAtPosition() {
         return leftArm.isAtPosition() && rightArm.isAtPosition();
     }
+
+    public void applyManualAdjust(double leftAdjust, double rightAdjust) {
+        leftArm.applyManualAdjust(leftAdjust);
+        rightArm.applyManualAdjust(rightAdjust);
+    }
 }
