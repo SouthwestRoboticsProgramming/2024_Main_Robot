@@ -3,13 +3,13 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 4.779843098878597,
-        "y": 6.249595017004761
+        "x": 4.889100989964744,
+        "y": 6.365827630508831
       },
       "prevControl": null,
       "nextControl": {
-        "x": 5.706070129479928,
-        "y": 6.6493351038958615
+        "x": 5.815328020566074,
+        "y": 6.765567717399931
       },
       "isLocked": false,
       "linkedName": "End of Center A Score"
@@ -32,8 +32,8 @@
   "constraintZones": [],
   "eventMarkers": [],
   "globalConstraints": {
-    "maxVelocity": 4.75,
-    "maxAcceleration": 3.9,
+    "maxVelocity": 5.7,
+    "maxAcceleration": 3.8,
     "maxAngularVelocity": 540.0,
     "maxAngularAcceleration": 640.0
   },

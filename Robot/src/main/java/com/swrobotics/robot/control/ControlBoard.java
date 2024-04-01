@@ -379,10 +379,19 @@ public class ControlBoard extends SubsystemBase {
         double distToSpeaker = robot.shooter.getSpeakerPosition().getDistance(robot.drive.getEstimatedPose().getTranslation());
         boolean tooFar = TableAimCalculator.INSTANCE.isTooFar(distToSpeaker);
 
+        pieceRumbleNt.set(pieceRumble);
+
         driver.setRumble(pieceRumble ? 0.6 : (tooFar && (driverWantsAim() || driverWantsFlywheels()) ? 0.5 : 0));
         boolean shooterReady = robot.shooter.isReadyToShoot();
         operator.setRumble(pieceRumble ? 0.6 : (shooterReady ? 0.5 : 0));
+
+        this.shooterReady.set(shooterReady);
+        this.tooFar.set(tooFar && (driverWantsAim() || driverWantsFlywheels()));
     }
+
+    NTBoolean pieceRumbleNt = new NTBoolean("Debug/Piece Rumble", false);
+    NTBoolean shooterReady = new NTBoolean("Debug/Shooter Ready", false);
+    NTBoolean tooFar = new NTBoolean("Debug/Too Far and Want Shoot", false);
 
     public boolean isClimbing() {
         return climbState != ClimbState.IDLE;
