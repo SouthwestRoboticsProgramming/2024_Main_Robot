@@ -12,6 +12,7 @@ import com.swrobotics.robot.commands.AmpAlignCommand;
 import com.swrobotics.robot.commands.CharactarizeWheelCommand;
 import com.swrobotics.robot.commands.SnapDistanceCommand;
 import com.swrobotics.robot.config.NTData;
+import com.swrobotics.robot.subsystems.amp.AmpArm2Subsystem;
 import com.swrobotics.robot.subsystems.climber.ClimberArm;
 import com.swrobotics.robot.subsystems.speaker.IntakeSubsystem;
 import com.swrobotics.robot.subsystems.speaker.PivotSubsystem;
@@ -53,7 +54,8 @@ public class ControlBoard extends SubsystemBase {
      * X: amp intake
      * Y: aim at amp and amp bar
      * Left trigger: amp eject
-     * Right bumper: toggle climber extend/retract
+     * Right bumper: press to extend, press to climb
+     * Left bumper: press to cancel climb
      * Back: intake eject
      * Start: indexer eject
      */
@@ -67,11 +69,10 @@ public class ControlBoard extends SubsystemBase {
     public final XboxController driver;
     public final XboxController operator;
 
-    private ClimberArm.State climberState;
     private boolean pieceRumble;
 
     // TODO: Maybe auto-adjust based on battery voltage?
-    private static final double MAX_DRIVE_ACCEL = 5; // Meters / second^2
+    private static final double MAX_DRIVE_ACCEL = 4.3; // Meters / second^2
     private final DriveAccelFilter driveFilter = new DriveAccelFilter(MAX_DRIVE_ACCEL);
 
     private final Debouncer driverSlowDebounce = new Debouncer(0.075);
@@ -138,8 +139,6 @@ public class ControlBoard extends SubsystemBase {
 //        ampTrigger.whileTrue(Commands.run(() -> robot.shooter.setTempAimCalculator(new AmpAimCalculator())));
 //        ampTrigger.onFalse(new ShootCommand(robot));
 
-        climberState = ClimberArm.State.RETRACTED;
-
 //        Trigger operatorA = new Trigger(operator.a::isPressed);
 //        operatorA.onTrue(Commands.runOnce(() -> robot.intake.set(IntakeSubsystem.State.INTAKE)));
         operator.a.onRising(() -> robot.intake.set(IntakeSubsystem.State.INTAKE));
@@ -194,7 +193,7 @@ public class ControlBoard extends SubsystemBase {
         Translation2d leftStick = driver.getLeftStick();
         // double x = -squareWithSign(leftStick.getY()) * speed;
         // double y = -squareWithSign(leftStick.getX()) * speed;
-        double power = 2.5;
+        double power = 2;
 //        double x = -powerWithSign(leftStick.getY(), power) * speed;
 //        double y = -powerWithSign(leftStick.getX(), power) * speed;
 
@@ -219,19 +218,38 @@ public class ControlBoard extends SubsystemBase {
         return false;
     }
 
+    private enum ClimbState {
+        IDLE(ClimberArm.State.RETRACTED, null),
+        EXTENDED(ClimberArm.State.EXTENDED, AmpArm2Subsystem.Position.CLIMB_OUT_OF_THE_WAY),
+        RETRACTED_ON_CHAIN(ClimberArm.State.RETRACTED, AmpArm2Subsystem.Position.CLIMB_OUT_OF_THE_WAY);
+
+        final ClimberArm.State climberState;
+        final AmpArm2Subsystem.Position ampArmPosOverride;
+
+        ClimbState(ClimberArm.State climberState, AmpArm2Subsystem.Position ampArmPosOverride) {
+            this.climberState = climberState;
+            this.ampArmPosOverride = ampArmPosOverride;
+        }
+    }
+
+    private ClimbState climbState = ClimbState.IDLE;
+    private boolean waitingForArmRetract = false;
+
     @Override
     public void periodic() {
         if (!DriverStation.isTeleop()) {
-            climberState = ClimberArm.State.RETRACTED;
+            climbState = ClimbState.IDLE;
             robot.indexer.endReverse();
             robot.intake.setReverse(false);
             robot.shooter.setFlywheelControl(ShooterSubsystem.FlywheelControl.SHOOT); // Always aim with note when not teleop
 
-//            robot.drive.setEstimatorIgnoreVision(DriverStation.isAutonomous());
+            robot.drive.setEstimatorIgnoreVision(DriverStation.isAutonomous());
 
             return;
         }
 
+        if (!operator.a.isPressed())
+            robot.intake.set(IntakeSubsystem.State.OFF);
 
         boolean forceToSubwoofer = forceSubwooferDebounce.calculate(driver.dpad.left.isPressed());
         boolean forceToStageCorner = forceStageCornerDebounce.calculate(driver.dpad.right.isPressed());
@@ -277,7 +295,9 @@ public class ControlBoard extends SubsystemBase {
         boolean operatorWantsShoot = shootDebounce.calculate(operator.b.isPressed());
         robot.indexer.setFeedToShooter(operatorWantsShoot);
 
-        robot.ampArm2.setOut(operator.y.isPressed());
+
+
+        // robot.ampArm2.setOut(operator.y.isPressed());
 
 //        AmpArmSubsystem.Position ampArmPosition = AmpArmSubsystem.Position.STOW;
 //        AmpIntakeSubsystem.State ampIntakeState = AmpIntakeSubsystem.State.OFF;
@@ -295,11 +315,45 @@ public class ControlBoard extends SubsystemBase {
 //        robot.ampArm.setPosition(ampArmPosition);
 //        robot.ampIntake.setState(ampIntakeState);
 
-        if (operator.rightBumper.isRising()) {
-            boolean extended = climberState == ClimberArm.State.EXTENDED;
-            climberState = extended ? ClimberArm.State.RETRACTED : ClimberArm.State.EXTENDED;
+        boolean climbToggle = operator.rightBumper.isRising();
+        boolean climbCancel = operator.leftBumper.isRising();
+
+        boolean wasExtended = climbState == ClimbState.EXTENDED;
+        if (climbToggle && (climbState == ClimbState.IDLE || climbState == ClimbState.RETRACTED_ON_CHAIN)) {
+            climbState = ClimbState.EXTENDED;
+        } else if (climbToggle && climbState == ClimbState.EXTENDED) {
+            climbState = ClimbState.RETRACTED_ON_CHAIN;
         }
-        robot.climber.setState(climberState);
+        if (climbCancel)
+            climbState = ClimbState.IDLE;
+
+        if (climbState == ClimbState.IDLE && wasExtended)
+          waitingForArmRetract = true;
+        
+        AmpArm2Subsystem.Position ampArmPos = operator.y.isPressed()
+            ? AmpArm2Subsystem.Position.AMP : AmpArm2Subsystem.Position.RETRACT;
+        if (climbState.ampArmPosOverride != null)
+            ampArmPos = climbState.ampArmPosOverride;
+        if (climbState == ClimbState.IDLE && waitingForArmRetract) {
+            // DON'T COLLIDE WITH ARMS
+            boolean armsDown = robot.climber.isAtPosition();
+            if (armsDown)
+               waitingForArmRetract = false;
+            else
+              ampArmPos = AmpArm2Subsystem.Position.CLIMB_OUT_OF_THE_WAY;
+        } else {
+            waitingForArmRetract = false;
+        }
+        robot.ampArm2.setPosition(ampArmPos);
+        robot.climber.setState(climbState.climberState);
+
+        robot.climber.applyManualAdjust(-operator.leftStickY.get(), -operator.rightStickY.get());
+
+        // if (operator.rightBumper.isRising()) {
+        //     boolean extended = climbStateClimberArm.State.EXTENDED;
+        //     climberState = extended ? ClimberArm.State.RETRACTED : ClimberArm.State.EXTENDED;
+        // }
+        // robot.climber.setState(climberState);
 
         robot.intake.setReverse(operator.back.isPressed());
 
@@ -324,9 +378,22 @@ public class ControlBoard extends SubsystemBase {
         double distToSpeaker = robot.shooter.getSpeakerPosition().getDistance(robot.drive.getEstimatedPose().getTranslation());
         boolean tooFar = TableAimCalculator.INSTANCE.isTooFar(distToSpeaker);
 
+        pieceRumbleNt.set(pieceRumble);
+
         driver.setRumble(pieceRumble ? 0.6 : (tooFar && (driverWantsAim() || driverWantsFlywheels()) ? 0.5 : 0));
         boolean shooterReady = robot.shooter.isReadyToShoot();
         operator.setRumble(pieceRumble ? 0.6 : (shooterReady ? 0.5 : 0));
+
+        this.shooterReady.set(shooterReady);
+        this.tooFar.set(tooFar && (driverWantsAim() || driverWantsFlywheels()));
+    }
+
+    NTBoolean pieceRumbleNt = new NTBoolean("Debug/Piece Rumble", false);
+    NTBoolean shooterReady = new NTBoolean("Debug/Shooter Ready", false);
+    NTBoolean tooFar = new NTBoolean("Debug/Too Far and Want Shoot", false);
+
+    public boolean isClimbing() {
+        return climbState != ClimbState.IDLE;
     }
 
     public void setPieceRumble(boolean pieceRumble) {

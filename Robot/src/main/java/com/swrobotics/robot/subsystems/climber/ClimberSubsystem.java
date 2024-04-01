@@ -7,8 +7,8 @@ import com.swrobotics.robot.config.NTData;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public final class ClimberSubsystem extends SubsystemBase {
-    private final ClimberArm leftArm = new ClimberArm(IOAllocation.CAN.CLIMBER_L_MOTOR, InvertedValue.Clockwise_Positive);
-    private final ClimberArm rightArm = new ClimberArm(IOAllocation.CAN.CLIMBER_R_MOTOR, InvertedValue.CounterClockwise_Positive);
+    private final ClimberArm leftArm = new ClimberArm(IOAllocation.CAN.CLIMBER_L_MOTOR, InvertedValue.CounterClockwise_Positive);
+    private final ClimberArm rightArm = new ClimberArm(IOAllocation.CAN.CLIMBER_R_MOTOR, InvertedValue.Clockwise_Positive);
 
     private ClimberArm.State currentState;
 
@@ -38,5 +38,14 @@ public final class ClimberSubsystem extends SubsystemBase {
 
     public ClimberArm.State getCurrentState() {
         return currentState;
+    }
+
+    public boolean isAtPosition() {
+        return leftArm.isAtPosition() && rightArm.isAtPosition();
+    }
+
+    public void applyManualAdjust(double leftAdjust, double rightAdjust) {
+        leftArm.applyManualAdjust(leftAdjust);
+        rightArm.applyManualAdjust(rightAdjust);
     }
 }

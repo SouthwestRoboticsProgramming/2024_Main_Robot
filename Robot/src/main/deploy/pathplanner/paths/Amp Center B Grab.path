@@ -1,0 +1,52 @@
+{
+  "version": 1.0,
+  "waypoints": [
+    {
+      "anchor": {
+        "x": 4.889100989964744,
+        "y": 6.365827630508831
+      },
+      "prevControl": null,
+      "nextControl": {
+        "x": 5.815328020566074,
+        "y": 6.765567717399931
+      },
+      "isLocked": false,
+      "linkedName": "End of Center A Score"
+    },
+    {
+      "anchor": {
+        "x": 7.919431907239883,
+        "y": 5.917242147874609
+      },
+      "prevControl": {
+        "x": 6.856708261602568,
+        "y": 6.375480784066845
+      },
+      "nextControl": null,
+      "isLocked": false,
+      "linkedName": null
+    }
+  ],
+  "rotationTargets": [],
+  "constraintZones": [],
+  "eventMarkers": [],
+  "globalConstraints": {
+    "maxVelocity": 5.7,
+    "maxAcceleration": 3.8,
+    "maxAngularVelocity": 540.0,
+    "maxAngularAcceleration": 640.0
+  },
+  "goalEndState": {
+    "velocity": 0,
+    "rotation": 159.77514056883194,
+    "rotateFast": false
+  },
+  "reversed": false,
+  "folder": "Amp",
+  "previewStartingState": {
+    "rotation": -172.00447350996492,
+    "velocity": 0
+  },
+  "useDefaultConstraints": true
+}

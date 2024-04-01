@@ -1,0 +1,104 @@
+{
+  "version": 1.0,
+  "startingPose": {
+    "position": {
+      "x": 1.407720094244745,
+      "y": 4.59350280539662
+    },
+    "rotation": 180.0
+  },
+  "command": {
+    "type": "sequential",
+    "data": {
+      "commands": [
+        {
+          "type": "named",
+          "data": {
+            "name": "Shoot Quick"
+          }
+        },
+        {
+          "type": "race",
+          "data": {
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "Source Start Standard"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "Intake Until Note"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Wait and Shoot"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Source Center A Grab"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Source Center A Score"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Shoot"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Source Center B Grab"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Source Center B Score"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Shoot"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Source End Grab"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Source End Score"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Shoot"
+          }
+        }
+      ]
+    }
+  },
+  "folder": "Source",
+  "choreoAuto": false
+}

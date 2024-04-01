@@ -143,6 +143,8 @@ public class Robot extends LoggedRobot {
         autonomousDelay = robotContainer.getAutoDelay();
         autonomousTimer.restart();
         hasScheduledAuto = false;
+
+        robotContainer.drive.setEstimatorIgnoreVision(true);
     }
 
     @Override

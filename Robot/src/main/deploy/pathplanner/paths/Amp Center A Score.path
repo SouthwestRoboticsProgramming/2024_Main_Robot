@@ -1,0 +1,52 @@
+{
+  "version": 1.0,
+  "waypoints": [
+    {
+      "anchor": {
+        "x": 8.036373451664282,
+        "y": 7.449176379834242
+      },
+      "prevControl": null,
+      "nextControl": {
+        "x": 7.1296459374966625,
+        "y": 7.137184116894846
+      },
+      "isLocked": false,
+      "linkedName": "End of Amp Center A Grab"
+    },
+    {
+      "anchor": {
+        "x": 4.889100989964744,
+        "y": 6.365827630508831
+      },
+      "prevControl": {
+        "x": 5.786078745915506,
+        "y": 6.863065299568492
+      },
+      "nextControl": null,
+      "isLocked": false,
+      "linkedName": "End of Center A Score"
+    }
+  ],
+  "rotationTargets": [],
+  "constraintZones": [],
+  "eventMarkers": [],
+  "globalConstraints": {
+    "maxVelocity": 5.7,
+    "maxAcceleration": 3.8,
+    "maxAngularVelocity": 540.0,
+    "maxAngularAcceleration": 640.0
+  },
+  "goalEndState": {
+    "velocity": 0,
+    "rotation": -174.97470245497618,
+    "rotateFast": false
+  },
+  "reversed": false,
+  "folder": "Amp",
+  "previewStartingState": {
+    "rotation": -176.41157408154746,
+    "velocity": 0
+  },
+  "useDefaultConstraints": true
+}

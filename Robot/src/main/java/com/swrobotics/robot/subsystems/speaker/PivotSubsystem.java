@@ -143,6 +143,8 @@ public final class PivotSubsystem extends SubsystemBase {
 
     @Override
     public void periodic() {
+        position.refresh();
+
         if (NTData.SHOOTER_PIVOT_RECALIBRATE.get()) {
             NTData.SHOOTER_PIVOT_RECALIBRATE.set(false);
             state = State.CALIBRATING;
@@ -172,15 +174,21 @@ public final class PivotSubsystem extends SubsystemBase {
         return state != State.CALIBRATING;
     }
 
+    public void overrideCalibration(double angleDeg) {
+        calibrated = true;
+        state = State.IDLE;
+        motor.setPosition(angleDeg / 360.0);
+    }
+
     public boolean isAtSetpoint() {
         return state == State.SHOOTING
-                && MathUtil.percentError(position.getValue(), setpoint) < NTData.SHOOTER_PIVOT_ALLOWABLE_PCT_ERR.get();
+                && Math.abs(position.getValue() - setpoint) < NTData.SHOOTER_PIVOT_ALLOWABLE_ERR.get() / 360.0;
+//                && MathUtil.percentError(position.getValue(), setpoint) < NTData.SHOOTER_PIVOT_ALLOWABLE_PCT_ERR.get();
     }
 
     @Override
     public void simulationPeriodic() {
         motor.updateSim(12);
-        position.refresh();
     }
 
     private void applyPID(Slot0Configs config) {

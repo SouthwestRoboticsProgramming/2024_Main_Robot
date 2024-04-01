@@ -1,0 +1,52 @@
+{
+  "version": 1.0,
+  "waypoints": [
+    {
+      "anchor": {
+        "x": 2.430151368616278,
+        "y": 4.416640472235815
+      },
+      "prevControl": null,
+      "nextControl": {
+        "x": 1.8939146666891922,
+        "y": 4.670134185874073
+      },
+      "isLocked": false,
+      "linkedName": "End of Start Greedy A"
+    },
+    {
+      "anchor": {
+        "x": 2.5520947734993515,
+        "y": 5.208423611513267
+      },
+      "prevControl": {
+        "x": 2.249852268776812,
+        "y": 4.857432315706447
+      },
+      "nextControl": null,
+      "isLocked": false,
+      "linkedName": null
+    }
+  ],
+  "rotationTargets": [],
+  "constraintZones": [],
+  "eventMarkers": [],
+  "globalConstraints": {
+    "maxVelocity": 2.0,
+    "maxAcceleration": 3.8,
+    "maxAngularVelocity": 420.0,
+    "maxAngularAcceleration": 420.0
+  },
+  "goalEndState": {
+    "velocity": 0,
+    "rotation": -133.60281897270355,
+    "rotateFast": true
+  },
+  "reversed": false,
+  "folder": "Amp",
+  "previewStartingState": {
+    "rotation": 152.62943733449626,
+    "velocity": 0
+  },
+  "useDefaultConstraints": false
+}

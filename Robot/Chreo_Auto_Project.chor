@@ -3,7 +3,7 @@
     "robotConfiguration": {
         "mass": 74.08797700309194,
         "rotationalInertia": 6.000000000000001,
-        "motorMaxTorque": 0.5811475409836065,
+        "motorMaxTorque": 0.774863387978142,
         "motorMaxVelocity": 4800,
         "gearing": 5.36,
         "wheelbase": 0.5524497016771611,
@@ -343,7 +343,7 @@
                 {
                     "name": "Marker",
                     "target": "last",
-                    "targetTimestamp": 1.345777924459432,
+                    "targetTimestamp": null,
                     "offset": 0,
                     "command": {
                         "type": "named",
@@ -353,7 +353,7 @@
                     }
                 }
             ],
-            "isTrajectoryStale": false
+            "isTrajectoryStale": true
         },
         "Amp Side Mid A": {
             "waypoints": [
@@ -3186,7 +3186,7 @@
                     }
                 }
             ],
-            "isTrajectoryStale": false
+            "isTrajectoryStale": true
         },
         "Amp Side Start B": {
             "waypoints": [
@@ -3680,7 +3680,7 @@
                     }
                 }
             ],
-            "isTrajectoryStale": false
+            "isTrajectoryStale": true
         },
         "Source Side Start A": {
             "waypoints": [
@@ -5240,7 +5240,7 @@
                     }
                 }
             ],
-            "isTrajectoryStale": false
+            "isTrajectoryStale": true
         },
         "Source Mid": {
             "waypoints": [
@@ -6402,7 +6402,7 @@
                     }
                 }
             ],
-            "isTrajectoryStale": false
+            "isTrajectoryStale": true
         },
         "Source End": {
             "waypoints": [
@@ -7924,7 +7924,7 @@
                     }
                 }
             ],
-            "isTrajectoryStale": false
+            "isTrajectoryStale": true
         },
         "Amp Side Mid B": {
             "waypoints": [
@@ -10297,7 +10297,7 @@
                     }
                 }
             ],
-            "isTrajectoryStale": false
+            "isTrajectoryStale": true
         },
         "Amp Side Start C": {
             "waypoints": [
@@ -11127,7 +11127,7 @@
                     }
                 }
             ],
-            "isTrajectoryStale": false
+            "isTrajectoryStale": true
         },
         "Source Side Start B": {
             "waypoints": [
@@ -12625,7 +12625,7 @@
                     }
                 }
             ],
-            "isTrajectoryStale": false
+            "isTrajectoryStale": true
         }
     },
     "splitTrajectoriesAtStopPoints": true,

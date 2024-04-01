@@ -13,15 +13,18 @@ import edu.wpi.first.networktables.NetworkTableInstance;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 
 public final class TagTrackerInput {
     public static final class CameraInfo {
         public final String name;
-        public final Pose3d robotRelPose;
+        public final Function<Pose3d, Pose3d> cameraToRobot;
+//        public final Pose3d robotRelPose;
 
-        public CameraInfo(String name, Pose3d robotRelPose) {
+        public CameraInfo(String name, Function<Pose3d, Pose3d> cameraToRobot) {
             this.name = name;
-            this.robotRelPose = robotRelPose;
+            this.cameraToRobot = cameraToRobot;
+//            this.robotRelPose = robotRelPose;
         }
     }
 
@@ -60,7 +63,7 @@ public final class TagTrackerInput {
             cameras[i] = new TagTrackerCamera(
                     info.name,
                     camerasTable.getSubTable(info.name),
-                    GeometryUtil.toTransform(info.robotRelPose).inverse());
+                    info.cameraToRobot);
         }
     }
 
@@ -79,7 +82,8 @@ public final class TagTrackerInput {
                 if (input.poseB == null) {
                     // Only one pose available, camera sees multiple tags
                     cameraPose = input.poseA.pose;
-                    robotPose3d = cameraPose.transformBy(camera.getToRobotTransform());
+                    robotPose3d = camera.getToRobotTransform().apply(cameraPose);
+//                    robotPose3d = cameraPose.transformBy(camera.getToRobotTransform());
                 } else {
                     // Two poses available (one tag), choose the better one.
                     // Pose is only chosen if it's significantly better than the
@@ -93,7 +97,8 @@ public final class TagTrackerInput {
                         cameraPose = input.poseB.pose;
 
                     if (cameraPose != null)
-                        robotPose3d = cameraPose.transformBy(camera.getToRobotTransform());
+                        robotPose3d = camera.getToRobotTransform().apply(cameraPose);
+//                        robotPose3d = cameraPose.transformBy(camera.getToRobotTransform());
                 }
 
                 // Skip frame if no pose was good

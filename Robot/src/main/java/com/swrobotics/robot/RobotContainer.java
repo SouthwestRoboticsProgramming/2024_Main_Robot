@@ -4,7 +4,6 @@ import com.ctre.phoenix6.mechanisms.swerve.SwerveModule.DriveRequestType;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.commands.PathPlannerAuto;
-import com.pathplanner.lib.path.PathPlannerPath;
 import com.swrobotics.lib.field.FieldInfo;
 import com.swrobotics.messenger.client.MessengerClient;
 import com.swrobotics.robot.commands.RobotCommands;
@@ -15,8 +14,6 @@ import com.swrobotics.robot.control.ControlBoard;
 import com.swrobotics.robot.logging.FieldView;
 import com.swrobotics.robot.logging.SimView;
 import com.swrobotics.robot.subsystems.amp.AmpArm2Subsystem;
-import com.swrobotics.robot.subsystems.amp.AmpArmSubsystem;
-import com.swrobotics.robot.subsystems.amp.AmpIntakeSubsystem;
 import com.swrobotics.robot.subsystems.climber.ClimberSubsystem;
 import com.swrobotics.robot.subsystems.lights.LightsSubsystem;
 import com.swrobotics.robot.subsystems.music.MusicSubsystem;
@@ -32,7 +29,6 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.*;
 import edu.wpi.first.wpilibj.simulation.DriverStationSim;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.*;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 
@@ -62,7 +58,7 @@ public class RobotContainer {
     private final LoggedDashboardChooser<Double> autoDelaySelector;
 
     public final MessengerClient messenger;
-    private final ControlBoard controlboard;
+    public final ControlBoard controlboard;
 
     public final PowerDistribution pdp;
 
@@ -73,7 +69,6 @@ public class RobotContainer {
     public final ShooterSubsystem shooter;
 //    public final AmpArmSubsystem ampArm;
     public final AmpArm2Subsystem ampArm2;
-    public final AmpIntakeSubsystem ampIntake;
     public final ClimberSubsystem climber;
 
     // Fun
@@ -106,8 +101,6 @@ public class RobotContainer {
 
 //        ampArm = new AmpArmSubsystem();
         ampArm2 = new AmpArm2Subsystem();
-        ampIntake = new AmpIntakeSubsystem();
-
         climber = new ClimberSubsystem();
 
         // ControlBoard must be initialized last
@@ -118,7 +111,10 @@ public class RobotContainer {
         // Register Named Commands for Auto
         NamedCommands.registerCommand("Intake On", new IntakeSetCommand(intake, IntakeSubsystem.State.INTAKE));
         NamedCommands.registerCommand("Intake Off", new IntakeSetCommand(intake, IntakeSubsystem.State.OFF));
+        NamedCommands.registerCommand("Intake Until Note", RobotCommands.intakeUntilNote(this));
         NamedCommands.registerCommand("Shoot", RobotCommands.aimAndShoot(this, false));
+        NamedCommands.registerCommand("Shoot Quick", RobotCommands.shootQuick(this));
+        NamedCommands.registerCommand("Fling", RobotCommands.flingNote(this));
         NamedCommands.registerCommand("Wait and Shoot", RobotCommands.aimAndShoot(this, true)); // Waits for indexer to have note
         NamedCommands.registerCommand("Eject Hard", RobotCommands.ejectHard(this));
 

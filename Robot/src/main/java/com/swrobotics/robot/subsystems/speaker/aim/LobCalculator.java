@@ -51,5 +51,5 @@ public class LobCalculator implements AimCalculator {
         tallSqrt2gh = Math.sqrt(twoG * NTData.SHOOTER_LOB_TALL_HEIGHT_METERS.get());
         shortSqrt2gh = Math.sqrt(twoG * NTData.SHOOTER_LOB_SHORT_HEIGHT_METERS.get());
     }
-    
+
 }

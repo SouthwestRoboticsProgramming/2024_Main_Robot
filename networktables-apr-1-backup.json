@@ -1,0 +1,690 @@
+[
+  {
+    "name": "/Drive/Slow Speed (meters per sec)",
+    "type": "double",
+    "value": 1.5,
+    "properties": {
+      "persistent": true
+    }
+  },
+  {
+    "name": "/Drive/Normal Speed (meters per sec)",
+    "type": "double",
+    "value": 2.0,
+    "properties": {
+      "persistent": true
+    }
+  },
+  {
+    "name": "/Drive/Turn Speed (rot per sec)",
+    "type": "double",
+    "value": 1.0,
+    "properties": {
+      "persistent": true
+    }
+  },
+  {
+    "name": "/Drive/Aim/PID/kP",
+    "type": "double",
+    "value": 9.0,
+    "properties": {
+      "persistent": true
+    }
+  },
+  {
+    "name": "/Drive/Aim/PID/kD",
+    "type": "double",
+    "value": 0.3,
+    "properties": {
+      "persistent": true
+    }
+  },
+  {
+    "name": "/Drive/Aim/Max Turn Speed (rot per sec)",
+    "type": "double",
+    "value": 1.0,
+    "properties": {
+      "persistent": true
+    }
+  },
+  {
+    "name": "/Drive/Aim/Tolerance (rot)",
+    "type": "double",
+    "value": 0.05,
+    "properties": {
+      "persistent": true
+    }
+  },
+  {
+    "name": "/Drive/Modules/Front Left Offset (rot)",
+    "type": "double",
+    "value": 0.61157228125,
+    "properties": {
+      "persistent": true
+    }
+  },
+  {
+    "name": "/Drive/Modules/Front Right Offset (rot)",
+    "type": "double",
+    "value": 0.467285,
+    "properties": {
+      "persistent": true
+    }
+  },
+  {
+    "name": "/Drive/Modules/Back Left Offset (rot)",
+    "type": "double",
+    "value": -0.6215820000000001,
+    "properties": {
+      "persistent": true
+    }
+  },
+  {
+    "name": "/Drive/Modules/Back Right Offset (rot)",
+    "type": "double",
+    "value": 1.343994,
+    "properties": {
+      "persistent": true
+    }
+  },
+  {
+    "name": "/Intake/Range (deg)",
+    "type": "double",
+    "value": 111.0,
+    "properties": {
+      "persistent": true
+    }
+  },
+  {
+    "name": "/Intake/Intake Speed (pct)",
+    "type": "double",
+    "value": 0.44,
+    "properties": {
+      "persistent": true
+    }
+  },
+  {
+    "name": "/Intake/Calibration/Setpoint (deg)",
+    "type": "double",
+    "value": 0.0,
+    "properties": {
+      "persistent": true
+    }
+  },
+  {
+    "name": "/Intake/PID/kP",
+    "type": "double",
+    "value": 0.06,
+    "properties": {
+      "persistent": true
+    }
+  },
+  {
+    "name": "/Intake/PID/kD",
+    "type": "double",
+    "value": 0.0,
+    "properties": {
+      "persistent": true
+    }
+  },
+  {
+    "name": "/Climber/Hold Strength (volts)",
+    "type": "double",
+    "value": 0.0,
+    "properties": {
+      "persistent": true
+    }
+  },
+  {
+    "name": "/Climber/Extended Position (rotor rot)",
+    "type": "double",
+    "value": 69.578,
+    "properties": {
+      "persistent": true
+    }
+  },
+  {
+    "name": "/Climber/PID/kP",
+    "type": "double",
+    "value": 0.25,
+    "properties": {
+      "persistent": true
+    }
+  },
+  {
+    "name": "/Climber/PID/kD",
+    "type": "double",
+    "value": 0.0,
+    "properties": {
+      "persistent": true
+    }
+  },
+  {
+    "name": "/Climber/Calibrate/Volts",
+    "type": "double",
+    "value": 1.0,
+    "properties": {
+      "persistent": true
+    }
+  },
+  {
+    "name": "/Climber/Calibrate/Time (s)",
+    "type": "double",
+    "value": 0.25,
+    "properties": {
+      "persistent": true
+    }
+  },
+  {
+    "name": "/Climber/Calibrate/Threshold (rot per sec)",
+    "type": "double",
+    "value": 0.5,
+    "properties": {
+      "persistent": true
+    }
+  },
+  {
+    "name": "/Climber/Calibrate/Position (rotor rot)",
+    "type": "double",
+    "value": -2.0,
+    "properties": {
+      "persistent": true
+    }
+  },
+  {
+    "name": "/Amp/Arm/CanCoder Offset (rot)",
+    "type": "double",
+    "value": 0.0,
+    "properties": {
+      "persistent": true
+    }
+  },
+  {
+    "name": "/Amp/Arm/Tolerance (deg)",
+    "type": "double",
+    "value": 1.5,
+    "properties": {
+      "persistent": true
+    }
+  },
+  {
+    "name": "/Amp/Arm/Stow Angle (deg)",
+    "type": "double",
+    "value": 135.0,
+    "properties": {
+      "persistent": true
+    }
+  },
+  {
+    "name": "/Amp/Arm/Pickup Angle (deg)",
+    "type": "double",
+    "value": -45.0,
+    "properties": {
+      "persistent": true
+    }
+  },
+  {
+    "name": "/Amp/Arm/Amp Score Angle (deg)",
+    "type": "double",
+    "value": 45.0,
+    "properties": {
+      "persistent": true
+    }
+  },
+  {
+    "name": "/Amp/Arm/Trap Score Angle (deg)",
+    "type": "double",
+    "value": 50.0,
+    "properties": {
+      "persistent": true
+    }
+  },
+  {
+    "name": "/Amp/Arm/PID/kP",
+    "type": "double",
+    "value": 0.05,
+    "properties": {
+      "persistent": true
+    }
+  },
+  {
+    "name": "/Amp/Arm/PID/kD",
+    "type": "double",
+    "value": 0.0,
+    "properties": {
+      "persistent": true
+    }
+  },
+  {
+    "name": "/Amp/Arm/Gravity (volts at horiz)",
+    "type": "double",
+    "value": 0.1,
+    "properties": {
+      "persistent": true
+    }
+  },
+  {
+    "name": "/Amp/Intake/Intake Speed (pct)",
+    "type": "double",
+    "value": 0.5,
+    "properties": {
+      "persistent": true
+    }
+  },
+  {
+    "name": "/Amp/Intake/Outtake Speed (pct)",
+    "type": "double",
+    "value": 0.5,
+    "properties": {
+      "persistent": true
+    }
+  },
+  {
+    "name": "/Amp/Intake/Backout Speed (pct)",
+    "type": "double",
+    "value": 0.1,
+    "properties": {
+      "persistent": true
+    }
+  },
+  {
+    "name": "/Amp/Intake/Backout Time (sec)",
+    "type": "double",
+    "value": 0.25,
+    "properties": {
+      "persistent": true
+    }
+  },
+  {
+    "name": "/Indexer/Sides/Take Speed (pct)",
+    "type": "double",
+    "value": 0.9,
+    "properties": {
+      "persistent": true
+    }
+  },
+  {
+    "name": "/Indexer/Sides/Feed Speed (pct)",
+    "type": "double",
+    "value": 0.7,
+    "properties": {
+      "persistent": true
+    }
+  },
+  {
+    "name": "/Indexer/Top/Take Speed (pct)",
+    "type": "double",
+    "value": 0.3,
+    "properties": {
+      "persistent": true
+    }
+  },
+  {
+    "name": "/Indexer/Top/Feed Speed (pct)",
+    "type": "double",
+    "value": 0.6,
+    "properties": {
+      "persistent": true
+    }
+  },
+  {
+    "name": "/Indexer/Feed Time (sec)",
+    "type": "double",
+    "value": 0.5,
+    "properties": {
+      "persistent": true
+    }
+  },
+  {
+    "name": "/Shooter/After Shoot Delay (sec)",
+    "type": "double",
+    "value": 1.0,
+    "properties": {
+      "persistent": true
+    }
+  },
+  {
+    "name": "/Shooter/Moving/Flywheel Velocity (rot per sec)",
+    "type": "double",
+    "value": 50.0,
+    "properties": {
+      "persistent": true
+    }
+  },
+  {
+    "name": "/Shooter/Moving/Note Exit Velocity (meters per sec)",
+    "type": "double",
+    "value": 9.98,
+    "properties": {
+      "persistent": true
+    }
+  },
+  {
+    "name": "/Shooter/Flywheel/Idle Speed (pct)",
+    "type": "double",
+    "value": 0.0,
+    "properties": {
+      "persistent": true
+    }
+  },
+  {
+    "name": "/Shooter/Flywheel/Poop Speed (pct) ",
+    "type": "double",
+    "value": 0.3,
+    "properties": {
+      "persistent": true
+    }
+  },
+  {
+    "name": "/Shooter/Flywheel/Allowable Pct Error",
+    "type": "double",
+    "value": 0.02,
+    "properties": {
+      "persistent": true
+    }
+  },
+  {
+    "name": "/Shooter/Flywheel/PIDV/kP",
+    "type": "double",
+    "value": 0.3,
+    "properties": {
+      "persistent": true
+    }
+  },
+  {
+    "name": "/Shooter/Flywheel/PIDV/kD",
+    "type": "double",
+    "value": 0.0,
+    "properties": {
+      "persistent": true
+    }
+  },
+  {
+    "name": "/Shooter/Flywheel/PIDV/kV",
+    "type": "double",
+    "value": 0.126,
+    "properties": {
+      "persistent": true
+    }
+  },
+  {
+    "name": "/Shooter/Pivot/Idle Angle (deg)",
+    "type": "double",
+    "value": 35.0,
+    "properties": {
+      "persistent": true
+    }
+  },
+  {
+    "name": "/Shooter/Pivot/PID/kP",
+    "type": "double",
+    "value": 600.0,
+    "properties": {
+      "persistent": true
+    }
+  },
+  {
+    "name": "/Shooter/Pivot/PID/kD",
+    "type": "double",
+    "value": 0.0,
+    "properties": {
+      "persistent": true
+    }
+  },
+  {
+    "name": "/Shooter/Pivot/PID/kV",
+    "type": "double",
+    "value": 0.0,
+    "properties": {
+      "persistent": true
+    }
+  },
+  {
+    "name": "/Shooter/Pivot/Calibration/Applied Volts",
+    "type": "double",
+    "value": 1.0,
+    "properties": {
+      "persistent": true
+    }
+  },
+  {
+    "name": "/Shooter/Pivot/Allowable Pct Error",
+    "type": "double",
+    "value": 10.0,
+    "properties": {
+      "persistent": true
+    }
+  },
+  {
+    "name": "/Shooter/Flywheel/Reverse Speed (pct)",
+    "type": "double",
+    "value": 0.3,
+    "properties": {
+      "persistent": true
+    }
+  },
+  {
+    "name": "/Shooter/Auto/Ready Timeout (sec)",
+    "type": "double",
+    "value": 2.0,
+    "properties": {
+      "persistent": true
+    }
+  },
+  {
+    "name": "/Shooter/Auto/After Ready Delay (sec)",
+    "type": "double",
+    "value": 0.25,
+    "properties": {
+      "persistent": true
+    }
+  },
+  {
+    "name": "/Shooter/Amp/Velocity (rot per sec)",
+    "type": "double",
+    "value": 27.0,
+    "properties": {
+      "persistent": true
+    }
+  },
+  {
+    "name": "/Shooter/Amp/Pivot Angle (deg)",
+    "type": "double",
+    "value": 55.0,
+    "properties": {
+      "persistent": true
+    }
+  },
+  {
+    "name": "/Shooter/Distance Scale (pct)",
+    "type": "double",
+    "value": 1.0,
+    "properties": {
+      "persistent": true
+    }
+  },
+  {
+    "name": "/Shooter/Pivot/Angle Adjust (deg)",
+    "type": "double",
+    "value": -1.0,
+    "properties": {
+      "persistent": true
+    }
+  },
+  {
+    "name": "/Drive/Snap/PID/kP",
+    "type": "double",
+    "value": 8.0,
+    "properties": {
+      "persistent": true
+    }
+  },
+  {
+    "name": "/Drive/Snap/PID/kD",
+    "type": "double",
+    "value": 0.0,
+    "properties": {
+      "persistent": true
+    }
+  },
+  {
+    "name": "/Drive/Snap/PID/Max Speed (meters per sec)",
+    "type": "double",
+    "value": 2.0,
+    "properties": {
+      "persistent": true
+    }
+  },
+  {
+    "name": "/Shooter/Pivot/Angle Adjust Blue (deg)",
+    "type": "double",
+    "value": -2.0,
+    "properties": {
+      "persistent": true
+    }
+  },
+  {
+    "name": "/Shooter/Pivot/Angle Adjust Red (deg)",
+    "type": "double",
+    "value": 0.0,
+    "properties": {
+      "persistent": true
+    }
+  },
+  {
+    "name": "/Amp Arm 2/kP",
+    "type": "double",
+    "value": 50.0,
+    "properties": {
+      "persistent": true
+    }
+  },
+  {
+    "name": "/Amp Arm 2/kD",
+    "type": "double",
+    "value": 0.0,
+    "properties": {
+      "persistent": true
+    }
+  },
+  {
+    "name": "/Amp Arm 2/Extend Pos (deg)",
+    "type": "double",
+    "value": 116.0,
+    "properties": {
+      "persistent": true
+    }
+  },
+  {
+    "name": "/Shooter/Lob/Power Coefficient",
+    "type": "double",
+    "value": 1.0,
+    "properties": {
+      "persistent": true
+    }
+  },
+  {
+    "name": "/Shooter/Lob/Lob Height (m)",
+    "type": "double",
+    "value": 5.0,
+    "properties": {
+      "persistent": true
+    }
+  },
+  {
+    "name": "/Shooter/Pivot/Reverse Angle (deg)",
+    "type": "double",
+    "value": 52.0,
+    "properties": {
+      "persistent": true
+    }
+  },
+  {
+    "name": "/Shooter/Lob/Tall Lob Height (m)",
+    "type": "double",
+    "value": 5.0,
+    "properties": {
+      "persistent": true
+    }
+  },
+  {
+    "name": "/Shooter/Lob/Short Lob Height (m)",
+    "type": "double",
+    "value": 1.3,
+    "properties": {
+      "persistent": true
+    }
+  },
+  {
+    "name": "/Shooter/Lob/Drive Angle Correction (deg)",
+    "type": "double",
+    "value": -25.0,
+    "properties": {
+      "persistent": true
+    }
+  },
+  {
+    "name": "/Shooter/Lob/Drive Angle Correction Blue (deg)",
+    "type": "double",
+    "value": -30.0,
+    "properties": {
+      "persistent": true
+    }
+  },
+  {
+    "name": "/Shooter/Lob/Drive Angle Correction Red (deg)",
+    "type": "double",
+    "value": 0.0,
+    "properties": {
+      "persistent": true
+    }
+  },
+  {
+    "name": "/Amp Arm 2/Gravity (volts at horiz)",
+    "type": "double",
+    "value": 0.0,
+    "properties": {
+      "persistent": true
+    }
+  },
+  {
+    "name": "/Amp Arm 2/Retract Pos (deg)",
+    "type": "double",
+    "value": 6.0,
+    "properties": {
+      "persistent": true
+    }
+  },
+  {
+    "name": "/Amp Arm/Climb Out of the Way Pos (deg)",
+    "type": "double",
+    "value": 90.0,
+    "properties": {
+      "persistent": true
+    }
+  },
+  {
+    "name": "/Trap Finger/Hold Angle (deg)",
+    "type": "double",
+    "value": 0.0,
+    "properties": {
+      "persistent": true
+    }
+  },
+  {
+    "name": "/Trap Finger/Release Angle (deg)",
+    "type": "double",
+    "value": 90.0,
+    "properties": {
+      "persistent": true
+    }
+  },
+  {
+    "name": "/Drive/Aim/Offset (ccw deg)",
+    "type": "double",
+    "value": -1.0,
+    "properties": {
+      "persistent": true
+    }
+  }
+]

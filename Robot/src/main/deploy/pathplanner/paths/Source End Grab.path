@@ -1,0 +1,121 @@
+{
+  "version": 1.0,
+  "waypoints": [
+    {
+      "anchor": {
+        "x": 3.0541358944950683,
+        "y": 3.2271699697793705
+      },
+      "prevControl": null,
+      "nextControl": {
+        "x": 4.311854704469505,
+        "y": 2.5056878617320186
+      },
+      "isLocked": false,
+      "linkedName": "Score Location Source"
+    },
+    {
+      "anchor": {
+        "x": 5.618322305528223,
+        "y": 4.055899418212139
+      },
+      "prevControl": {
+        "x": 4.270855721198622,
+        "y": 4.0695657459691
+      },
+      "nextControl": {
+        "x": 6.618270876992775,
+        "y": 4.045757701098955
+      },
+      "isLocked": false,
+      "linkedName": null
+    },
+    {
+      "anchor": {
+        "x": 7.9545143705672015,
+        "y": 4.128036518181299
+      },
+      "prevControl": {
+        "x": 7.050549187339923,
+        "y": 4.132911397289727
+      },
+      "nextControl": null,
+      "isLocked": false,
+      "linkedName": null
+    }
+  ],
+  "rotationTargets": [
+    {
+      "waypointRelativePos": 0.5,
+      "rotationDegrees": 180.0,
+      "rotateFast": false
+    }
+  ],
+  "constraintZones": [
+    {
+      "name": "New Constraints Zone",
+      "minWaypointRelativePos": 0,
+      "maxWaypointRelativePos": 1.1,
+      "constraints": {
+        "maxVelocity": 4.0,
+        "maxAcceleration": 3.8,
+        "maxAngularVelocity": 540.0,
+        "maxAngularAcceleration": 640.0
+      }
+    }
+  ],
+  "eventMarkers": [
+    {
+      "name": "New Event Marker",
+      "waypointRelativePos": 0.9,
+      "command": {
+        "type": "parallel",
+        "data": {
+          "commands": [
+            {
+              "type": "named",
+              "data": {
+                "name": "Intake Until Note"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "New Event Marker",
+      "waypointRelativePos": 0.15,
+      "command": {
+        "type": "parallel",
+        "data": {
+          "commands": [
+            {
+              "type": "named",
+              "data": {
+                "name": "Intake Off"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "globalConstraints": {
+    "maxVelocity": 4.75,
+    "maxAcceleration": 3.9,
+    "maxAngularVelocity": 540.0,
+    "maxAngularAcceleration": 640.0
+  },
+  "goalEndState": {
+    "velocity": 0,
+    "rotation": 180.0,
+    "rotateFast": false
+  },
+  "reversed": false,
+  "folder": "Source",
+  "previewStartingState": {
+    "rotation": 140.3051096062104,
+    "velocity": 0
+  },
+  "useDefaultConstraints": true
+}
