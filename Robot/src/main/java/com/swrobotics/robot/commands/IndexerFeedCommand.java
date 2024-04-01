@@ -9,6 +9,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 public final class IndexerFeedCommand extends Command {
     private final IndexerSubsystem indexer;
     private final Timer timer;
+    private boolean hasStartedTimer;
 
     public IndexerFeedCommand(IndexerSubsystem indexer) {
         this.indexer = indexer;
@@ -17,15 +18,17 @@ public final class IndexerFeedCommand extends Command {
 
     @Override
     public void initialize() {
-        timer.reset();
+        timer.stop();
+        hasStartedTimer = false;
     }
 
     @Override
     public void execute() {
         indexer.setFeedToShooter(true);
         SimView.setShooting(true);
-        if (!indexer.hasPiece()) {
+        if (!indexer.hasPiece() && !hasStartedTimer) {
             timer.start();
+            hasStartedTimer = true;
         }
     }
 
@@ -37,6 +40,6 @@ public final class IndexerFeedCommand extends Command {
 
     @Override
     public boolean isFinished() {
-        return timer.hasElapsed(NTData.INDEXER_FEED_TIME.get());
+        return hasStartedTimer && timer.hasElapsed(NTData.INDEXER_FEED_ADDITIONAL_TIME.get());
     }
 }

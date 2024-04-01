@@ -14,7 +14,6 @@ import com.swrobotics.robot.control.ControlBoard;
 import com.swrobotics.robot.logging.FieldView;
 import com.swrobotics.robot.logging.SimView;
 import com.swrobotics.robot.subsystems.amp.AmpArm2Subsystem;
-import com.swrobotics.robot.subsystems.amp.AmpIntakeSubsystem;
 import com.swrobotics.robot.subsystems.climber.ClimberSubsystem;
 import com.swrobotics.robot.subsystems.lights.LightsSubsystem;
 import com.swrobotics.robot.subsystems.music.MusicSubsystem;

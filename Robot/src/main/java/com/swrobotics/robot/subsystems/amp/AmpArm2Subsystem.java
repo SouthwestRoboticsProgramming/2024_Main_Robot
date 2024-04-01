@@ -34,9 +34,9 @@ public final class AmpArm2Subsystem extends SubsystemBase {
     private Position targetPos;
 
     public enum Position {
-        RETRACT(NTData.AMP_ARM_2_RETRACT_POS),
-        AMP(NTData.AMP_ARM_2_EXTEND_POS),
-        CLIMB_OUT_OF_THE_WAY(NTData.AMP_ARM_2_OUT_OF_THE_WAY_POS);
+        RETRACT(NTData.AMP_ARM_RETRACT_POS),
+        AMP(NTData.AMP_ARM_EXTEND_POS),
+        CLIMB_OUT_OF_THE_WAY(NTData.AMP_ARM_OUT_OF_THE_WAY_POS);
 
         final NTEntry<Double> positionNt;
 
@@ -47,8 +47,8 @@ public final class AmpArm2Subsystem extends SubsystemBase {
 
     public AmpArm2Subsystem() {
         TalonFXConfiguration config = new TalonFXConfiguration();
-        config.Slot0.kP = NTData.AMP_ARM_2_KP.get();
-        config.Slot0.kD = NTData.AMP_ARM_2_KD.get();
+        config.Slot0.kP = NTData.AMP_ARM_KP.get();
+        config.Slot0.kD = NTData.AMP_ARM_KD.get();
         config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
         config.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
         config.Feedback.SensorToMechanismRatio = motorToArmRatio;
@@ -61,7 +61,7 @@ public final class AmpArm2Subsystem extends SubsystemBase {
 
         encoderPosition = encoder.getAbsolutePosition();
         encoderPosition.refresh();
-        double encoderRangeCenter = (NTData.AMP_ARM_2_EXTEND_POS.get() / 360.0 + NTData.AMP_ARM_2_RETRACT_POS.get() / 360.0) / 2;
+        double encoderRangeCenter = (NTData.AMP_ARM_EXTEND_POS.get() / 360.0 + NTData.AMP_ARM_RETRACT_POS.get() / 360.0) / 2;
         double pos = MathUtil.wrap((encoderPosition.getValue() + cancoderOffset) / encoderToArmRatio, encoderRangeCenter - 0.25, encoderRangeCenter + 0.25);
         motor.setPosition(pos);
 
@@ -69,14 +69,14 @@ public final class AmpArm2Subsystem extends SubsystemBase {
 
         targetPos = Position.RETRACT;
 
-        NTData.AMP_ARM_2_KP.onChange((p) -> updatePD());
-        NTData.AMP_ARM_2_KD.onChange((d) -> updatePD());
+        NTData.AMP_ARM_KP.onChange((p) -> updatePD());
+        NTData.AMP_ARM_KD.onChange((d) -> updatePD());
     }
 
     private void updatePD() {
         motor.getConfigurator().apply(new Slot0Configs()
-        .withKP(NTData.AMP_ARM_2_KP.get())
-        .withKD(NTData.AMP_ARM_2_KD.get()));
+        .withKP(NTData.AMP_ARM_KP.get())
+        .withKD(NTData.AMP_ARM_KD.get()));
     }
 
     // public void setOut(boolean out) {
@@ -90,7 +90,7 @@ public final class AmpArm2Subsystem extends SubsystemBase {
     NTDouble d = new NTDouble("aaaaaaaaaaaaaaa", 0);
 
     private double calcFeedforwardVolts(double armAngle) {
-        return NTData.AMP_ARM_2_GRAVITY_AMOUNT.get() * Math.cos(armAngle * MathUtil.TAU);
+        return NTData.AMP_ARM_GRAVITY_AMOUNT.get() * Math.cos(armAngle * MathUtil.TAU);
     }
 
     @Override
