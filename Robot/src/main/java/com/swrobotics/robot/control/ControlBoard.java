@@ -246,11 +246,13 @@ public class ControlBoard extends SubsystemBase {
             robot.intake.setReverse(false);
             robot.shooter.setFlywheelControl(ShooterSubsystem.FlywheelControl.SHOOT); // Always aim with note when not teleop
 
-           robot.drive.setEstimatorIgnoreVision(DriverStation.isAutonomous());
+            robot.drive.setEstimatorIgnoreVision(DriverStation.isAutonomous());
 
             return;
         }
 
+        if (!operator.a.isPressed())
+            robot.intake.set(IntakeSubsystem.State.OFF);
 
         boolean forceToSubwoofer = forceSubwooferDebounce.calculate(driver.dpad.left.isPressed());
         boolean forceToStageCorner = forceStageCornerDebounce.calculate(driver.dpad.right.isPressed());
