@@ -81,7 +81,8 @@ public final class NTData {
     public static final NTEntry<Double> SHOOTER_PIVOT_KV = new NTDouble("Shooter/Pivot/PID/kV", 0).setPersistent();
     public static final NTEntry<Boolean> SHOOTER_PIVOT_RECALIBRATE = new NTBoolean("Shooter/Pivot/Calibration/Recalibrate", false);
     public static final NTEntry<Double> SHOOTER_PIVOT_CALIBRATE_VOLTS = new NTDouble("Shooter/Pivot/Calibration/Applied Volts", 1).setPersistent();
-    public static final NTEntry<Double> SHOOTER_PIVOT_ALLOWABLE_PCT_ERR = new NTDouble("Shooter/Pivot/Allowable Pct Error", 10).setPersistent(); // FIXME TUNE
+//    public static final NTEntry<Double> SHOOTER_PIVOT_ALLOWABLE_PCT_ERR = new NTDouble("Shooter/Pivot/Allowable Pct Error", 10).setPersistent(); // FIXME TUNE
+    public static final NTEntry<Double> SHOOTER_PIVOT_ALLOWABLE_ERR = new NTDouble("Shooter/Pivot/Allowable Error (deg)", 1).setPersistent();
     public static final NTEntry<Double> SHOOTER_PIVOT_ANGLE_ADJUST_BLUE = new NTDouble("Shooter/Pivot/Angle Adjust Blue (deg)", -2).setPersistent();
     public static final NTEntry<Double> SHOOTER_PIVOT_ANGLE_ADJUST_RED = new NTDouble("Shooter/Pivot/Angle Adjust Red (deg)", -2).setPersistent();
     public static final NTEntry<Double> SHOOTER_PIVOT_REVERSE_ANGLE = new NTDouble("Shooter/Pivot/Reverse Angle (deg)", 52).setPersistent();
