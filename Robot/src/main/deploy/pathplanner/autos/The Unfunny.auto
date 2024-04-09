@@ -2,19 +2,25 @@
   "version": 1.0,
   "startingPose": {
     "position": {
-      "x": 1.4844248215812361,
-      "y": 1.50146276539584
+      "x": 1.2771521839339972,
+      "y": 4.151424827066179
     },
-    "rotation": 90.0
+    "rotation": 120.65066795705285
   },
   "command": {
     "type": "sequential",
     "data": {
       "commands": [
         {
+          "type": "named",
+          "data": {
+            "name": "Shoot"
+          }
+        },
+        {
           "type": "path",
           "data": {
-            "pathName": "Source Center A Fast"
+            "pathName": "Source Center A Fast From Subwoofer"
           }
         },
         {
@@ -39,24 +45,6 @@
           "type": "path",
           "data": {
             "pathName": "Source Center B Score"
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "Shoot"
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "Source End Grab"
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "Source End Score"
           }
         },
         {

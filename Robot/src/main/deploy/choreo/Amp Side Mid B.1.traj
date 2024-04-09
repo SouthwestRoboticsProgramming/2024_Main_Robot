@@ -451,24 +451,5 @@
       "timestamp": 4.459144371352818
     }
   ],
-  "eventMarkers": [
-    {
-      "timestamp": 0,
-      "command": {
-        "type": "named",
-        "data": {
-          "name": "Intake On"
-        }
-      }
-    },
-    {
-      "timestamp": 4.459144371352818,
-      "command": {
-        "type": "named",
-        "data": {
-          "name": "Shoot"
-        }
-      }
-    }
-  ]
+  "eventMarkers": []
 }

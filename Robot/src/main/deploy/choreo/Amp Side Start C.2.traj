@@ -154,15 +154,5 @@
       "timestamp": 1.3635169815486794
     }
   ],
-  "eventMarkers": [
-    {
-      "timestamp": 1.3635169815486794,
-      "command": {
-        "type": "named",
-        "data": {
-          "name": "Shoot"
-        }
-      }
-    }
-  ]
+  "eventMarkers": []
 }

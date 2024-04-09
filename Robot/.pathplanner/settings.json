@@ -4,10 +4,12 @@
   "holonomicMode": true,
   "pathFolders": [
     "Amp",
+    "Center",
     "Source"
   ],
   "autoFolders": [
     "Amp",
+    "Center",
     "Source"
   ],
   "defaultMaxVel": 5.7,

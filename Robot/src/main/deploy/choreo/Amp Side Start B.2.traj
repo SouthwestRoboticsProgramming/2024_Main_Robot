@@ -217,24 +217,5 @@
       "timestamp": 1.6059282758091824
     }
   ],
-  "eventMarkers": [
-    {
-      "timestamp": 1.6059282758091824,
-      "command": {
-        "type": "named",
-        "data": {
-          "name": "Wait and Shoot"
-        }
-      }
-    },
-    {
-      "timestamp": 0,
-      "command": {
-        "type": "named",
-        "data": {
-          "name": "Wait and Shoot"
-        }
-      }
-    }
-  ]
+  "eventMarkers": []
 }

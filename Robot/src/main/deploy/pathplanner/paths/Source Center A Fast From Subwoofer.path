@@ -3,32 +3,43 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 3.148216894724387,
-        "y": 3.192504162786104
+        "x": 1.4291761916857164,
+        "y": 4.549026078109137
       },
       "prevControl": null,
       "nextControl": {
-        "x": 3.756312925731265,
-        "y": 1.9412296374450306
+        "x": 2.2360728482140724,
+        "y": 1.871064710790391
       },
       "isLocked": false,
-      "linkedName": "Score Location Source"
+      "linkedName": null
     },
     {
       "anchor": {
-        "x": 7.849266980585242,
-        "y": 0.8302849654132366
+        "x": 7.825878671700363,
+        "y": 2.2101951896211496
       },
       "prevControl": {
-        "x": 6.191808083719705,
-        "y": 0.8497844818469474
+        "x": 6.2939444397407325,
+        "y": 0.19880062552148048
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "End of Source Center A Grab"
+      "linkedName": null
     }
   ],
-  "rotationTargets": [],
+  "rotationTargets": [
+    {
+      "waypointRelativePos": 0.25,
+      "rotationDegrees": 172.72588892230365,
+      "rotateFast": false
+    },
+    {
+      "waypointRelativePos": 0.55,
+      "rotationDegrees": 172.73,
+      "rotateFast": true
+    }
+  ],
   "constraintZones": [],
   "eventMarkers": [
     {
@@ -57,13 +68,13 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 172.3331957381857,
+    "rotation": -153.43494882292197,
     "rotateFast": false
   },
   "reversed": false,
   "folder": "Source",
   "previewStartingState": {
-    "rotation": 144.3147797542898,
+    "rotation": 178.7546357332317,
     "velocity": 0
   },
   "useDefaultConstraints": true
