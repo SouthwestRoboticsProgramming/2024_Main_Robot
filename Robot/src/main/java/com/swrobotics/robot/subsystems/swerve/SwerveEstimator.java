@@ -1,6 +1,8 @@
 package com.swrobotics.robot.subsystems.swerve;
 
 import com.swrobotics.lib.field.FieldInfo;
+import com.swrobotics.lib.net.NTBoolean;
+import com.swrobotics.lib.net.NTInteger;
 import com.swrobotics.mathlib.MathUtil;
 import com.swrobotics.robot.logging.FieldView;
 import com.swrobotics.robot.subsystems.tagtracker.CameraCaptureProperties;
@@ -33,6 +35,9 @@ public final class SwerveEstimator {
     private final Matrix<N3, N1> q, qWithMoreTrustAngle;
 
     private boolean ignoreVision;
+
+    private final NTInteger numberOfVisionUpdates = new NTInteger("Debug/Number of Vision Updates", 0);
+    private final NTBoolean seenWhereWeAre = new NTBoolean("Debug/Has Seen Where We Are", false);
 
     public SwerveEstimator(FieldInfo field) {
         double halfFrameL = 0.77 / 2;
@@ -120,6 +125,9 @@ public final class SwerveEstimator {
         // to be the most recent update
         List<TagTrackerInput.VisionUpdate> visionData = tagTracker.getNewUpdates();
         updates.put(Timer.getFPGATimestamp(), new PoseUpdate(driveTwist, new ArrayList<>()));
+
+        numberOfVisionUpdates.set(numberOfVisionUpdates.get() + visionData.size());
+        seenWhereWeAre.set(hasSeenWhereWeAre());
 
         List<Pose2d> tagPoses = new ArrayList<>();
         for (Pose3d tagPose3d : tagTracker.getEnvironment().getAllPoses()) {
@@ -233,5 +241,10 @@ public final class SwerveEstimator {
 
             return pose;
         }
+    }
+
+    public boolean hasSeenWhereWeAre() {
+        // 1 second of frames from both cameras
+        return numberOfVisionUpdates.get() > 100;
     }
 }

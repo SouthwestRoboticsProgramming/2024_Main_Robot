@@ -22,6 +22,8 @@ import com.swrobotics.robot.subsystems.speaker.aim.LobCalculator;
 import com.swrobotics.robot.subsystems.speaker.aim.ManualAimCalculator;
 import com.swrobotics.robot.subsystems.speaker.aim.TableAimCalculator;
 import com.swrobotics.robot.subsystems.swerve.SwerveDrive;
+import com.swrobotics.robot.subsystems.swerve.SwerveDrive.TurnRequest;
+
 import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.filter.Debouncer.DebounceType;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -122,15 +124,10 @@ public class ControlBoard extends SubsystemBase {
                 robot.shooter
         ));
 
-        // Full auto amp
-//        new Trigger(() -> driver.x.isPressed()).or(() -> driver.b.isPressed()).whileTrue(
-//            AutoBuilder.pathfindToPose(
-//                new Pose2d(new Translation2d(1.84, 7.4),
-//                Rotation2d.fromDegrees(90)),
-//                new PathConstraints(3.0, 3.0, 540, 640))
-//            .andThen(new DriveIntoWallCommand(robot.drive).withTimeout(1.0)
-//            .alongWith())); // FIXME: Make the bar go up too
-
+        // Spin like mad when the driver clicks in the right stick
+        new Trigger(driver.rightStickButton::isPressed)
+                .debounce(0.1)
+                .whileTrue(Commands.run(() -> robot.drive.turn(new TurnRequest(SwerveDrive.DRIVER_PRIORITY + 1, new Rotation2d(11.0)))));
         // Just angle amp
         new Trigger(() -> driver.a.isPressed()).whileTrue(new AmpAlignCommand(robot.drive).alongWith()); // FIXME: Make the bar go up too
 
@@ -383,9 +380,9 @@ public class ControlBoard extends SubsystemBase {
 
         pieceRumbleNt.set(pieceRumble);
 
-        driver.setRumble(pieceRumble ? 0.6 : (tooFar && (driverWantsAim() || driverWantsFlywheels()) ? 0.5 : 0));
+        driver.setRumble(pieceRumble ? 1.0 : (tooFar && (driverWantsAim() || driverWantsFlywheels()) ? 0.5 : 0));
         boolean shooterReady = robot.shooter.isReadyToShoot();
-        operator.setRumble(pieceRumble ? 0.6 : (shooterReady ? 0.5 : 0));
+        operator.setRumble(pieceRumble ? 1.0 : (shooterReady ? 0.5 : 0));
 
         this.shooterReady.set(shooterReady);
         this.tooFar.set(tooFar && (driverWantsAim() || driverWantsFlywheels()));

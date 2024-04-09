@@ -325,46 +325,5 @@
       "timestamp": 2.7247702180813835
     }
   ],
-  "eventMarkers": [
-    {
-      "timestamp": 0,
-      "command": {
-        "type": "parallel",
-        "data": {
-          "commands": [
-            {
-              "type": "named",
-              "data": {
-                "name": "Shoot"
-              }
-            },
-            {
-              "type": "named",
-              "data": {
-                "name": "Intake On"
-              }
-            }
-          ]
-        }
-      }
-    },
-    {
-      "timestamp": 2.7247702180813835,
-      "command": {
-        "type": "named",
-        "data": {
-          "name": "Wait and Shoot"
-        }
-      }
-    },
-    {
-      "timestamp": 1.1188419422722011,
-      "command": {
-        "type": "named",
-        "data": {
-          "name": "Wait and Shoot"
-        }
-      }
-    }
-  ]
+  "eventMarkers": []
 }

@@ -604,37 +604,5 @@
       "timestamp": 2.1779567701381524
     }
   ],
-  "eventMarkers": [
-    {
-      "timestamp": 0,
-      "command": {
-        "type": "parallel",
-        "data": {
-          "commands": [
-            {
-              "type": "named",
-              "data": {
-                "name": "Shoot"
-              }
-            },
-            {
-              "type": "named",
-              "data": {
-                "name": "Intake Off"
-              }
-            }
-          ]
-        }
-      }
-    },
-    {
-      "timestamp": 1.2200856909429092,
-      "command": {
-        "type": "named",
-        "data": {
-          "name": "Intake On"
-        }
-      }
-    }
-  ]
+  "eventMarkers": []
 }

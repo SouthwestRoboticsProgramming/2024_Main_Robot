@@ -1,0 +1,37 @@
+{
+  "version": 1.0,
+  "startingPose": {
+    "position": {
+      "x": 1.3224515231846692,
+      "y": 5.535659185876845
+    },
+    "rotation": 179.92075999093154
+  },
+  "command": {
+    "type": "sequential",
+    "data": {
+      "commands": [
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Big A"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Big B"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Big C"
+          }
+        }
+      ]
+    }
+  },
+  "folder": null,
+  "choreoAuto": false
+}
