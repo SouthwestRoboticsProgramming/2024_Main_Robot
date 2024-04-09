@@ -6,6 +6,7 @@ import com.ctre.phoenix6.hardware.TalonFX;
 import com.swrobotics.lib.net.NTDouble;
 import com.swrobotics.mathlib.MathUtil;
 import com.swrobotics.robot.config.NTData;
+import com.swrobotics.robot.logging.FieldView;
 import com.swrobotics.robot.logging.SimView;
 import com.swrobotics.robot.subsystems.speaker.aim.AimCalculator;
 import com.swrobotics.robot.subsystems.speaker.aim.LobCalculator;
@@ -30,7 +31,6 @@ public final class ShooterSubsystem extends SubsystemBase {
     }
 
     private static final Pose2d blueSpeakerPose = new Pose2d(Units.inchesToMeters(8), 5.5475, new Rotation2d(0)); // Opening extends 18" out
-    private static final Pose2d blueLobZone = new Pose2d(1, 6, new Rotation2d()); // Between the speaker and the amp
 
     private final PivotSubsystem pivot;
     private final FlywheelSubsystem flywheel;
@@ -68,7 +68,7 @@ public final class ShooterSubsystem extends SubsystemBase {
     }
 
     public Translation2d getLobZonePosition() {
-        return drive.getFieldInfo().flipPoseForAlliance(blueLobZone).getTranslation();
+        return drive.getFieldInfo().flipPoseForAlliance(FieldView.lobZone.getPose()).getTranslation();
     }
 
     public void forcePivotCalibration(double angleDeg) {

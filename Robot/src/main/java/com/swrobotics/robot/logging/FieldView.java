@@ -19,6 +19,11 @@ public final class FieldView {
         startingPosition.setPose(-1, 0, new Rotation2d());
     }
 
+    public static final FieldObject2d lobZone = field.getObject("Lob Zone");
+    static {
+        lobZone.setPose(1.3, 7.1, new Rotation2d());
+    }
+
     public static void publish() {
         SmartDashboard.putData("Field View", field);
     }
