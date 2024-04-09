@@ -93,13 +93,15 @@ public final class TagTrackerCamera {
     private final TagTrackerCameraIO io;
     private final TagTrackerCameraIO.Inputs inputs;
 
-    public TagTrackerCamera(String name, NetworkTable table, Function<Pose3d, Pose3d> cameraToRobot) {
+    public TagTrackerCamera(String name, NetworkTable table, Function<Pose3d, Pose3d> cameraToRobot, CameraCaptureProperties captureProps) {
         this.name = name;
 //        this.toRobotTransform = toRobotTransform;
         this.cameraToRobot = cameraToRobot;
 
         io = new NTCameraIO(table);
         inputs = new TagTrackerCameraIO.Inputs();
+
+        io.setCaptureProperties(captureProps);
     }
 
     public Function<Pose3d, Pose3d> getToRobotTransform() {

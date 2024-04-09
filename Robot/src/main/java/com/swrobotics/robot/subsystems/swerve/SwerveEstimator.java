@@ -3,6 +3,7 @@ package com.swrobotics.robot.subsystems.swerve;
 import com.swrobotics.lib.field.FieldInfo;
 import com.swrobotics.mathlib.MathUtil;
 import com.swrobotics.robot.logging.FieldView;
+import com.swrobotics.robot.subsystems.tagtracker.CameraCaptureProperties;
 import com.swrobotics.robot.subsystems.tagtracker.TagTrackerInput;
 import com.swrobotics.robot.utils.GeometryUtil;
 import edu.wpi.first.math.Matrix;
@@ -37,6 +38,9 @@ public final class SwerveEstimator {
         double halfFrameL = 0.77 / 2;
         double halfFrameW = 0.695 / 2;
 
+        CameraCaptureProperties captureProps = new CameraCaptureProperties()
+                .setExposure(20);
+
         tagTracker = new TagTrackerInput(
                 field,
 
@@ -50,7 +54,8 @@ public final class SwerveEstimator {
                                     .transformBy(new Transform3d(new Translation3d(), new Rotation3d(0, Math.toRadians(90-67), 0)))
                                     // Compensate for mounting position
                                     .transformBy(new Transform3d(new Translation3d(halfFrameL - 0.046, -halfFrameW + 0.12, 0.19).unaryMinus(), new Rotation3d()));
-                        }),
+                        },
+                        captureProps),
 
                 new TagTrackerInput.CameraInfo(
                         "zoom",
@@ -60,7 +65,8 @@ public final class SwerveEstimator {
                                     .transformBy(new Transform3d(new Translation3d(), new Rotation3d(0, Math.toRadians(16.88), 0)))
                                     // Compensate for mounting position
                                     .transformBy(new Transform3d(new Translation3d(halfFrameL - 0.16, halfFrameW - 0.133, 0.39).unaryMinus(), new Rotation3d()));
-                        })
+                        },
+                        captureProps)
         );
 
         latestPose = new Pose2d();

@@ -19,12 +19,14 @@ public final class TagTrackerInput {
     public static final class CameraInfo {
         public final String name;
         public final Function<Pose3d, Pose3d> cameraToRobot;
+        public final CameraCaptureProperties captureProps;
 //        public final Pose3d robotRelPose;
 
-        public CameraInfo(String name, Function<Pose3d, Pose3d> cameraToRobot) {
+        public CameraInfo(String name, Function<Pose3d, Pose3d> cameraToRobot, CameraCaptureProperties captureProps) {
             this.name = name;
             this.cameraToRobot = cameraToRobot;
 //            this.robotRelPose = robotRelPose;
+            this.captureProps = captureProps;
         }
     }
 
@@ -63,7 +65,8 @@ public final class TagTrackerInput {
             cameras[i] = new TagTrackerCamera(
                     info.name,
                     camerasTable.getSubTable(info.name),
-                    info.cameraToRobot);
+                    info.cameraToRobot,
+                    info.captureProps);
         }
     }
 
