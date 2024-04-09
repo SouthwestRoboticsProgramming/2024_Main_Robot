@@ -380,9 +380,9 @@ public class ControlBoard extends SubsystemBase {
 
         pieceRumbleNt.set(pieceRumble);
 
-        driver.setRumble(pieceRumble ? 0.6 : (tooFar && (driverWantsAim() || driverWantsFlywheels()) ? 0.5 : 0));
+        driver.setRumble(pieceRumble ? 1.0 : (tooFar && (driverWantsAim() || driverWantsFlywheels()) ? 0.5 : 0));
         boolean shooterReady = robot.shooter.isReadyToShoot();
-        operator.setRumble(pieceRumble ? 0.6 : (shooterReady ? 0.5 : 0));
+        operator.setRumble(pieceRumble ? 1.0 : (shooterReady ? 0.5 : 0));
 
         this.shooterReady.set(shooterReady);
         this.tooFar.set(tooFar && (driverWantsAim() || driverWantsFlywheels()));

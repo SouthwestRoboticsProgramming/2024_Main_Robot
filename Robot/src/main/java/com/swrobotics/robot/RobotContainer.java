@@ -120,18 +120,18 @@ public class RobotContainer {
 
         // Create a chooser to select the autonomous
         List<AutoEntry> autos = buildPathPlannerAutos();
-        autos.add(new AutoEntry("Drive backward", Commands.run(
+        autos.add(new AutoEntry("Drive backward", createNonPathPlannerAuto(Commands.run(
                 () -> drive.drive(new DriveRequest(
                         SwerveDrive.AUTO_PRIORITY,
                         new Translation2d(-0.5, 0),
                         DriveRequestType.OpenLoopVoltage)),
                 drive
-        ).withTimeout(5)));
+        ).withTimeout(5))));
         autos.sort(Comparator.comparing(AutoEntry::name, String.CASE_INSENSITIVE_ORDER));
 
         SendableChooser<Command> autoChooser = new SendableChooser<>();
-        autoChooser.setDefaultOption("Just Shoot", RobotCommands.aimAndShoot(this, false));
-        autoChooser.addOption("None", Commands.none());
+        autoChooser.setDefaultOption("Just Shoot", createNonPathPlannerAuto(RobotCommands.justShoot(this)));
+        autoChooser.addOption("None", createNonPathPlannerAuto(Commands.none()));
         for (AutoEntry auto : autos)
             autoChooser.addOption(auto.name(), auto.cmd());
         autoSelector = new LoggedDashboardChooser<>("Auto Selection", autoChooser);
@@ -173,6 +173,17 @@ public class RobotContainer {
     }
 
     private static final record AutoEntry(String name, Command cmd) {}
+
+    private Command createNonPathPlannerAuto(Command autoCmd) {
+        return Commands.sequence(
+            Commands.runOnce(() -> {
+                if (!drive.hasSeenWhereWeAre()) {
+                    drive.setPose(FieldView.startingPosition.getPose());
+                }
+            }),
+            autoCmd
+        );
+    }
 
     private static List<AutoEntry> buildPathPlannerAutos() {
         if (!AutoBuilder.isConfigured()) {

@@ -332,4 +332,8 @@ public final class SwerveDrive extends SubsystemBase {
     public void setEstimatorIgnoreVision(boolean ignoreVision) {
         estimator.setIgnoreVision(ignoreVision);
     }
+
+    public boolean hasSeenWhereWeAre() {
+        return estimator.hasSeenWhereWeAre();
+    }
 }

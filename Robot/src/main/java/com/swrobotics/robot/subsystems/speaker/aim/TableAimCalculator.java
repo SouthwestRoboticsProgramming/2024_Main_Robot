@@ -6,6 +6,8 @@ import com.swrobotics.lib.net.NTDouble;
 import com.swrobotics.mathlib.MathUtil;
 import com.swrobotics.robot.config.NTData;
 
+import edu.wpi.first.math.util.Units;
+
 public final class TableAimCalculator implements AimCalculator {
     public static final TableAimCalculator INSTANCE = new TableAimCalculator();
 
@@ -24,20 +26,24 @@ public final class TableAimCalculator implements AimCalculator {
 //        addCalibrationSample(3.0, 34, 60);
 //        addCalibrationSample(3.8, 29, 70);
 
+        double fieldWrongness = Units.inchesToMeters(1 + 5.0/8); 
+
         // MURA 3-16, 3|1 wheel shooter configuration
-        addCalibrationSample(1.224203 - .2, 58, 55);
-        addCalibrationSample(1.657 - .2, 52, 55);
-        addCalibrationSample(2.239 - .2, 44, 55);
-        addCalibrationSample(2.875 - .2, 36, 55);
-        addCalibrationSample(2.993, 34, 63);
-        addCalibrationSample(3.506, 30, 63);
-        addCalibrationSample(3.903, 28, 67);
+        addCalibrationSample(fieldWrongness + 1.224203 - .2, 58, 55);
+        addCalibrationSample(fieldWrongness + 1.657 - .2, 52, 55);
+        addCalibrationSample(fieldWrongness + 2.239 - .2, 44, 55);
+        addCalibrationSample(fieldWrongness + 2.875 - .2, 36, 55);
+        addCalibrationSample(fieldWrongness + 2.993, 34, 63);
+        addCalibrationSample(fieldWrongness + 3.506, 30, 63);
+        addCalibrationSample(fieldWrongness + 3.903, 28, 67);
 
         // MURA 3-23, 3|1 wheel shooter
-        addCalibrationSample(4.34, 28, 67);
-        addCalibrationSample(4.67, 27, 67);
-        addCalibrationSample(5.06, 25, 67);
-        addCalibrationSample(5.58, 24, 70);
+        addCalibrationSample(fieldWrongness + 4.34, 28 + 1, 67);
+        addCalibrationSample(fieldWrongness + 4.67, 27 + 1, 67);
+        addCalibrationSample(fieldWrongness + 5.06, 25 + 1, 67);
+        addCalibrationSample(fieldWrongness + 5.58, 24 + 1, 70);
+
+        addCalibrationSample(fieldWrongness + 6.6, 22.5, 82);
 
 //        addCalibrationSample(3.37, 29, 60);
 

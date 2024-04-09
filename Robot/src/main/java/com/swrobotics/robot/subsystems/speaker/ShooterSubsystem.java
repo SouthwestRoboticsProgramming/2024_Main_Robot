@@ -106,11 +106,11 @@ public final class ShooterSubsystem extends SubsystemBase {
         targetAim = aim;
         aimCalculator = tableAimCalculator;
 
+        isPreparing = false;
         if (DriverStation.isDisabled() || !pivot.hasCalibrated())
             return;
 
         // TODO: Make this not a mess
-        isPreparing = false;
         if ((aim != null) && DriverStation.isAutonomous()) {
             // Have the shooter be constantly active during auto
             isPreparing = true;
