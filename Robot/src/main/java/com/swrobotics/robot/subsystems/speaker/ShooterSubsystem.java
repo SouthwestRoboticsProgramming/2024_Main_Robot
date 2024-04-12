@@ -43,7 +43,7 @@ public final class ShooterSubsystem extends SubsystemBase {
 
     private AimCalculator.Aim targetAim; // Target aim is null if not currently aiming
     private AimCalculator aimCalculator;
-    private final AimCalculator tableAimCalculator;
+    private final TableAimCalculator tableAimCalculator;
 
     private FlywheelControl flywheelControl;
 
@@ -98,9 +98,21 @@ public final class ShooterSubsystem extends SubsystemBase {
                         aim.pivotAngle());
         } else {
             double distToSpeaker = getSpeakerPosition().getDistance(drive.getEstimatedPose().getTranslation());
-            aim = aimCalculator.calculateAim(distToSpeaker);
+            Pose2d robotPose = drive.getEstimatedPose();
+            Translation2d robotPos = robotPose.getTranslation();
+            ChassisSpeeds robotSpeeds = drive.getFieldRelativeSpeeds();
+        
+            Translation2d target = getSpeakerPosition();
+            Rotation2d angleToTarget = target.minus(robotPos).getAngle();
+        
+            // Relative to the target
+            Translation2d robotVelocity = new Translation2d(robotSpeeds.vxMetersPerSecond, robotSpeeds.vyMetersPerSecond).rotateBy(angleToTarget);
+            aim = tableAimCalculator.calculateAim(distToSpeaker, robotVelocity.getX());
 
             if (RobotBase.isSimulation())
+                SimView.lobTrajectory.update(
+                    aim.flywheelVelocity() / NTData.SHOOTER_LOB_POWER_COEFFICIENT.get(),
+                    aim.pivotAngle());
                 SimView.lobTrajectory.clear();
         }
         targetAim = aim;

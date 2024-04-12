@@ -102,15 +102,20 @@ public final class TableAimCalculator implements AimCalculator {
 
     @Override
     public Aim calculateAim(double distanceToSpeaker) {
-       logDistance.set(distanceToSpeaker);
+       return calculateAim(distanceToSpeaker, 0.0);
+    }
 
-       distanceToSpeaker *= NTData.SHOOTER_DISTANCE_SCALE.get();
+    public Aim calculateAim(double distanceToSpeaker, double velocityTowardsSpeaker) {
+        logDistance.set(distanceToSpeaker);
+        System.out.println(velocityTowardsSpeaker);
 
-        return new Aim(
-                sample(flywheelVelocityMap, distanceToSpeaker),
-                sample(pivotAngleMap, distanceToSpeaker),
-                distanceToSpeaker
-        );
+        distanceToSpeaker *= NTData.SHOOTER_DISTANCE_SCALE.get();
+ 
+         return new Aim(
+                 sample(flywheelVelocityMap, distanceToSpeaker),
+                 sample(pivotAngleMap, distanceToSpeaker) + Math.toRadians(NTData.GREEN_FN_COEFFICIENT.get()) * velocityTowardsSpeaker,
+                 distanceToSpeaker
+         );
     }
 
     public double getSnapDistance(double currentDist, boolean wantMoveCloser) {
