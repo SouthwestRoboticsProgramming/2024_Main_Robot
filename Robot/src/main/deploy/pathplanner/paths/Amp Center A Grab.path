@@ -53,6 +53,23 @@
           ]
         }
       }
+    },
+    {
+      "name": "New Event Marker",
+      "waypointRelativePos": 0.75,
+      "command": {
+        "type": "parallel",
+        "data": {
+          "commands": [
+            {
+              "type": "named",
+              "data": {
+                "name": "Aim at Note"
+              }
+            }
+          ]
+        }
+      }
     }
   ],
   "globalConstraints": {

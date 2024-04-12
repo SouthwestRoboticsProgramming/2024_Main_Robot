@@ -7,6 +7,7 @@ import com.pathplanner.lib.commands.PathPlannerAuto;
 import com.swrobotics.lib.field.FieldInfo;
 import com.swrobotics.messenger.client.MessengerClient;
 import com.swrobotics.robot.commands.RobotCommands;
+import com.swrobotics.robot.AutoFactory.Notes;
 import com.swrobotics.robot.commands.IntakeSetCommand;
 import com.swrobotics.robot.commands.PlaySongCommand;
 import com.swrobotics.robot.config.IOAllocation;
@@ -116,6 +117,7 @@ public class RobotContainer {
         NamedCommands.registerCommand("Shoot Quick", RobotCommands.shootQuick(this));
         NamedCommands.registerCommand("Fling", RobotCommands.flingNote(this));
         NamedCommands.registerCommand("Wait and Shoot", RobotCommands.aimAndShoot(this, true)); // Waits for indexer to have note
+        NamedCommands.registerCommand("Aim at Note", RobotCommands.aimAtNote(this));
         NamedCommands.registerCommand("Eject Hard", RobotCommands.ejectHard(this));
 
         // Create a chooser to select the autonomous
@@ -127,6 +129,13 @@ public class RobotContainer {
                         DriveRequestType.OpenLoopVoltage)),
                 drive
         ).withTimeout(5))));
+
+        autos.add(new AutoEntry("Test", 
+        new AutoFactory(this)
+            .goToNote(Notes.SOURCE_WALL)
+            .shoot(false)
+            .build()));
+
         autos.sort(Comparator.comparing(AutoEntry::name, String.CASE_INSENSITIVE_ORDER));
 
         SendableChooser<Command> autoChooser = new SendableChooser<>();

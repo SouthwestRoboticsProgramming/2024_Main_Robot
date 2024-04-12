@@ -1,13 +1,17 @@
 package com.swrobotics.robot.commands;
 
+import com.pathplanner.lib.auto.AutoBuilder;
 import com.swrobotics.robot.RobotContainer;
 import com.swrobotics.robot.config.NTData;
+import com.swrobotics.robot.subsystems.NoteTracker;
 import com.swrobotics.robot.subsystems.amp.AmpArm2Subsystem;
 import com.swrobotics.robot.subsystems.speaker.IntakeSubsystem.State;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelDeadlineGroup;
+import edu.wpi.first.wpilibj2.command.PrintCommand;
 
 public final class RobotCommands {
     public static Command justShoot(RobotContainer robot) {
@@ -69,5 +73,12 @@ public final class RobotCommands {
             Commands.waitSeconds(0.25),
             Commands.runOnce(() -> robot.ampArm2.setPosition(AmpArm2Subsystem.Position.RETRACT))
         );
+    }
+
+    public static Command aimAtNote(RobotContainer robot) {
+        return Commands.run(
+            () -> robot.drive.setAutoOverride(
+                () -> NoteTracker.getAngleToNote()))
+            .until(() -> robot.indexer.hasPiece());
     }
 }

@@ -16,28 +16,28 @@
     },
     {
       "anchor": {
-        "x": 5.685848408733854,
-        "y": 1.777511475250871
+        "x": 5.498741937654815,
+        "y": 1.7892056296933105
       },
       "prevControl": {
-        "x": 4.973000273866197,
-        "y": 1.7237116160155765
+        "x": 4.784166617830332,
+        "y": 1.8099179578041633
       },
       "nextControl": {
-        "x": 6.925428779632489,
-        "y": 1.8710647107903897
+        "x": 6.30563859418317,
+        "y": 1.7658173208084327
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 7.767407899488164,
-        "y": 2.408995815142628
+        "x": 7.896043598355003,
+        "y": 2.2569718073909093
       },
       "prevControl": {
-        "x": 6.399191829722692,
-        "y": 2.3973016607001885
+        "x": 6.983899551844686,
+        "y": 1.9178413285601503
       },
       "nextControl": null,
       "isLocked": false,
@@ -63,6 +63,23 @@
           ]
         }
       }
+    },
+    {
+      "name": "New Event Marker",
+      "waypointRelativePos": 1.6,
+      "command": {
+        "type": "parallel",
+        "data": {
+          "commands": [
+            {
+              "type": "named",
+              "data": {
+                "name": "Aim at Note"
+              }
+            }
+          ]
+        }
+      }
     }
   ],
   "globalConstraints": {
@@ -73,7 +90,7 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": -176.9335144988741,
+    "rotation": -156.61477894278636,
     "rotateFast": false
   },
   "reversed": false,

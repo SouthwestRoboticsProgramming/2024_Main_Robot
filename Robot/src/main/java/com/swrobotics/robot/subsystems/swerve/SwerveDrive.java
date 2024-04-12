@@ -18,6 +18,7 @@ import com.ctre.phoenix6.mechanisms.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveModule.SteerRequestType;
 import com.kauailabs.navx.frc.AHRS;
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 import com.pathplanner.lib.pathfinding.Pathfinding;
 import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
 import com.pathplanner.lib.util.PIDConstants;
@@ -42,6 +43,10 @@ import com.swrobotics.lib.net.NTEntry;
 import com.swrobotics.lib.net.NTDouble;
 
 import static com.swrobotics.robot.subsystems.swerve.SwerveConstants.SWERVE_MODULE_BUILDER;
+
+import java.util.Optional;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 @SuppressWarnings("unused")
 public final class SwerveDrive extends SubsystemBase {
@@ -89,6 +94,7 @@ public final class SwerveDrive extends SubsystemBase {
     private DriveRequest currentDriveRequest;
     private TurnRequest currentTurnRequest;
     private int lastSelectedPriority;
+    private Optional<Rotation2d> autoOverride = Optional.empty();
 
     public SwerveDrive(FieldInfo fieldInfo, MessengerClient msg) {
         this.fieldInfo = fieldInfo;
@@ -134,6 +140,8 @@ public final class SwerveDrive extends SubsystemBase {
                 ), MAX_LINEAR_SPEED, Math.hypot(HALF_SPACING_X, HALF_SPACING_X), new ReplanningConfig(), 0.020),
                 () -> DriverStation.getAlliance().orElse(DriverStation.Alliance.Blue) == DriverStation.Alliance.Red,
                 this);
+
+        PPHolonomicDriveController.setRotationTargetOverride(this::getAutoOverride);
 
 
         // Pathfinding.setPathfinder(new LocalADStar());
@@ -335,5 +343,18 @@ public final class SwerveDrive extends SubsystemBase {
 
     public boolean hasSeenWhereWeAre() {
         return estimator.hasSeenWhereWeAre();
+    }
+
+    public Optional<Rotation2d> getAutoOverride() {
+        return autoOverride;
+    }
+
+    /** Sets the angle the drivetrain should go to */
+    public void setAutoOverride(Supplier<Optional<Rotation2d>> angle) {
+        if (angle.get().isPresent()) {
+            autoOverride = Optional.of(getEstimatedPose().getRotation().minus(angle.get().get()));
+        } else {
+            autoOverride = Optional.empty();
+        }
     }
 }
