@@ -107,7 +107,6 @@ public final class TableAimCalculator implements AimCalculator {
 
     public Aim calculateAim(double distanceToSpeaker, double velocityTowardsSpeaker) {
         logDistance.set(distanceToSpeaker);
-        System.out.println(velocityTowardsSpeaker);
 
         distanceToSpeaker *= NTData.SHOOTER_DISTANCE_SCALE.get();
  
