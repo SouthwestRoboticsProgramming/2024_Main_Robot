@@ -3,13 +3,13 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 8.065511617959103,
-        "y": 4.114397967513275
+        "x": 7.785620631426448,
+        "y": 4.086239052107734
       },
       "prevControl": null,
       "nextControl": {
-        "x": 5.520824723359662,
-        "y": 4.299643373633541
+        "x": 5.240933736827007,
+        "y": 4.271484458228
       },
       "isLocked": false,
       "linkedName": "End of Center Grab Middle A"
@@ -81,7 +81,7 @@
   "reversed": false,
   "folder": "Center",
   "previewStartingState": {
-    "rotation": -176.28471089457122,
+    "rotation": -179.8158220862596,
     "velocity": 0
   },
   "useDefaultConstraints": true

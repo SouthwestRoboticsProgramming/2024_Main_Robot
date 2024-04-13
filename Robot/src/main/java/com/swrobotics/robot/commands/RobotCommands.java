@@ -38,7 +38,7 @@ public final class RobotCommands {
         ));
 
         if (useVision) {
-            commands.add(0, Comm`ands.runOnce(() -> robot.drive.setEstimatorIgnoreVision(false)));
+            commands.add(0, Commands.runOnce(() -> robot.drive.setEstimatorIgnoreVision(false)));
             commands.add(Commands.runOnce(() -> robot.drive.setEstimatorIgnoreVision(true)));
         }
 

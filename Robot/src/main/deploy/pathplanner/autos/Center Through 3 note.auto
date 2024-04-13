@@ -18,21 +18,28 @@
           }
         },
         {
-          "type": "named",
+          "type": "race",
           "data": {
-            "name": "Intake Until Note"
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "Center Start"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "Intake Until Note"
+                }
+              }
+            ]
           }
         },
         {
-          "type": "path",
-          "data": {
-            "pathName": "Start Center"
-          }
-        },
-        {
           "type": "named",
           "data": {
-            "name": "Shoot"
+            "name": "Wait and Shoot"
           }
         },
         {
