@@ -1,5 +1,8 @@
 package com.swrobotics.robot.commands;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.swrobotics.robot.RobotContainer;
 import com.swrobotics.robot.config.NTData;
 import com.swrobotics.robot.subsystems.amp.AmpArm2Subsystem;
@@ -20,25 +23,30 @@ public final class RobotCommands {
         );
     }
 
-    public static Command aimAndShoot(RobotContainer robot, boolean waitForNote) {
+    public static Command aimAndShoot(RobotContainer robot, boolean waitForNote, boolean useVision) {
         AimTowardsSpeakerCommand aim = new AimTowardsSpeakerCommand(robot.drive, robot.shooter);
-        Command shootSeq = Commands.sequence(
-                Commands.runOnce(() -> robot.drive.setEstimatorIgnoreVision(false)),
+
+        List<Command> commands = new ArrayList<>();
+        commands.addAll(List.of(
                 Commands.waitUntil(robot.shooter::isCalibrated),
                 Commands.waitUntil(() -> (!waitForNote || robot.indexer.hasPiece())
                         && aim.isInTolerance(NTData.DRIVE_AIM_TOLERANCE.get())
                         && robot.shooter.isReadyToShoot())
                     .withTimeout(NTData.SHOOTER_AUTO_READY_TIMEOUT.get()),
                 Commands.waitSeconds(NTData.SHOOTER_AUTO_AFTER_READY_DELAY.get()),
-                new IndexerFeedCommand(robot.indexer),
-                Commands.runOnce(() -> robot.drive.setEstimatorIgnoreVision(true))
-        );
+                new IndexerFeedCommand(robot.indexer)
+        ));
 
-        return new ParallelDeadlineGroup(shootSeq, aim);
+        if (useVision) {
+            commands.add(0, Comm`ands.runOnce(() -> robot.drive.setEstimatorIgnoreVision(false)));
+            commands.add(Commands.runOnce(() -> robot.drive.setEstimatorIgnoreVision(true)));
+        }
+
+        return new ParallelDeadlineGroup(Commands.sequence(commands.toArray(new Command[0])), aim);
     }
 
     public static Command shootQuick(RobotContainer robot) {
-        return aimAndShoot(robot, false);
+        return aimAndShoot(robot, false, true);
         // return Commands.sequence(
         //     Commands.runOnce(() -> robot.shooter.forcePivotCalibration(70)),
         //     Commands.waitUntil(() -> robot.shooter.isReadyToShoot()),

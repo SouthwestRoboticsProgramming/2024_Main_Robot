@@ -90,6 +90,18 @@
           "data": {
             "name": "Wait and Shoot"
           }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Intake Off"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Dash"
+          }
         }
       ]
     }

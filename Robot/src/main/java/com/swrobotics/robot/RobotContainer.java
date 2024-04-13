@@ -112,10 +112,11 @@ public class RobotContainer {
         NamedCommands.registerCommand("Intake On", new IntakeSetCommand(intake, IntakeSubsystem.State.INTAKE));
         NamedCommands.registerCommand("Intake Off", new IntakeSetCommand(intake, IntakeSubsystem.State.OFF));
         NamedCommands.registerCommand("Intake Until Note", RobotCommands.intakeUntilNote(this));
-        NamedCommands.registerCommand("Shoot", RobotCommands.aimAndShoot(this, false));
+        NamedCommands.registerCommand("Shoot", RobotCommands.aimAndShoot(this, false, true));
         NamedCommands.registerCommand("Shoot Quick", RobotCommands.shootQuick(this));
+        NamedCommands.registerCommand("Shoot No Vision", RobotCommands.aimAndShoot(this, false, false));
         NamedCommands.registerCommand("Fling", RobotCommands.flingNote(this));
-        NamedCommands.registerCommand("Wait and Shoot", RobotCommands.aimAndShoot(this, true)); // Waits for indexer to have note
+        NamedCommands.registerCommand("Wait and Shoot", RobotCommands.aimAndShoot(this, true, true)); // Waits for indexer to have note
         NamedCommands.registerCommand("Eject Hard", RobotCommands.ejectHard(this));
 
         // Create a chooser to select the autonomous
