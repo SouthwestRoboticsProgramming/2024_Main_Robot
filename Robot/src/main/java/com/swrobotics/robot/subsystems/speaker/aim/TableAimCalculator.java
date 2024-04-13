@@ -26,7 +26,7 @@ public final class TableAimCalculator implements AimCalculator {
 //        addCalibrationSample(3.0, 34, 60);
 //        addCalibrationSample(3.8, 29, 70);
 
-        double fieldWrongness = Units.inchesToMeters(1 + 5.0/8); 
+        double fieldWrongness = 0;//Units.inchesToMeters(1 + 5.0/8); 
 
         // MURA 3-16, 3|1 wheel shooter configuration
         addCalibrationSample(fieldWrongness + 1.224203 - .2, 58, 55);
@@ -39,11 +39,13 @@ public final class TableAimCalculator implements AimCalculator {
 
         // MURA 3-23, 3|1 wheel shooter
         addCalibrationSample(fieldWrongness + 4.34, 28 + 1, 67);
-        // addCalibrationSample(fieldWrongness + 4.67, 27 + 1, 67);
+        addCalibrationSample(fieldWrongness + 4.67, 27 + 1 - 2, 67);
         addCalibrationSample(fieldWrongness + 5.06, 25 + 1, 67);
         addCalibrationSample(fieldWrongness + 5.58, 24 + 1, 70);
 
-        addCalibrationSample(fieldWrongness + 6.6, 22.5, 82);
+        addCalibrationSample(fieldWrongness + 6.0, 23.75 - 2, 76);
+
+        // addCalibrationSample(fieldWrongness + 6.6, 22.5, 82);
 
 //        addCalibrationSample(3.37, 29, 60);
 
@@ -77,7 +79,8 @@ public final class TableAimCalculator implements AimCalculator {
         if (distCloser == null)
             distCloser = distFarther;
         if (distFarther == null) {
-            double angle = Math.toRadians(MathUtil.clamp(Math.pow(0.578366, distanceToSpeaker - 7.90303) + 20.21, 22, 40));
+            // double angle = Math.toRadians(MathUtil.clamp(Math.pow(0.578366, distanceToSpeaker - 7.90303) + 20.21, 22, 40));
+            double angle = Math.toRadians(MathUtil.clamp(10.2091 * Math.pow(0.595622, distanceToSpeaker - 3.50353) + 21.6758 - 1, 21.5, 40));
             double velocity = MathUtil.clamp(distanceToSpeaker * 3.94923 + 48.5462, 10, 100);
             
             if (map == flywheelVelocityMap) { return velocity;}
