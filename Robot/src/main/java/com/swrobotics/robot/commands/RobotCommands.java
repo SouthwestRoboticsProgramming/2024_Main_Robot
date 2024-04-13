@@ -23,15 +23,15 @@ public final class RobotCommands {
     public static Command aimAndShoot(RobotContainer robot, boolean waitForNote) {
         AimTowardsSpeakerCommand aim = new AimTowardsSpeakerCommand(robot.drive, robot.shooter);
         Command shootSeq = Commands.sequence(
-                // Commands.runOnce(() -> robot.drive.setEstimatorIgnoreVision(false)),
+                Commands.runOnce(() -> robot.drive.setEstimatorIgnoreVision(false)),
                 Commands.waitUntil(robot.shooter::isCalibrated),
                 Commands.waitUntil(() -> (!waitForNote || robot.indexer.hasPiece())
                         && aim.isInTolerance(NTData.DRIVE_AIM_TOLERANCE.get())
                         && robot.shooter.isReadyToShoot())
                     .withTimeout(NTData.SHOOTER_AUTO_READY_TIMEOUT.get()),
                 Commands.waitSeconds(NTData.SHOOTER_AUTO_AFTER_READY_DELAY.get()),
-                new IndexerFeedCommand(robot.indexer)//,
-                // Commands.runOnce(() -> robot.drive.setEstimatorIgnoreVision(true))
+                new IndexerFeedCommand(robot.indexer),
+                Commands.runOnce(() -> robot.drive.setEstimatorIgnoreVision(true))
         );
 
         return new ParallelDeadlineGroup(shootSeq, aim);
