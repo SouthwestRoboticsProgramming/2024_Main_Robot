@@ -3,7 +3,7 @@
   "startingPose": {
     "position": {
       "x": 1.3576779647621067,
-      "y": 5.537862667174266
+      "y": 5.52811290895741
     },
     "rotation": 180.0
   },
@@ -14,7 +14,7 @@
         {
           "type": "named",
           "data": {
-            "name": "Shoot Quick"
+            "name": "Shoot"
           }
         },
         {
@@ -43,40 +43,15 @@
           }
         },
         {
-          "type": "race",
+          "type": "path",
           "data": {
-            "commands": [
-              {
-                "type": "path",
-                "data": {
-                  "pathName": "Source Start Alternate"
-                }
-              },
-              {
-                "type": "named",
-                "data": {
-                  "name": "Intake Until Note"
-                }
-              }
-            ]
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "Wait and Shoot"
+            "pathName": "Center Grab Middle A"
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "Source Center A Grab"
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "Source Center A Score"
+            "pathName": "Center Middle Score A"
           }
         },
         {
@@ -88,30 +63,24 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Source Center B Grab"
+            "pathName": "Center End Grab"
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "Source Center B Score"
+            "pathName": "Center End Score"
           }
         },
         {
           "type": "named",
           "data": {
             "name": "Shoot"
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "Source End Grab"
           }
         }
       ]
     }
   },
-  "folder": "Source",
+  "folder": "Center",
   "choreoAuto": false
 }

@@ -107,7 +107,10 @@ public final class ShooterSubsystem extends SubsystemBase {
         
             // Relative to the target
             Translation2d robotVelocity = new Translation2d(robotSpeeds.vxMetersPerSecond, robotSpeeds.vyMetersPerSecond).rotateBy(angleToTarget);
-            aim = tableAimCalculator.calculateAim(distToSpeaker, robotVelocity.getX());
+            if (aimCalculator instanceof TableAimCalculator)
+                aim = ((TableAimCalculator) aimCalculator).calculateAim(distToSpeaker, robotVelocity.getX());
+            else
+                aim = aimCalculator.calculateAim(distToSpeaker);
 
             if (RobotBase.isSimulation())
                 SimView.lobTrajectory.update(
