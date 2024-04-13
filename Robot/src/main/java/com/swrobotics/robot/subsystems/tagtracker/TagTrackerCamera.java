@@ -89,14 +89,16 @@ public final class TagTrackerCamera {
     private final String name;
 //    private final Transform3d toRobotTransform;
     private final Function<Pose3d, Pose3d> cameraToRobot;
+    private final double maxTrustDistance;
 
     private final TagTrackerCameraIO io;
     private final TagTrackerCameraIO.Inputs inputs;
 
-    public TagTrackerCamera(String name, NetworkTable table, Function<Pose3d, Pose3d> cameraToRobot, CameraCaptureProperties captureProps) {
+    public TagTrackerCamera(String name, NetworkTable table, Function<Pose3d, Pose3d> cameraToRobot, CameraCaptureProperties captureProps, double maxTrustDistance) {
         this.name = name;
 //        this.toRobotTransform = toRobotTransform;
         this.cameraToRobot = cameraToRobot;
+        this.maxTrustDistance = maxTrustDistance;
 
         io = new NTCameraIO(table);
         inputs = new TagTrackerCameraIO.Inputs();
@@ -106,6 +108,10 @@ public final class TagTrackerCamera {
 
     public Function<Pose3d, Pose3d> getToRobotTransform() {
         return cameraToRobot;
+    }
+
+    public double getMaxTrustDistance() {
+        return maxTrustDistance;
     }
 
     public List<EstimateInput> getEstimates() {

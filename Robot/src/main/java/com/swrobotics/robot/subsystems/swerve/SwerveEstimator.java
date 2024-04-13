@@ -24,7 +24,7 @@ import java.util.TreeMap;
 
 public final class SwerveEstimator {
     //private static final double[] STATE_STD_DEVS = {0.003, 0.003, 0.0002};
-    private static final double[] STATE_STD_DEVS = {0.005, 0.005, 0.01};
+    private static final double[] STATE_STD_DEVS = {0.005, 0.005, 0.001};
     private static final double HISTORY_TIME = 0.3;
 
     private static final double INITIAL_ANGLE_STDDEV = 0.2; // Really trust it for beginning of match
@@ -61,7 +61,8 @@ public final class SwerveEstimator {
                                     // Compensate for mounting position
                                     .transformBy(new Transform3d(new Translation3d(halfFrameL - 0.046, -halfFrameW + 0.12, 0.19).unaryMinus(), new Rotation3d()));
                         },
-                        captureProps),
+                        captureProps,
+                        5), // meters
 
                 new TagTrackerInput.CameraInfo(
                         "zoom",
@@ -72,7 +73,8 @@ public final class SwerveEstimator {
                                     // Compensate for mounting position
                                     .transformBy(new Transform3d(new Translation3d(halfFrameL - 0.16, halfFrameW - 0.133, 0.39).unaryMinus(), new Rotation3d()));
                         },
-                        captureProps)
+                        captureProps,
+                        Double.POSITIVE_INFINITY) // Trust at all distances
         );
 
         latestPose = new Pose2d();
