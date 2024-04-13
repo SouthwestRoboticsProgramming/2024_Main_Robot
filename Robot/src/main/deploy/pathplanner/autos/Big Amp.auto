@@ -24,7 +24,7 @@
               {
                 "type": "path",
                 "data": {
-                  "pathName": "Amp Start Standard"
+                  "pathName": "Start Center"
                 }
               },
               {
@@ -45,38 +45,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Amp Center A Grab"
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "Amp Center A Score"
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "Shoot"
-          }
-        },
-        {
-          "type": "race",
-          "data": {
-            "commands": [
-              {
-                "type": "path",
-                "data": {
-                  "pathName": "Amp Center B Grab"
-                }
-              },
-              {
-                "type": "named",
-                "data": {
-                  "name": "Intake Until Note"
-                }
-              }
-            ]
+            "pathName": "Big"
           }
         },
         {
@@ -92,15 +61,34 @@
           }
         },
         {
+          "type": "race",
+          "data": {
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "Amp Big Grab"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "Intake Until Note"
+                }
+              }
+            ]
+          }
+        },
+        {
           "type": "path",
           "data": {
-            "pathName": "Amp End"
+            "pathName": "Amp Big 2"
           }
         },
         {
           "type": "named",
           "data": {
-            "name": "Shoot"
+            "name": "Wait and Shoot"
           }
         }
       ]

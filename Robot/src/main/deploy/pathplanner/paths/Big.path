@@ -3,43 +3,37 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 3.1418837184467727,
-        "y": 7.0198259161363925
+        "x": 3.0486475648877223,
+        "y": 5.570789118430089
       },
       "prevControl": null,
       "nextControl": {
-        "x": 3.4246267067355998,
-        "y": 7.0490751907869615
+        "x": 5.324910159079577,
+        "y": 6.510725053857516
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 7.720000893705491,
-        "y": 7.225534812180736
+        "x": 7.828258614850562,
+        "y": 5.984341927017187
       },
       "prevControl": {
-        "x": 6.77427434667045,
-        "y": 7.137786988229031
+        "x": 6.727212861833131,
+        "y": 6.774391692301902
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "End of Amp Center A Grab"
+      "linkedName": null
     }
   ],
-  "rotationTargets": [
-    {
-      "waypointRelativePos": 0.55,
-      "rotationDegrees": -173.99275277029824,
-      "rotateFast": false
-    }
-  ],
+  "rotationTargets": [],
   "constraintZones": [],
   "eventMarkers": [
     {
-      "name": "Intake",
-      "waypointRelativePos": 0.55,
+      "name": "New Event Marker",
+      "waypointRelativePos": 0.5,
       "command": {
         "type": "parallel",
         "data": {
@@ -62,14 +56,14 @@
     "maxAngularAcceleration": 640.0
   },
   "goalEndState": {
-    "velocity": 0.0,
-    "rotation": -175.0497277657083,
+    "velocity": 0,
+    "rotation": 150.30748611161152,
     "rotateFast": false
   },
   "reversed": false,
-  "folder": "Amp",
+  "folder": null,
   "previewStartingState": {
-    "rotation": -150.43752417653195,
+    "rotation": 180.0,
     "velocity": 0
   },
   "useDefaultConstraints": true
