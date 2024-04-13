@@ -23,10 +23,11 @@ import java.util.Map;
 import java.util.TreeMap;
 
 public final class SwerveEstimator {
-    private static final double[] STATE_STD_DEVS = {0.003, 0.003, 0.0002};
+    //private static final double[] STATE_STD_DEVS = {0.003, 0.003, 0.0002};
+    private static final double[] STATE_STD_DEVS = {0.005, 0.005, 0.01};
     private static final double HISTORY_TIME = 0.3;
 
-    private static final double INITIAL_ANGLE_STDDEV = 0.02; // Really trust it for beginning of match
+    private static final double INITIAL_ANGLE_STDDEV = 0.2; // Really trust it for beginning of match
 
     private final TagTrackerInput tagTracker;
 

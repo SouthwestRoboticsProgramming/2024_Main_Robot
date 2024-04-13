@@ -39,7 +39,7 @@ public final class TableAimCalculator implements AimCalculator {
 
         // MURA 3-23, 3|1 wheel shooter
         addCalibrationSample(fieldWrongness + 4.34, 28 + 1, 67);
-        addCalibrationSample(fieldWrongness + 4.67, 27 + 1, 67);
+        // addCalibrationSample(fieldWrongness + 4.67, 27 + 1, 67);
         addCalibrationSample(fieldWrongness + 5.06, 25 + 1, 67);
         addCalibrationSample(fieldWrongness + 5.58, 24 + 1, 70);
 

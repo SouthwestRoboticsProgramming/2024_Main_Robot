@@ -29,7 +29,7 @@ public final class ShooterSubsystem extends SubsystemBase {
         REVERSE
     }
 
-    private static final Pose2d blueSpeakerPose = new Pose2d(Units.inchesToMeters(8), 5.5475, new Rotation2d(0)); // Opening extends 18" out
+    private static final Pose2d blueSpeakerPose = new Pose2d(Units.inchesToMeters(6), 5.5475, new Rotation2d(0)); // Opening extends 18" out
     private static final Pose2d blueLobZone = new Pose2d(1, 6, new Rotation2d()); // Between the speaker and the amp
 
     private final PivotSubsystem pivot;
