@@ -1,10 +1,13 @@
 package com.swrobotics.robot.subsystems.tagtracker.io;
 
+import com.swrobotics.robot.subsystems.tagtracker.CameraCaptureProperties;
 import org.littletonrobotics.junction.LogTable;
 import org.littletonrobotics.junction.inputs.LoggableInputs;
 
 public interface TagTrackerCameraIO {
     void updateInputs(Inputs inputs);
+
+    void setCaptureProperties(CameraCaptureProperties props);
 
     // Not AutoLoggedInputs since double array array is not auto-loggable
     final class Inputs implements LoggableInputs {

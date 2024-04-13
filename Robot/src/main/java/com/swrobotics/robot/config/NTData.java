@@ -92,7 +92,8 @@ public final class NTData {
     public static final NTEntry<Double> SHOOTER_LOB_SHORT_HEIGHT_METERS = new NTDouble("Shooter/Lob/Short Lob Height (m)", 1.3).setPersistent();
     public static final NTEntry<Double> SHOOTER_LOB_DRIVE_ANGLE_CORRECTION_BLUE = new NTDouble("Shooter/Lob/Drive Angle Correction Blue (deg)", -30).setPersistent();
     public static final NTEntry<Double> SHOOTER_LOB_DRIVE_ANGLE_CORRECTION_RED = new NTDouble("Shooter/Lob/Drive Angle Correction Red (deg)", 0).setPersistent();
-    public static final NTEntry<Double> SHOOTER_FLY_TIME = new NTDouble("Shooter/Fly Time (s)", 0.25);
+    public static final NTEntry<Double> SHOOTER_FLY_TIME = new NTDouble("Shooter/Fly Time (s)", 0.25).setPersistent();
+    public static final NTEntry<Double> GREEN_FN_COEFFICIENT = new NTDouble("Shooter/Green FN Coefficient", 1).setPersistent();
 
     private NTData() {
         throw new AssertionError();

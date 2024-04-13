@@ -19,12 +19,16 @@ public final class TagTrackerInput {
     public static final class CameraInfo {
         public final String name;
         public final Function<Pose3d, Pose3d> cameraToRobot;
+        public final CameraCaptureProperties captureProps;
+        public final double maxTrustDistance;
 //        public final Pose3d robotRelPose;
 
-        public CameraInfo(String name, Function<Pose3d, Pose3d> cameraToRobot) {
+        public CameraInfo(String name, Function<Pose3d, Pose3d> cameraToRobot, CameraCaptureProperties captureProps, double maxTrustDistance) {
             this.name = name;
             this.cameraToRobot = cameraToRobot;
 //            this.robotRelPose = robotRelPose;
+            this.captureProps = captureProps;
+            this.maxTrustDistance = maxTrustDistance;
         }
     }
 
@@ -63,7 +67,9 @@ public final class TagTrackerInput {
             cameras[i] = new TagTrackerCamera(
                     info.name,
                     camerasTable.getSubTable(info.name),
-                    info.cameraToRobot);
+                    info.cameraToRobot,
+                    info.captureProps,
+                    info.maxTrustDistance);
         }
     }
 
@@ -126,6 +132,10 @@ public final class TagTrackerInput {
                     }
                 }
                 double avgTagDist = totalTagDist / tagCount;
+
+                // Ignore if too far away for camera to be good
+                if (avgTagDist > camera.getMaxTrustDistance())
+                    continue;
 
                 // Trust farther away tags less and frames with more tags more
                 double xyStdDev = XY_STD_DEV_COEFF * MathUtil.square(avgTagDist) / tagCount;

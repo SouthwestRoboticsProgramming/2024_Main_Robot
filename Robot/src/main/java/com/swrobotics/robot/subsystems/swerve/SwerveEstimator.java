@@ -5,6 +5,7 @@ import com.swrobotics.lib.net.NTBoolean;
 import com.swrobotics.lib.net.NTInteger;
 import com.swrobotics.mathlib.MathUtil;
 import com.swrobotics.robot.logging.FieldView;
+import com.swrobotics.robot.subsystems.tagtracker.CameraCaptureProperties;
 import com.swrobotics.robot.subsystems.tagtracker.TagTrackerInput;
 import com.swrobotics.robot.utils.GeometryUtil;
 import edu.wpi.first.math.Matrix;
@@ -22,10 +23,11 @@ import java.util.Map;
 import java.util.TreeMap;
 
 public final class SwerveEstimator {
-    private static final double[] STATE_STD_DEVS = {0.003, 0.003, 0.0002};
+    //private static final double[] STATE_STD_DEVS = {0.003, 0.003, 0.0002};
+    private static final double[] STATE_STD_DEVS = {0.005, 0.005, 0.001};
     private static final double HISTORY_TIME = 0.3;
 
-    private static final double INITIAL_ANGLE_STDDEV = 0.02; // Really trust it for beginning of match
+    private static final double INITIAL_ANGLE_STDDEV = 0.2; // Really trust it for beginning of match
 
     private final TagTrackerInput tagTracker;
 
@@ -42,6 +44,9 @@ public final class SwerveEstimator {
         double halfFrameL = 0.77 / 2;
         double halfFrameW = 0.695 / 2;
 
+        CameraCaptureProperties captureProps = new CameraCaptureProperties()
+                .setExposure(20);
+
         tagTracker = new TagTrackerInput(
                 field,
 
@@ -55,7 +60,9 @@ public final class SwerveEstimator {
                                     .transformBy(new Transform3d(new Translation3d(), new Rotation3d(0, Math.toRadians(90-67), 0)))
                                     // Compensate for mounting position
                                     .transformBy(new Transform3d(new Translation3d(halfFrameL - 0.046, -halfFrameW + 0.12, 0.19).unaryMinus(), new Rotation3d()));
-                        }),
+                        },
+                        captureProps,
+                        5), // meters
 
                 new TagTrackerInput.CameraInfo(
                         "zoom",
@@ -65,7 +72,9 @@ public final class SwerveEstimator {
                                     .transformBy(new Transform3d(new Translation3d(), new Rotation3d(0, Math.toRadians(16.88), 0)))
                                     // Compensate for mounting position
                                     .transformBy(new Transform3d(new Translation3d(halfFrameL - 0.16, halfFrameW - 0.133, 0.39).unaryMinus(), new Rotation3d()));
-                        })
+                        },
+                        captureProps,
+                        Double.POSITIVE_INFINITY) // Trust at all distances
         );
 
         latestPose = new Pose2d();

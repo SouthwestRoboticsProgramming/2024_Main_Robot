@@ -39,7 +39,7 @@ public final class TableAimCalculator implements AimCalculator {
 
         // MURA 3-23, 3|1 wheel shooter
         addCalibrationSample(fieldWrongness + 4.34, 28 + 1, 67);
-        addCalibrationSample(fieldWrongness + 4.67, 27 + 1, 67);
+        // addCalibrationSample(fieldWrongness + 4.67, 27 + 1, 67);
         addCalibrationSample(fieldWrongness + 5.06, 25 + 1, 67);
         addCalibrationSample(fieldWrongness + 5.58, 24 + 1, 70);
 
@@ -102,15 +102,19 @@ public final class TableAimCalculator implements AimCalculator {
 
     @Override
     public Aim calculateAim(double distanceToSpeaker) {
-       logDistance.set(distanceToSpeaker);
+       return calculateAim(distanceToSpeaker, 0.0);
+    }
 
-       distanceToSpeaker *= NTData.SHOOTER_DISTANCE_SCALE.get();
+    public Aim calculateAim(double distanceToSpeaker, double velocityTowardsSpeaker) {
+        logDistance.set(distanceToSpeaker);
 
-        return new Aim(
-                sample(flywheelVelocityMap, distanceToSpeaker),
-                sample(pivotAngleMap, distanceToSpeaker),
-                distanceToSpeaker
-        );
+        distanceToSpeaker *= NTData.SHOOTER_DISTANCE_SCALE.get();
+ 
+         return new Aim(
+                 sample(flywheelVelocityMap, distanceToSpeaker),
+                 sample(pivotAngleMap, distanceToSpeaker) + Math.toRadians(NTData.GREEN_FN_COEFFICIENT.get()) * velocityTowardsSpeaker,
+                 distanceToSpeaker
+         );
     }
 
     public double getSnapDistance(double currentDist, boolean wantMoveCloser) {

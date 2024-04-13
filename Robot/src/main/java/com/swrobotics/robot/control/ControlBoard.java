@@ -262,10 +262,11 @@ public class ControlBoard extends SubsystemBase {
 
 
         NTEntry<Double> pivotAdjust = PivotSubsystem.getAdjustForAlliance();
+        double adjustDeg = 0.75;
         if (operator.dpad.up.isRising())
-            pivotAdjust.set(pivotAdjust.get() + 1);
+            pivotAdjust.set(pivotAdjust.get() + adjustDeg);
         if (operator.dpad.down.isRising())
-            pivotAdjust.set(pivotAdjust.get() - 1);
+            pivotAdjust.set(pivotAdjust.get() - adjustDeg);
 
 
         Translation2d translation = getDriveTranslation();
