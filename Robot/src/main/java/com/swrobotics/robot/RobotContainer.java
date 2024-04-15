@@ -145,6 +145,8 @@ public class RobotContainer {
                 .andThen(new PlaySongCommand(music, "music" + sep + whichSong)));
 
         SendableChooser<String> musicChooser = new SendableChooser<>();
+        musicChooser.setDefaultOption("None", "None");
+        musicChooser.addOption("Random", "Random");
         List<String> availSongs = MusicSubsystem.getAvailableSongs();
         availSongs.sort(String.CASE_INSENSITIVE_ORDER);
         for (String song : availSongs) {
@@ -153,7 +155,6 @@ public class RobotContainer {
             String option = song.substring(lastIdx + 1);
             musicChooser.addOption(option, song);
         }
-        musicChooser.setDefaultOption("None", "None");
         musicSelector = new LoggedDashboardChooser<>("Victory Music Selection", musicChooser);
 
         // Rumble the controllers when we pick up a piece
@@ -217,8 +218,14 @@ public class RobotContainer {
         lights.disabledInit();
 
         String song = musicSelector.get();
-        if (hasDoneFirstInit && !song.equals("None"))
+        if (hasDoneFirstInit && !song.equals("None")) {
+            if (song.equals("Random")) {
+                List<String> songs = MusicSubsystem.getAvailableSongs();
+                song = songs.get((int) (Math.random() * songs.size()));
+            }
+
             CommandScheduler.getInstance().schedule(musicCommand = new PlaySongCommand(music, song));
+        }
         hasDoneFirstInit = true;
     }
 
