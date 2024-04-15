@@ -145,7 +145,9 @@ public class RobotContainer {
                 .andThen(new PlaySongCommand(music, "music" + sep + whichSong)));
 
         SendableChooser<String> musicChooser = new SendableChooser<>();
-        for (String song : MusicSubsystem.getAvailableSongs()) {
+        List<String> availSongs = MusicSubsystem.getAvailableSongs();
+        availSongs.sort(String.CASE_INSENSITIVE_ORDER);
+        for (String song : availSongs) {
             int lastIdx = song.lastIndexOf(File.separatorChar);
 
             String option = song.substring(lastIdx + 1);
