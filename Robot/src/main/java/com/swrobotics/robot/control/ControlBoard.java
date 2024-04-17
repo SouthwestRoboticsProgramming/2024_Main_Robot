@@ -134,6 +134,8 @@ public class ControlBoard extends SubsystemBase {
         // Up is closer, down is farther
         new Trigger(this::driverWantsSnapCloser).whileTrue(new SnapDistanceCommand(robot.drive, robot.shooter, true));
         new Trigger(this::driverWantsSnapFarther).whileTrue(new SnapDistanceCommand(robot.drive, robot.shooter, false));
+        
+        driver.y.onFalling(() -> NTData.SHOOTER_PIVOT_RECALIBRATE.set(true));
 
 //        Trigger ampTrigger = new Trigger(() -> operator.y.isPressed());
 //        ampTrigger.whileTrue(Commands.run(() -> robot.shooter.setTempAimCalculator(new AmpAimCalculator())));
