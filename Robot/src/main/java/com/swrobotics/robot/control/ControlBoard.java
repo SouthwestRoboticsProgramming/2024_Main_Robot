@@ -347,6 +347,11 @@ public class ControlBoard extends SubsystemBase {
         } else {
             waitingForArmRetract = false;
         }
+
+        if (ampArmPos == AmpArm2Subsystem.Position.AMP) {
+            NTData.AMP_ARM_EXTEND_POS.set(NTData.AMP_ARM_EXTEND_POS.get() + -operator.leftStickY.get() * 10 / 20);
+        }
+
         robot.ampArm2.setPosition(ampArmPos);
         robot.climber.setState(climbState.climberState);
 

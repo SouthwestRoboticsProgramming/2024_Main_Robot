@@ -47,17 +47,17 @@ import java.util.List;
  */
 public class RobotContainer {
     // Configuration for our Raspberry Pi communication service
-    private static final String MESSENGER_HOST_ROBOT = "10.21.29.3";
-    private static final String MESSENGER_HOST_SIM = "localhost";
-    private static final int MESSENGER_PORT = 5805;
-    private static final String MESSENGER_NAME = "Robot";
+    // private static final String MESSENGER_HOST_ROBOT = "10.21.29.3";
+    // private static final String MESSENGER_HOST_SIM = "localhost";
+    // private static final int MESSENGER_PORT = 5805;
+    // private static final String MESSENGER_NAME = "Robot";
 
     // Create a way to choose between autonomous sequences
     private final LoggedDashboardChooser<Command> autoSelector;
     private final LoggedDashboardChooser<String> musicSelector;
     private final LoggedDashboardChooser<Double> autoDelaySelector;
 
-    public final MessengerClient messenger;
+    // public final MessengerClient messenger;
     public final ControlBoard controlboard;
 
     public final PowerDistribution pdp;
@@ -87,13 +87,13 @@ public class RobotContainer {
         DriverStation.silenceJoystickConnectionWarning(RobotBase.isSimulation());
 
         // Initialize Messenger
-        String host = RobotBase.isSimulation() ? MESSENGER_HOST_SIM : MESSENGER_HOST_ROBOT;
-        messenger = new MessengerClient(host, MESSENGER_PORT, MESSENGER_NAME);
-        new FileSystemAPI(messenger, "RoboRIO", Filesystem.getOperatingDirectory());
+        // String host = RobotBase.isSimulation() ? MESSENGER_HOST_SIM : MESSENGER_HOST_ROBOT;
+        // messenger = new MessengerClient(host, MESSENGER_PORT, MESSENGER_NAME);
+        // new FileSystemAPI(messenger, "RoboRIO", Filesystem.getOperatingDirectory());
 
         pdp = new PowerDistribution(IOAllocation.CAN.PDP.id(), PowerDistribution.ModuleType.kRev);
 
-        drive = new SwerveDrive(FieldInfo.CRESCENDO_2024, messenger);
+        drive = new SwerveDrive(FieldInfo.CRESCENDO_2024/*, messenger*/);
 
         intake = new IntakeSubsystem(pdp);
         indexer = new IndexerSubsystem(intake);

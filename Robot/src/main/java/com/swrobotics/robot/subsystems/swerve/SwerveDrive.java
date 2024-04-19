@@ -90,7 +90,7 @@ public final class SwerveDrive extends SubsystemBase {
     private TurnRequest currentTurnRequest;
     private int lastSelectedPriority;
 
-    public SwerveDrive(FieldInfo fieldInfo, MessengerClient msg) {
+    public SwerveDrive(FieldInfo fieldInfo/*, MessengerClient msg*/) {
         this.fieldInfo = fieldInfo;
         gyro = new AHRS(SPI.Port.kMXP);
 
@@ -138,7 +138,7 @@ public final class SwerveDrive extends SubsystemBase {
 
         // Pathfinding.setPathfinder(new LocalADStar());
 //        Pathfinding.setPathfinder(new ThetaStarPathfinder(msg));
-        Pathfinding.setPathfinder(new ArcPathfinder(msg));
+        // Pathfinding.setPathfinder(new ArcPathfinder(msg));
         PathPlannerLogging.setLogActivePathCallback(
                 (activePath) -> {
                     Logger.recordOutput(
