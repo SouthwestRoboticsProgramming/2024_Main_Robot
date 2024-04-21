@@ -72,7 +72,7 @@ public class ControlBoard extends SubsystemBase {
     private boolean pieceRumble;
 
     // TODO: Maybe auto-adjust based on battery voltage?
-    private static final double MAX_DRIVE_ACCEL = 4.3; // Meters / second^2
+    private static final double MAX_DRIVE_ACCEL = 5.5;                                                                                                                                                       ; // Meters / second^2
     private final DriveAccelFilter driveFilter = new DriveAccelFilter(MAX_DRIVE_ACCEL);
 
     private final Debouncer driverSlowDebounce = new Debouncer(0.075);

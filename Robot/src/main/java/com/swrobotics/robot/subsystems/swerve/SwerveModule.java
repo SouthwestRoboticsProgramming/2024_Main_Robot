@@ -38,7 +38,7 @@ public class SwerveModule extends com.ctre.phoenix6.mechanisms.swerve.SwerveModu
 
         CurrentLimitsConfigs limits = new CurrentLimitsConfigs();
         limits.SupplyCurrentLimitEnable = true;
-        limits.SupplyCurrentLimit = 35;
+        limits.SupplyCurrentLimit = 40;
         limits.SupplyTimeThreshold = 0.25;
         limits.StatorCurrentLimitEnable = false;
         getDriveMotor().getConfigurator().apply(limits);

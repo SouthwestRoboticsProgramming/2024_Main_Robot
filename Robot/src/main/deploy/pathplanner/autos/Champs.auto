@@ -3,9 +3,9 @@
   "startingPose": {
     "position": {
       "x": 1.3005404928188775,
-      "y": 4.268366371490578
+      "y": 4.385307915914978
     },
-    "rotation": 126.807483967358
+    "rotation": 129.18232371531298
   },
   "command": {
     "type": "sequential",
@@ -20,13 +20,13 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Source Center A Fast From Subwoofer"
+            "pathName": "Champs Start"
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "Source Center A Score"
+            "pathName": "Champs Middle"
           }
         },
         {
@@ -38,19 +38,13 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Source Center B Grab"
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "Source Center B Score"
+            "pathName": "Champs End"
           }
         },
         {
           "type": "named",
           "data": {
-            "name": "Shoot"
+            "name": "Intake Off"
           }
         }
       ]

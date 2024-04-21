@@ -3,53 +3,75 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 3.148216894724387,
-        "y": 3.192504162786104
+        "x": 1.3005404928188775,
+        "y": 4.385307915914978
       },
       "prevControl": null,
       "nextControl": {
-        "x": 4.049194551482062,
-        "y": 1.6843748960454057
-      },
-      "isLocked": false,
-      "linkedName": "Score Location Source"
-    },
-    {
-      "anchor": {
-        "x": 5.685848408733854,
-        "y": 1.777511475250871
-      },
-      "prevControl": {
-        "x": 4.973000273866197,
-        "y": 1.7237116160155765
-      },
-      "nextControl": {
-        "x": 6.925428779632489,
-        "y": 1.8710647107903897
+        "x": 2.0499107981588893,
+        "y": 2.720182542502853
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 8.071455914991601,
-        "y": 2.4206899695850677
+        "x": 4.282605429818937,
+        "y": 3.3149177937310745
       },
       "prevControl": {
-        "x": 6.703239845226129,
-        "y": 2.408995815142628
+        "x": 3.4402929848960206,
+        "y": 2.758764919036224
+      },
+      "nextControl": {
+        "x": 4.962370374590564,
+        "y": 3.7637455778036744
+      },
+      "isLocked": false,
+      "linkedName": null
+    },
+    {
+      "anchor": {
+        "x": 5.814484107600694,
+        "y": 4.0695657459691
+      },
+      "prevControl": {
+        "x": 5.094222112341602,
+        "y": 4.051559196087623
+      },
+      "nextControl": {
+        "x": 6.750016462995888,
+        "y": 4.092954054853979
+      },
+      "isLocked": false,
+      "linkedName": null
+    },
+    {
+      "anchor": {
+        "x": 8.001290988336962,
+        "y": 4.0695657459691
+      },
+      "prevControl": {
+        "x": 7.1125352507115265,
+        "y": 4.034483282641779
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": null
+      "linkedName": "End of Champs Start"
     }
   ],
-  "rotationTargets": [],
+  "rotationTargets": [
+    {
+      "waypointRelativePos": 1.9500000000000002,
+      "rotationDegrees": 180.0,
+      "rotateFast": false
+    }
+  ],
   "constraintZones": [
     {
       "name": "New Constraints Zone",
-      "minWaypointRelativePos": 1.7,
-      "maxWaypointRelativePos": 2.0,
+      "minWaypointRelativePos": 2.7,
+      "maxWaypointRelativePos": 3.0,
       "constraints": {
         "maxVelocity": 2.0,
         "maxAcceleration": 1.0,
@@ -61,7 +83,7 @@
   "eventMarkers": [
     {
       "name": "New Event Marker",
-      "waypointRelativePos": 0.5,
+      "waypointRelativePos": 2.0,
       "command": {
         "type": "parallel",
         "data": {
@@ -85,13 +107,13 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": -176.9335144988741,
+    "rotation": -179.69029610004114,
     "rotateFast": false
   },
   "reversed": false,
-  "folder": "Source",
+  "folder": null,
   "previewStartingState": {
-    "rotation": 141.15310415119677,
+    "rotation": 144.8060927598971,
     "velocity": 0
   },
   "useDefaultConstraints": true

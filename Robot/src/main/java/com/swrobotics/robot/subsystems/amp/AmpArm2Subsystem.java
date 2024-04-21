@@ -4,6 +4,7 @@ import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.configs.VoltageConfigs;
 import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
@@ -51,8 +52,17 @@ public final class AmpArm2Subsystem extends SubsystemBase {
         config.Slot0.kD = NTData.AMP_ARM_KD.get();
         config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
         config.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
+        double peakVolts = NTData.AMP_ARM_PEAK_VOLTS.get();
+        config.Voltage.PeakForwardVoltage = peakVolts;
+        config.Voltage.PeakReverseVoltage = peakVolts;
         config.Feedback.SensorToMechanismRatio = motorToArmRatio;
         motor.getConfigurator().apply(config);
+
+        NTData.AMP_ARM_PEAK_VOLTS.onChange((v) -> {
+            motor.getConfigurator().apply(new VoltageConfigs()
+                .withPeakForwardVoltage(v)
+                .withPeakReverseVoltage(v));
+        });
 
         CANcoderConfiguration encoderConfig = new CANcoderConfiguration();
         encoderConfig.MagnetSensor.SensorDirection = SensorDirectionValue.Clockwise_Positive;

@@ -47,6 +47,7 @@ public final class NTData {
     public static final NTEntry<Double> AMP_ARM_EXTEND_POS = new NTDouble("Amp Arm/Extend Pos (deg)", 116).setPersistent();
     public static final NTEntry<Double> AMP_ARM_OUT_OF_THE_WAY_POS = new NTDouble("Amp Arm/Climb Out of the Way Pos (deg)", 90).setPersistent();
     public static final NTEntry<Double> AMP_ARM_GRAVITY_AMOUNT = new NTDouble("Amp Arm/Gravity (volts at horiz)", 0).setPersistent();
+    public static final NTEntry<Double> AMP_ARM_PEAK_VOLTS = new NTDouble("Amp Arm/Peak Output Voltage", 12).setPersistent();
 
     public static final NTEntry<Double> TRAP_FINGER_HOLD_ANGLE = new NTDouble("Trap Finger/Hold Angle (deg)", 0).setPersistent();
     public static final NTEntry<Double> TRAP_FINGER_RELEASE_ANGLE = new NTDouble("Trap Finger/Release Angle (deg)", 90).setPersistent();
