@@ -19,6 +19,7 @@ import com.swrobotics.robot.subsystems.speaker.PivotSubsystem;
 import com.swrobotics.robot.subsystems.speaker.ShooterSubsystem;
 import com.swrobotics.robot.subsystems.speaker.aim.AmpAimCalculator;
 import com.swrobotics.robot.subsystems.speaker.aim.LobCalculator;
+import com.swrobotics.robot.subsystems.speaker.aim.LowLobAimCalculator;
 import com.swrobotics.robot.subsystems.speaker.aim.ManualAimCalculator;
 import com.swrobotics.robot.subsystems.speaker.aim.TableAimCalculator;
 import com.swrobotics.robot.subsystems.swerve.SwerveDrive;
@@ -40,7 +41,8 @@ public class ControlBoard extends SubsystemBase {
      * Driver:
      * Left stick: translation
      * Right stick X: rotation
-     * Left bumper: robot relative
+     * Left bumper: high lob
+     * Left Trigger: low lob
      * Right trigger: aim at speaker
      * Right bumper: spin up flywheel
      * Dpad Left: Manual subwoofer shot
@@ -105,19 +107,28 @@ public class ControlBoard extends SubsystemBase {
         driver.start.onFalling(() -> robot.drive.setRotation(new Rotation2d()));
         driver.back.onFalling(() -> robot.drive.setRotation(new Rotation2d())); // Two buttons to reset gyro so the driver can't get confused
 
+        // new Trigger(driver.leftBumper::isPressed)
+        //         .onTrue(Commands.runOnce(() -> lobbing++))
+        //     .whileTrue(new AimTowardsLobCommand(robot.drive, robot.shooter))
+        //     .whileTrue(Commands.run(() -> robot.shooter.setTempAimCalculator(LobCalculator.INSTANCE)))
+        //     .onFalse(Commands.runOnce(() -> lobbing--))
+        //         .debounce(0.2, DebounceType.kRising) // Only debounce the shooting
+        //         .onTrue(Commands.runOnce(() -> lobbing++))
+        //     .onFalse(
+        //         Commands.run(() -> robot.indexer.setFeedToShooter(true)).withTimeout(0.5)
+        //         .andThen(Commands.runOnce(() -> {
+        //             robot.indexer.setFeedToShooter(false);
+        //             lobbing--;
+        //         })));
+
         new Trigger(driver.leftBumper::isPressed)
-                .onTrue(Commands.runOnce(() -> lobbing++))
             .whileTrue(new AimTowardsLobCommand(robot.drive, robot.shooter))
-            .whileTrue(Commands.run(() -> robot.shooter.setTempAimCalculator(LobCalculator.INSTANCE)))
-            .onFalse(Commands.runOnce(() -> lobbing--))
-                .debounce(0.2, DebounceType.kRising) // Only debounce the shooting
-                .onTrue(Commands.runOnce(() -> lobbing++))
-            .onFalse(
-                Commands.run(() -> robot.indexer.setFeedToShooter(true)).withTimeout(0.5)
-                .andThen(Commands.runOnce(() -> {
-                    robot.indexer.setFeedToShooter(false);
-                    lobbing--;
-                })));
+            .whileTrue(Commands.run(() -> robot.shooter.setTempAimCalculator(LobCalculator.INSTANCE)
+        ));
+
+        new Trigger(() -> driver.leftTrigger.isOutside(0.2))
+            .whileTrue(Commands.run(()-> robot.shooter.setTempAimCalculator(LowLobAimCalculator.INSTANCE)
+        ));
 
         new Trigger(this::driverWantsAim).whileTrue(new AimTowardsSpeakerCommand(
                 robot.drive,
