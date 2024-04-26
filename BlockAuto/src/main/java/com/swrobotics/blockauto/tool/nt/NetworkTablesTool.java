@@ -1,8 +1,7 @@
-package com.swrobotics.blockauto.tool.data.nt;
+package com.swrobotics.blockauto.tool.nt;
 
 import com.swrobotics.blockauto.BlockAuto;
 import com.swrobotics.blockauto.tool.Tool;
-import com.swrobotics.blockauto.tool.data.DataLogTool;
 import com.swrobotics.blockauto.tool.data.PlotDef;
 import com.swrobotics.blockauto.tool.data.ValueAccessor;
 import com.swrobotics.blockauto.util.ExpressionInput;
@@ -22,6 +21,8 @@ import java.util.function.Function;
 // FIXME-Future: Since NetworkTable#getSubTables and NetworkTable#getTopics always seem to
 //   return an empty set for NT4, we only use NT3 here, which may be removed from WPILib
 //   in the future
+// TODO: Remove the table view
+//  This means we can use NT4!!
 public final class NetworkTablesTool implements Tool {
     private static final String TITLE = "NetworkTables";
     private static final String METADATA_TABLE_NAME = "ShuffleLog_Meta";
@@ -65,13 +66,9 @@ public final class NetworkTablesTool implements Tool {
     private final Map<String, NTSubscriber> subscribers;
 
     public NetworkTablesTool(ExecutorService threadPool) {
-        if (BlockAuto.SIM_MODE) {
-            version = new ImInt(VERSION_NT3);
-            connectionMode = new ImInt(CONN_MODE_ADDRESS);
-        } else {
-            version = new ImInt(DEFAULT_VERSION);
-            connectionMode = new ImInt(DEFAULT_CONN_MODE);
-        }
+        version = new ImInt(DEFAULT_VERSION);
+        connectionMode = new ImInt(DEFAULT_CONN_MODE);
+
         host = new ImString(64);
         host.set(DEFAULT_HOST);
         portOrTeamNumber = new ImInt(getDefaultPortOrTeamNumber());
@@ -363,12 +360,6 @@ public final class NetworkTablesTool implements Tool {
         ImGui.pushID(name);
         ImGui.tableNextColumn();
         ImGui.treeNodeEx(name, ImGuiTreeNodeFlags.Leaf | ImGuiTreeNodeFlags.NoTreePushOnOpen);
-        if (DataLogTool.canPlot(valAcc.getType()) && ImGui.beginDragDropSource()) {
-            ImGui.text("NT: " + path);
-            ImGui.setDragDropPayload(
-                    DataLogTool.DRAG_DROP_IN_PAYLOAD, new PlotDef(name, path, valAcc));
-            ImGui.endDragDropSource();
-        }
         ImGui.tableNextColumn();
         ImGui.setNextItemWidth(-1);
         editFn.run();

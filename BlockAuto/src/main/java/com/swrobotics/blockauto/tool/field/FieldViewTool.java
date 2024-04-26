@@ -5,12 +5,9 @@ import static com.swrobotics.blockauto.util.ProcessingUtils.setPMatrix;
 import static processing.core.PConstants.P3D;
 
 import com.google.gson.JsonObject;
-import com.swrobotics.messenger.client.MessengerClient;
 import com.swrobotics.blockauto.BlockAuto;
 import com.swrobotics.blockauto.json.JsonObj;
 import com.swrobotics.blockauto.tool.ViewportTool;
-import com.swrobotics.blockauto.tool.data.nt.NetworkTablesTool;
-import com.swrobotics.blockauto.tool.smartdashboard.SmartDashboard;
 import com.swrobotics.blockauto.util.SmoothFloat;
 
 import imgui.ImGui;
@@ -36,6 +33,7 @@ import processing.opengl.PGraphicsOpenGL;
 import java.util.ArrayList;
 import java.util.List;
 
+// TODO: REMOVE 3d mode (there's no point)
 public final class FieldViewTool extends ViewportTool {
     public static final float LAYER_Z_SPACING = 0.05f;
 
@@ -79,8 +77,6 @@ public final class FieldViewTool extends ViewportTool {
 
     private final SmoothMatrix projection;
     private Matrix4f view;
-    private GizmoTarget gizmoTarget;
-    private int gizmoOp, gizmoMode;
     private final SmoothFloat cameraRotX, cameraRotY;
     private final SmoothFloat cameraTargetX, cameraTargetY, cameraTargetZ;
     private final SmoothFloat cameraDist;
@@ -92,7 +88,7 @@ public final class FieldViewTool extends ViewportTool {
     private float orthoScale;
     private float orthoCameraRotYTarget;
 
-    public FieldViewTool(BlockAuto log, SmartDashboard smartDashboard, NetworkTablesTool nt) {
+    public FieldViewTool(BlockAuto log) {
         // Be in 3d rendering mode
         super(
                 log,
@@ -100,15 +96,9 @@ public final class FieldViewTool extends ViewportTool {
                 ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse,
                 P3D);
 
-        MessengerClient msg = log.getMessenger();
         layers = new ArrayList<>();
         layers.add(new MeterGridLayer());
         layers.add(new FieldVectorLayer2024());
-        layers.add(new Field2dLayer(smartDashboard));
-//        layers.add(new PathfindingLayer(msg));
-        TagTrackerLayer tagTrackerLayer = new TagTrackerLayer();
-        layers.add(tagTrackerLayer);
-        nt.addListener(tagTrackerLayer);
 
         projection = new SmoothMatrix(SMOOTH);
 
@@ -118,9 +108,6 @@ public final class FieldViewTool extends ViewportTool {
         cameraTargetY = new SmoothFloat(SMOOTH, (float) HEIGHT / 2);
         cameraTargetZ = new SmoothFloat(SMOOTH, 0);
         cameraDist = new SmoothFloat(SMOOTH, 8);
-
-        gizmoOp = Operation.TRANSLATE;
-        gizmoMode = Mode.WORLD;
 
         viewMode = new ImInt(MODE_2D);
     }
@@ -221,31 +208,11 @@ public final class FieldViewTool extends ViewportTool {
         }
     }
 
-    public void setGizmoTarget(GizmoTarget target) {
-        gizmoTarget = target;
-    }
-
     @Override
     protected void drawGuiContent() {
         if (ImGui.beginTable(
                 "layout", 2, ImGuiTableFlags.BordersInner | ImGuiTableFlags.Resizable)) {
             ImGui.tableNextColumn();
-
-            ImGui.alignTextToFramePadding();
-            ImGui.text("Tool:");
-            ImGui.sameLine();
-            if (ImGui.radioButton("Move", gizmoOp == Operation.TRANSLATE))
-                gizmoOp = Operation.TRANSLATE;
-            ImGui.sameLine();
-            if (ImGui.radioButton("Rotate", gizmoOp == Operation.ROTATE))
-                gizmoOp = Operation.ROTATE;
-
-            ImGui.alignTextToFramePadding();
-            ImGui.text("Space:");
-            ImGui.sameLine();
-            if (ImGui.radioButton("World", gizmoMode == Mode.WORLD)) gizmoMode = Mode.WORLD;
-            ImGui.sameLine();
-            if (ImGui.radioButton("Local", gizmoMode == Mode.LOCAL)) gizmoMode = Mode.LOCAL;
 
             ImGui.alignTextToFramePadding();
             ImGui.text("View mode:");
@@ -274,25 +241,6 @@ public final class FieldViewTool extends ViewportTool {
             float x = pos.x + cursor.x;
             float y = pos.y + cursor.y;
 
-            boolean gizmoConsumesMouse = false;
-            if (gizmoTarget != null) {
-                // There's a significant chance these are wrong
-                float[] transArr = new float[16];
-                gizmoTarget.getTransform().get(transArr);
-                float[] viewArr = new float[16];
-                view.get(viewArr);
-                float[] projArr = new float[16];
-                projection.get().get(projArr);
-
-                ImGuizmo.setRect(x, y, size.x, size.y);
-                ImGuizmo.setAllowAxisFlip(true);
-                ImGuizmo.manipulate(viewArr, projArr, transArr, gizmoOp, gizmoMode);
-                if (ImGuizmo.isUsing()) {
-                    gizmoTarget.setTransform(new Matrix4f().set(transArr));
-                }
-                gizmoConsumesMouse = ImGuizmo.isOver();
-            }
-
             ImVec2 mouse = ImGui.getIO().getMousePos();
             float mouseX = mouse.x - x;
             float mouseY = mouse.y - y;
@@ -302,7 +250,7 @@ public final class FieldViewTool extends ViewportTool {
             prevMouseX = mouseX;
             prevMouseY = mouseY;
 
-            if (hovered && !gizmoConsumesMouse) {
+            if (hovered) {
                 ImGuiIO io = ImGui.getIO();
 
                 if (io.getMouseDown(ImGuiMouseButton.Right)

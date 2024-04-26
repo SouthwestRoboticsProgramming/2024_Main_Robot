@@ -3,22 +3,13 @@ package com.swrobotics.blockauto;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.swrobotics.messenger.client.MessengerClient;
 import com.swrobotics.blockauto.json.JsonObj;
 import com.swrobotics.blockauto.profiler.Profiler;
 import com.swrobotics.blockauto.tool.MenuBarTool;
-import com.swrobotics.blockauto.tool.PreMatchChecklistTool;
-import com.swrobotics.blockauto.tool.IndicatorsTool;
 import com.swrobotics.blockauto.tool.Tool;
-import com.swrobotics.blockauto.tool.data.DataLogTool;
-import com.swrobotics.blockauto.tool.data.nt.NetworkTablesTool;
+import com.swrobotics.blockauto.tool.nt.NetworkTablesTool;
 import com.swrobotics.blockauto.tool.field.FieldViewTool;
-import com.swrobotics.blockauto.tool.messenger.MessengerTool;
 import com.swrobotics.blockauto.tool.profile.BlockAutoProfilerTool;
-import com.swrobotics.blockauto.tool.sftp.SftpTool;
-import com.swrobotics.blockauto.tool.smartdashboard.SmartDashboard;
-import com.swrobotics.blockauto.tool.taskmanager.RoboRIOFilesTool;
-import com.swrobotics.blockauto.tool.taskmanager.TaskManagerTool;
 import com.swrobotics.blockauto.util.ExpressionInput;
 
 import edu.wpi.first.math.WPIMathJNI;
@@ -44,8 +35,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public final class BlockAuto extends PApplet {
-    public static boolean SIM_MODE;
-
     private static final String LAYOUT_FILE = "layout.ini";
     private static final String PERSISTENCE_FILE = "persistence.json";
     private static final int THREAD_POOL_SIZE = 4;
@@ -60,9 +49,7 @@ public final class BlockAuto extends PApplet {
 
     // Things shared between tools
     private JsonObj persistence;
-    //    private Properties persistence;
     private final ExecutorService threadPool = Executors.newFixedThreadPool(THREAD_POOL_SIZE);
-    private MessengerClient messenger;
 
     private long startTime;
 
@@ -91,6 +78,13 @@ public final class BlockAuto extends PApplet {
         size(width, height, P2D);
     }
 
+    private void initTools() {
+        tools.add(new MenuBarTool());
+        tools.add(new BlockAutoProfilerTool(this));
+        tools.add(new NetworkTablesTool(threadPool));
+        tools.add(new FieldViewTool(this));
+    }
+
     @Override
     public void setup() {
         surface.setResizable(true);
@@ -108,7 +102,7 @@ public final class BlockAuto extends PApplet {
         imGuiGlfw.init(windowHandle, true);
         imGuiGl3.init();
 
-        // Set default font
+        // Set default Processing font
         try {
             textFont(
                     new PFont(
@@ -119,31 +113,7 @@ public final class BlockAuto extends PApplet {
             e.printStackTrace();
         }
 
-        SmartDashboard smartDashboard = new SmartDashboard();
-        NetworkTablesTool nt = new NetworkTablesTool(threadPool);
-        nt.addListener(smartDashboard);
-
-        tools.add(new MenuBarTool(this, smartDashboard));
-        MessengerTool msg = new MessengerTool(this);
-        tools.add(msg);
-        tools.add(new BlockAutoProfilerTool(this));
-
-        DataLogTool dataLog = new DataLogTool(this);
-        tools.add(dataLog);
-        tools.add(nt);
-        tools.add(smartDashboard);
-
-        tools.add(new TaskManagerTool(this, "TaskManager"));
-        tools.add(new RoboRIOFilesTool(this));
-        tools.add(new FieldViewTool(this, smartDashboard, nt));
-        if (!SIM_MODE) tools.add(new PreMatchChecklistTool(msg));
-
-        tools.add(new SftpTool(threadPool));
-
-        IndicatorsTool ready = new IndicatorsTool();
-        nt.addListener(ready);
-        tools.add(ready);
-
+        initTools();
         for (Tool tool : tools) {
             tool.load(persistence);
         }
@@ -154,12 +124,6 @@ public final class BlockAuto extends PApplet {
     @Override
     public void draw() {
         Profiler.beginMeasurements("Root");
-
-        if (messenger != null) {
-            Profiler.push("Read Messages");
-            messenger.readMessages();
-            Profiler.pop();
-        }
 
         Profiler.push("Begin GUI frame");
         imGuiGlfw.flushEvents();
@@ -174,15 +138,7 @@ public final class BlockAuto extends PApplet {
 
         for (Tool tool : tools) {
             Profiler.push(tool.getClass().getSimpleName());
-
-            // if (going to crash) { dont(); }
-            try {
-                tool.process();
-            } catch (Throwable t) {
-                // Log it and ignore
-                t.printStackTrace();
-            }
-
+            tool.process();
             Profiler.pop();
         }
         tools.addAll(addedTools);
@@ -205,8 +161,6 @@ public final class BlockAuto extends PApplet {
 
     @Override
     public void exit() {
-        messenger.disconnect();
-
         ImPlot.destroyContext(imPlotCtx);
         ImGui.destroyContext();
 
@@ -243,16 +197,7 @@ public final class BlockAuto extends PApplet {
         return (System.currentTimeMillis() - startTime) / 1000.0;
     }
 
-    public MessengerClient getMessenger() {
-        return messenger;
-    }
-
-    public void setMessenger(MessengerClient messenger) {
-        this.messenger = messenger;
-    }
-
     public static void main(String[] args) {
-        SIM_MODE = args.length >= 1 && args[0].equals("sim");
         PApplet.main(BlockAuto.class);
     }
 }

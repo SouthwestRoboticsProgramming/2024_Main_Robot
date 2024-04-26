@@ -1,4 +1,4 @@
-package com.swrobotics.blockauto.tool.data.nt;
+package com.swrobotics.blockauto.tool.nt;
 
 import edu.wpi.first.networktables.*;
 
