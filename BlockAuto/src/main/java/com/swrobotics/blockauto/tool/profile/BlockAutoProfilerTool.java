@@ -15,7 +15,7 @@ public final class BlockAutoProfilerTool extends ProfilerTool {
     private final String vendor, renderer, version, glslVersion;
 
     public BlockAutoProfilerTool(BlockAuto log) {
-        super(log, "ShuffleLog Profiler");
+        super(log, "BlockAuto Profiler");
 
         // Get OpenGL info for debugging
         vendor = GL11.glGetString(GL11.GL_VENDOR);

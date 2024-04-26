@@ -134,7 +134,7 @@ public final class BlockAuto extends PApplet {
         Profiler.pop();
 
         background(210);
-        ImGui.dockSpaceOverViewport();
+//        ImGui.dockSpaceOverViewport();
 
         for (Tool tool : tools) {
             Profiler.push(tool.getClass().getSimpleName());

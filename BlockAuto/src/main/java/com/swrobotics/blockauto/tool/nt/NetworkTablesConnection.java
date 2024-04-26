@@ -75,14 +75,12 @@ public final class NetworkTablesConnection {
 
     private final ExecutorService threadPool;
     private final Set<NTInstanceListener> listeners;
-    //    private final SmartDashboard smartDashboard;
 
     private NetworkTableInstance instance;
     private Future<?> stopFuture;
     private Boolean isNt4;
     private Params params;
 
-    private NetworkTableRepr rootTable;
     private final AtomicInteger activeInstances;
 
     public NetworkTablesConnection(ExecutorService threadPool) {
@@ -115,7 +113,6 @@ public final class NetworkTablesConnection {
             }
 
             this.isNt4 = isNt4;
-            rootTable = new NetworkTableRepr(instance.getTable("/"));
             for (NTInstanceListener listener : listeners) listener.onNTInit(instance);
 
             this.params = params;
@@ -128,10 +125,6 @@ public final class NetworkTablesConnection {
         // Wait for the stop future to finish so we don't create
         // too many instances (there is a maximum of 16)
         if (stopFuture != null && !stopFuture.isDone()) return;
-
-        // Dispose of cached entries if they exist
-        if (rootTable != null) rootTable.close();
-        rootTable = null;
 
         // Save a reference to the current instance and clear instance variable so
         // the instance can't be used after closing
@@ -169,11 +162,6 @@ public final class NetworkTablesConnection {
 
     public void addListener(NTInstanceListener listener) {
         listeners.add(listener);
-    }
-
-    // Can be null if client is not running
-    public NetworkTableRepr getRootTable() {
-        return rootTable;
     }
 
     public NetworkTableInstance getInstance() {
