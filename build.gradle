@@ -108,7 +108,7 @@ Subprocess execJava(String name, String dir, String pathToJar, String... args) {
 List<Subprocess> parallelProcesses = new ArrayList<>()
 
 task simEverything_begin {
-    dependsOn ":ShuffleLog:build"
+//    dependsOn ":ShuffleLog:build"
 
     // Ensure robot compiles before starting processes
     // This prevents build from failing after processes are launched
@@ -124,7 +124,7 @@ task simEverything_begin {
         // This must happen after all build stages that could fail!
         parallelProcesses.add(execRust("Messenger", "Messenger/messenger-server"))
         parallelProcesses.add(execRust("Pathfinding", "Pathfinding"))
-        parallelProcesses.add(execJava("ShuffleLog", "ShuffleLog", "build/libs/ShuffleLog-2024.jar", "sim"))
+//        parallelProcesses.add(execJava("ShuffleLog", "ShuffleLog", "build/libs/ShuffleLog-2024.jar", "sim"))
     }
 }
 
