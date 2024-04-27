@@ -5,14 +5,17 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.swrobotics.blockauto.json.JsonObj;
 import com.swrobotics.blockauto.profiler.Profiler;
-import com.swrobotics.blockauto.tool.MenuBarTool;
-import com.swrobotics.blockauto.tool.Tool;
-import com.swrobotics.blockauto.tool.nt.NetworkTablesTool;
-import com.swrobotics.blockauto.tool.field.FieldViewTool;
-import com.swrobotics.blockauto.tool.profile.BlockAutoProfilerTool;
+import com.swrobotics.blockauto.view.MenuBarView;
+import com.swrobotics.blockauto.view.View;
+import com.swrobotics.blockauto.view.blocks.BlockCanvasView;
+import com.swrobotics.blockauto.view.blocks.BlockPaletteView;
+import com.swrobotics.blockauto.view.nt.NTInstanceListener;
+import com.swrobotics.blockauto.view.nt.NetworkTablesView;
+import com.swrobotics.blockauto.view.field.FieldView;
 import com.swrobotics.blockauto.util.ExpressionInput;
 
 import edu.wpi.first.math.WPIMathJNI;
+import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.NetworkTablesJNI;
 import edu.wpi.first.util.CombinedRuntimeLoader;
 import edu.wpi.first.util.WPIUtilJNI;
@@ -43,9 +46,9 @@ public final class BlockAuto extends PApplet {
     private final ImGuiImplGl3 imGuiGl3 = new ImGuiImplGl3();
     private ImPlotContext imPlotCtx;
 
-    private final List<Tool> tools = new ArrayList<>();
-    private final List<Tool> addedTools = new ArrayList<>();
-    private final List<Tool> removedTools = new ArrayList<>();
+    private final List<View> views = new ArrayList<>();
+    private final List<View> addedViews = new ArrayList<>();
+    private final List<View> removedViews = new ArrayList<>();
 
     // Things shared between tools
     private JsonObj persistence;
@@ -79,10 +82,13 @@ public final class BlockAuto extends PApplet {
     }
 
     private void initTools() {
-        tools.add(new MenuBarTool());
-        tools.add(new BlockAutoProfilerTool(this));
-        tools.add(new NetworkTablesTool(threadPool));
-        tools.add(new FieldViewTool(this));
+        NetworkTablesView nt = new NetworkTablesView(threadPool);
+
+        views.add(new MenuBarView());
+        views.add(nt);
+        views.add(new FieldView(this));
+        views.add(new BlockPaletteView());
+        views.add(new BlockCanvasView());
     }
 
     @Override
@@ -114,8 +120,8 @@ public final class BlockAuto extends PApplet {
         }
 
         initTools();
-        for (Tool tool : tools) {
-            tool.load(persistence);
+        for (View view : views) {
+            view.load(persistence);
         }
 
         startTime = System.currentTimeMillis();
@@ -136,15 +142,15 @@ public final class BlockAuto extends PApplet {
         background(210);
 //        ImGui.dockSpaceOverViewport();
 
-        for (Tool tool : tools) {
-            Profiler.push(tool.getClass().getSimpleName());
-            tool.process();
+        for (View view : views) {
+            Profiler.push(view.getClass().getSimpleName());
+            view.process();
             Profiler.pop();
         }
-        tools.addAll(addedTools);
-        tools.removeAll(removedTools);
-        addedTools.clear();
-        removedTools.clear();
+        views.addAll(addedViews);
+        views.removeAll(removedViews);
+        addedViews.clear();
+        removedViews.clear();
 
         Profiler.push("Render GUI");
         Profiler.push("Flush");
@@ -165,8 +171,8 @@ public final class BlockAuto extends PApplet {
         ImGui.destroyContext();
 
         JsonObject persistence = new JsonObject();
-        for (Tool tool : tools) {
-            tool.store(persistence);
+        for (View view : views) {
+            view.store(persistence);
         }
 
         try (FileWriter writer = new FileWriter(PERSISTENCE_FILE)) {
@@ -185,12 +191,12 @@ public final class BlockAuto extends PApplet {
         if (key == ESC) key = 0;
     }
 
-    public void addTool(Tool tool) {
-        addedTools.add(tool);
+    public void addTool(View view) {
+        addedViews.add(view);
     }
 
-    public void removeTool(Tool tool) {
-        removedTools.add(tool);
+    public void removeTool(View view) {
+        removedViews.add(view);
     }
 
     public double getTimestamp() {
