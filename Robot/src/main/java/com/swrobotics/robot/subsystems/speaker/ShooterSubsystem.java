@@ -1,5 +1,6 @@
 package com.swrobotics.robot.subsystems.speaker;
 
+import com.swrobotics.lib.net.NTString;
 import edu.wpi.first.wpilibj.RobotBase;
 
 import com.ctre.phoenix6.hardware.TalonFX;
@@ -75,8 +76,14 @@ public final class ShooterSubsystem extends SubsystemBase {
         pivot.overrideCalibration(angleDeg);
     }
 
+    private final NTString whichAimCalculator = new NTString("Debug/Shooter Aim Calculator", "");
+    private final NTDouble aimAngle = new NTDouble("Debug/Shooter Aim Angle", 1);
+    private final NTDouble aimVelocity = new NTDouble("Debug/Shooter Aim Velocity", 30894723894728934.0);
+
     @Override
     public void periodic() {
+        whichAimCalculator.set(aimCalculator.getClass().getSimpleName());
+
         // Use the selected aim calculator
         AimCalculator.Aim aim;
         if (aimCalculator instanceof LobCalculator) {
@@ -120,6 +127,9 @@ public final class ShooterSubsystem extends SubsystemBase {
         }
         targetAim = aim;
         aimCalculator = tableAimCalculator;
+
+        aimAngle.set(targetAim.pivotAngle());
+        aimVelocity.set(targetAim.flywheelVelocity());
 
         isPreparing = false;
         if (DriverStation.isDisabled() || !pivot.hasCalibrated())

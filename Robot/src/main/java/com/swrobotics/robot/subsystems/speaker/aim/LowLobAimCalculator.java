@@ -5,7 +5,7 @@ public class LowLobAimCalculator implements AimCalculator {
 
     @Override
     public Aim calculateAim(double distanceToSpeaker) {
-        return new Aim(40, 21, distanceToSpeaker);
+        return new Aim(30, Math.toRadians(25), distanceToSpeaker);
     }
     
 }

@@ -5,6 +5,7 @@ import com.swrobotics.lib.net.NTString;
 import com.swrobotics.robot.config.IOAllocation;
 import com.swrobotics.robot.config.NTData;
 import edu.wpi.first.wpilibj.DigitalInput;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.motorcontrol.VictorSP;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -102,7 +103,7 @@ public final class IndexerSubsystem extends SubsystemBase {
                 case FEED_FORWARD -> {
                     top = NTData.INDEXER_TOP_TAKE_SPEED.get();
                     if (hasPiece)
-                        switchState(State.FEED_REVERSE);
+                        switchState(DriverStation.isAutonomous() ? State.HOLD : State.FEED_REVERSE);
                 }
                 case FEED_REVERSE -> {
                     top = -NTData.INDEXER_TOP_TAKE_SPEED.get();

@@ -123,12 +123,15 @@ public class ControlBoard extends SubsystemBase {
 
         new Trigger(driver.leftBumper::isPressed)
             .whileTrue(new AimTowardsLobCommand(robot.drive, robot.shooter))
-            .whileTrue(Commands.run(() -> robot.shooter.setTempAimCalculator(LobCalculator.INSTANCE)
-        ));
+            .whileTrue(Commands.run(() -> robot.shooter.setTempAimCalculator(LobCalculator.INSTANCE)))
+                .onTrue(Commands.runOnce(() -> lobbing++))
+                .onFalse(Commands.runOnce(() -> lobbing--));
 
         new Trigger(() -> driver.leftTrigger.isOutside(0.2))
-            .whileTrue(Commands.run(()-> robot.shooter.setTempAimCalculator(LowLobAimCalculator.INSTANCE)
-        ));
+                .whileTrue(new AimTowardsLobCommand(robot.drive, robot.shooter))
+            .whileTrue(Commands.run(() -> robot.shooter.setTempAimCalculator(LowLobAimCalculator.INSTANCE)))
+                .onTrue(Commands.runOnce(() -> lobbing++))
+                .onFalse(Commands.runOnce(() -> lobbing--));
 
         new Trigger(this::driverWantsAim).whileTrue(new AimTowardsSpeakerCommand(
                 robot.drive,
@@ -250,6 +253,9 @@ public class ControlBoard extends SubsystemBase {
 
     @Override
     public void periodic() {
+        if (DriverStation.isDisabled())
+            lobbing = 0;
+
         if (!DriverStation.isTeleop()) {
             climbState = ClimbState.IDLE;
             robot.indexer.endReverse();

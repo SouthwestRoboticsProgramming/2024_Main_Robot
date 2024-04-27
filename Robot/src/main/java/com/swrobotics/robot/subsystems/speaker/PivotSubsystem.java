@@ -60,7 +60,7 @@ public final class PivotSubsystem extends SubsystemBase {
 
     private static final double motorToPivotRatio = 10 * 9 * 4;
     private static final double hardStopAngle = 22 / 360.0;
-    private static final double maxAngle = (90 - 20) / 360.0;
+    private static final double maxAngle = (64) / 360.0;
 
     private final TalonFXWithSim motor = new TalonFXWithSim(
             IOAllocation.CAN.SHOOTER_PIVOT_MOTOR,
