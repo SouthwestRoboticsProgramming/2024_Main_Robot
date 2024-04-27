@@ -218,11 +218,16 @@ public class RobotContainer {
         lights.disabledInit();
 
         String song = musicSelector.get();
-        if (hasDoneFirstInit && !song.equals("None")) {
+        boolean wasEStopped = DriverStation.isEStopped();
+
+        if (hasDoneFirstInit && (!song.equals("None") || wasEStopped)) {
             if (song.equals("Random")) {
                 List<String> songs = MusicSubsystem.getAvailableSongs();
                 song = songs.get((int) (Math.random() * songs.size()));
             }
+
+            if (wasEStopped)
+                song = "music" + File.separator + "abort.chrp";
 
             CommandScheduler.getInstance().schedule(musicCommand = new PlaySongCommand(music, song));
         }

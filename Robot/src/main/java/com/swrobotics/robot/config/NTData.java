@@ -59,10 +59,9 @@ public final class NTData {
     public static final NTEntry<Double> TRAP_FINGER_HOLD_ANGLE = new NTDouble("Trap Finger/Hold Angle (deg)", 0).setPersistent();
     public static final NTEntry<Double> TRAP_FINGER_RELEASE_ANGLE = new NTDouble("Trap Finger/Release Angle (deg)", 90).setPersistent();
 
-    public static final NTEntry<Double> INDEXER_SIDES_TAKE_SPEED = new NTDouble("Indexer/Sides/Take Speed (pct)", 0.9).setPersistent();
-    public static final NTEntry<Double> INDEXER_SIDES_FEED_SPEED = new NTDouble("Indexer/Sides/Feed Speed (pct)", 0.7).setPersistent();
-    public static final NTEntry<Double> INDEXER_TOP_TAKE_SPEED = new NTDouble("Indexer/Top/Take Speed (pct)", 0.3).setPersistent();
+    public static final NTEntry<Double> INDEXER_TOP_TAKE_SPEED = new NTDouble("Indexer/Top/Take Speed (pct)", 0.7).setPersistent();
     public static final NTEntry<Double> INDEXER_TOP_FEED_SPEED = new NTDouble("Indexer/Top/Feed Speed (pct)", 0.6).setPersistent();
+    public static final NTEntry<Double> INDEXER_TOP_INDEX_SPEED = new NTDouble("Indexer/Top/Index Speed (pct)", 0.4).setPersistent();
     public static final NTEntry<Double> INDEXER_FEED_ADDITIONAL_TIME = new NTDouble("Indexer/Feed Additional Time (sec)", 0.0).setPersistent();
     public static final NTEntry<Boolean> INDEXER_HAS_PIECE = new NTBoolean("Indexer/Has Piece", false);
 
