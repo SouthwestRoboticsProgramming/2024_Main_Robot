@@ -4,8 +4,10 @@ import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableEvent;
 import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.wpilibj.DriverStation;
 
 import java.util.EnumSet;
+import java.util.Objects;
 
 /**
  * Represents one data entry in NetworkTables.
@@ -14,6 +16,7 @@ import java.util.EnumSet;
  */
 public abstract class NTPrimitive<T> extends NTEntry<T> {
     protected final NetworkTableEntry entry;
+    private final T defaultVal;
 
     /**
      * Creates a new entry with a specified path. The path can be split using the '/' character to
@@ -24,6 +27,8 @@ public abstract class NTPrimitive<T> extends NTEntry<T> {
      * @param path path
      */
     public NTPrimitive(String path, T defaultVal) {
+        this.defaultVal = defaultVal;
+
         NetworkTableInstance inst = NetworkTableInstance.getDefault();
         NetworkTable table = inst.getTable("");
         String[] parts = path.split("/");
@@ -39,6 +44,11 @@ public abstract class NTPrimitive<T> extends NTEntry<T> {
     @Override
     public NTEntry<T> setPersistent() {
         entry.setPersistent();
+
+        // Notify if we forgot to update default in code
+        if (!Objects.equals(defaultVal, get()))
+            DriverStation.reportWarning("NT value differs from default: " + entry.getName(), false);
+
         return this;
     }
 

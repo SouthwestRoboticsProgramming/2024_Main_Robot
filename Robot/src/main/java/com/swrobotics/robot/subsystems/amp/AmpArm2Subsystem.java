@@ -1,10 +1,8 @@
 package com.swrobotics.robot.subsystems.amp;
 
 import com.ctre.phoenix6.StatusSignal;
-import com.ctre.phoenix6.configs.CANcoderConfiguration;
-import com.ctre.phoenix6.configs.Slot0Configs;
-import com.ctre.phoenix6.configs.TalonFXConfiguration;
-import com.ctre.phoenix6.configs.VoltageConfigs;
+import com.ctre.phoenix6.configs.*;
+import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
@@ -30,7 +28,7 @@ public final class AmpArm2Subsystem extends SubsystemBase {
     private static final double motorToArmRatio = 50;
     private static final double encoderToArmRatio = 2;
 
-    private static final double cancoderOffset = 0.317627;
+    private static final double cancoderOffset = 0.163330;
 
     private Position targetPos;
 
@@ -50,13 +48,29 @@ public final class AmpArm2Subsystem extends SubsystemBase {
         TalonFXConfiguration config = new TalonFXConfiguration();
         config.Slot0.kP = NTData.AMP_ARM_KP.get();
         config.Slot0.kD = NTData.AMP_ARM_KD.get();
-        config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+        config.Slot0.kV = NTData.AMP_ARM_KV.get();
+        config.Slot0.kA = NTData.AMP_ARM_KA.get();
+        config.MotorOutput.NeutralMode = NeutralModeValue.Coast;
         config.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
         double peakVolts = NTData.AMP_ARM_PEAK_VOLTS.get();
         config.Voltage.PeakForwardVoltage = peakVolts;
         config.Voltage.PeakReverseVoltage = peakVolts;
         config.Feedback.SensorToMechanismRatio = motorToArmRatio;
+        config.CurrentLimits.SupplyCurrentLimitEnable = false;
+        config.CurrentLimits.StatorCurrentLimitEnable = true;
+        config.CurrentLimits.StatorCurrentLimit = NTData.AMP_ARM_CURRENT_LIMIT.get();
+        config.MotionMagic.MotionMagicCruiseVelocity = NTData.AMP_ARM_MM_CRUISE_VELOCITY.get();
+        config.MotionMagic.MotionMagicAcceleration = NTData.AMP_ARM_MM_ACCEL.get();
+        config.MotionMagic.MotionMagicJerk = NTData.AMP_ARM_MM_JERK.get();
         motor.getConfigurator().apply(config);
+
+        NTData.AMP_ARM_CURRENT_LIMIT.onChange((limit) -> {
+            CurrentLimitsConfigs limits = new CurrentLimitsConfigs();
+            limits.SupplyCurrentLimitEnable = false;
+            limits.StatorCurrentLimitEnable = true;
+            limits.StatorCurrentLimit = limit;
+            motor.getConfigurator().apply(limits);
+        });
 
         NTData.AMP_ARM_PEAK_VOLTS.onChange((v) -> {
             motor.getConfigurator().apply(new VoltageConfigs()
@@ -79,14 +93,30 @@ public final class AmpArm2Subsystem extends SubsystemBase {
 
         targetPos = Position.RETRACT;
 
-        NTData.AMP_ARM_KP.onChange((p) -> updatePD());
-        NTData.AMP_ARM_KD.onChange((d) -> updatePD());
+        NTData.AMP_ARM_KP.onChange((p) -> updatePDVA());
+        NTData.AMP_ARM_KD.onChange((d) -> updatePDVA());
+        NTData.AMP_ARM_KV.onChange((v) -> updatePDVA());
+        NTData.AMP_ARM_KA.onChange((a) -> updatePDVA());
+
+        NTData.AMP_ARM_MM_CRUISE_VELOCITY.onChange((v) -> updateMotionMagic());
+        NTData.AMP_ARM_MM_ACCEL.onChange((a) -> updateMotionMagic());
+        NTData.AMP_ARM_MM_JERK.onChange((j) -> updateMotionMagic());
     }
 
-    private void updatePD() {
+    private void updateMotionMagic() {
+        MotionMagicConfigs config = new MotionMagicConfigs();
+        config.MotionMagicCruiseVelocity = NTData.AMP_ARM_MM_CRUISE_VELOCITY.get();
+        config.MotionMagicAcceleration = NTData.AMP_ARM_MM_ACCEL.get();
+        config.MotionMagicJerk = NTData.AMP_ARM_MM_JERK.get();
+        motor.getConfigurator().apply(config);
+    }
+
+    private void updatePDVA() {
         motor.getConfigurator().apply(new Slot0Configs()
         .withKP(NTData.AMP_ARM_KP.get())
-        .withKD(NTData.AMP_ARM_KD.get()));
+        .withKD(NTData.AMP_ARM_KD.get())
+        .withKV(NTData.AMP_ARM_KV.get())
+        .withKA(NTData.AMP_ARM_KA.get()));
     }
 
     // public void setOut(boolean out) {
@@ -107,7 +137,8 @@ public final class AmpArm2Subsystem extends SubsystemBase {
     public void periodic() {
         encoderPosition.refresh();
         motorPosition.refresh();
-        motor.setControl(new PositionVoltage(targetPos.positionNt.get() / 360.0).withFeedForward(calcFeedforwardVolts(motorPosition.getValue())));
+//        motor.setControl(new PositionVoltage(targetPos.positionNt.get() / 360.0).withFeedForward(calcFeedforwardVolts(motorPosition.getValue())));
+        motor.setControl(new MotionMagicVoltage(targetPos.positionNt.get() / 360.0));
         currentPosition.set(motorPosition.getValue() * 360);
         d.set(encoderPosition.getValue() * 360);
     }
