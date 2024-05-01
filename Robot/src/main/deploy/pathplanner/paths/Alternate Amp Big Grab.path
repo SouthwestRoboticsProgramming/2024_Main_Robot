@@ -3,25 +3,25 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 3.0486475648877223,
-        "y": 5.570789118430089
+        "x": 4.889100989964744,
+        "y": 6.365827630508831
       },
       "prevControl": null,
       "nextControl": {
-        "x": 5.253164694363576,
-        "y": 7.145128364330803
+        "x": 5.969586966951711,
+        "y": 6.685730815906077
       },
       "isLocked": false,
-      "linkedName": null
+      "linkedName": "End of Center A Score"
     },
     {
       "anchor": {
-        "x": 8.001290988336962,
-        "y": 5.905547993432169
+        "x": 8.031780128908565,
+        "y": 5.902679157415878
       },
       "prevControl": {
-        "x": 6.6447690730139275,
-        "y": 6.829386194384923
+        "x": 7.264668217555293,
+        "y": 6.4286166984470485
       },
       "nextControl": null,
       "isLocked": false,
@@ -29,19 +29,7 @@
     }
   ],
   "rotationTargets": [],
-  "constraintZones": [
-    {
-      "name": "New Constraints Zone",
-      "minWaypointRelativePos": 0.85,
-      "maxWaypointRelativePos": 1.0,
-      "constraints": {
-        "maxVelocity": 2.0,
-        "maxAcceleration": 1.0,
-        "maxAngularVelocity": 540.0,
-        "maxAngularAcceleration": 640.0
-      }
-    }
-  ],
+  "constraintZones": [],
   "eventMarkers": [],
   "globalConstraints": {
     "maxVelocity": 5.7,
@@ -51,13 +39,13 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 150.30748611161152,
+    "rotation": 149.73463314117012,
     "rotateFast": false
   },
   "reversed": false,
-  "folder": null,
+  "folder": "Amp",
   "previewStartingState": {
-    "rotation": 180.0,
+    "rotation": -172.00447350996492,
     "velocity": 0
   },
   "useDefaultConstraints": true

@@ -63,11 +63,13 @@ public final class RobotCommands {
         );
     }
 
-    public static Command intakeUntilNote(RobotContainer robot) {
+    public static Command intakeUntilNote(RobotContainer robot, boolean reindex) {
         return Commands.sequence(
+                Commands.runOnce(() -> robot.indexer.setAutoReindexEnable(reindex)),
             new IntakeSetCommand(robot.intake, State.INTAKE),
             Commands.waitUntil(() -> robot.indexer.hasPiece()).withTimeout(3.0),
-            new IntakeSetCommand(robot.intake, State.OFF)
+            new IntakeSetCommand(robot.intake, State.OFF),
+                Commands.runOnce(() -> robot.indexer.setAutoReindexEnable(false))
         );
     }
 

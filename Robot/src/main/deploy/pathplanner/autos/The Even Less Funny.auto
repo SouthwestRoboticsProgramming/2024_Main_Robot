@@ -2,8 +2,8 @@
   "version": 1.0,
   "startingPose": {
     "position": {
-      "x": 1.4408703461281565,
-      "y": 4.525637769224256
+      "x": 1.42964223436924,
+      "y": 4.132284997120721
     },
     "rotation": 180.0
   },
@@ -20,7 +20,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Source Center A Fast From Subwoofer"
+            "pathName": "Source Center B Fast From Subwoofer"
           }
         },
         {

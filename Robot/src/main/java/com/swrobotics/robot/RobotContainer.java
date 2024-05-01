@@ -5,6 +5,7 @@ import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.commands.PathPlannerAuto;
 import com.swrobotics.lib.field.FieldInfo;
+import com.swrobotics.lib.net.NTBoolean;
 import com.swrobotics.messenger.client.MessengerClient;
 import com.swrobotics.robot.commands.RobotCommands;
 import com.swrobotics.robot.commands.IntakeSetCommand;
@@ -111,7 +112,8 @@ public class RobotContainer {
         // Register Named Commands for Auto
         NamedCommands.registerCommand("Intake On", new IntakeSetCommand(intake, IntakeSubsystem.State.INTAKE));
         NamedCommands.registerCommand("Intake Off", new IntakeSetCommand(intake, IntakeSubsystem.State.OFF));
-        NamedCommands.registerCommand("Intake Until Note", RobotCommands.intakeUntilNote(this));
+        NamedCommands.registerCommand("Intake Until Note", RobotCommands.intakeUntilNote(this, false));
+        NamedCommands.registerCommand("Intake Until Note And Reindex", RobotCommands.intakeUntilNote(this, true));
         NamedCommands.registerCommand("Shoot", RobotCommands.aimAndShoot(this, false, true));
         NamedCommands.registerCommand("Shoot Quick", RobotCommands.shootQuick(this));
         NamedCommands.registerCommand("Shoot No Vision", RobotCommands.aimAndShoot(this, false, false));
@@ -212,15 +214,26 @@ public class RobotContainer {
         return entries;
     }
 
-    private boolean hasDoneFirstInit = false;
-    private Command musicCommand;
-    public void disabledInit() {
-        lights.disabledInit();
+    private final NTBoolean PLAY_MUSIC_NOW = new NTBoolean("Play Music Now", false);
+    {
+        PLAY_MUSIC_NOW.onChange((v) -> {
+            if (!v) return;
+            playSong();
+            PLAY_MUSIC_NOW.set(false);
+        });
+    }
+
+    private boolean hasDoneInitSong = false;
+    private void playSong() {
+        if (!hasDoneInitSong) {
+            hasDoneInitSong = true;
+            return;
+        }
 
         String song = musicSelector.get();
         boolean wasEStopped = DriverStation.isEStopped();
 
-        if (hasDoneFirstInit && (!song.equals("None") || wasEStopped)) {
+        if (!song.equals("None") || wasEStopped) {
             if (song.equals("Random")) {
                 List<String> songs = MusicSubsystem.getAvailableSongs();
                 song = songs.get((int) (Math.random() * songs.size()));
@@ -231,7 +244,12 @@ public class RobotContainer {
 
             CommandScheduler.getInstance().schedule(musicCommand = new PlaySongCommand(music, song));
         }
-        hasDoneFirstInit = true;
+    }
+
+    private Command musicCommand;
+    public void disabledInit() {
+        lights.disabledInit();
+        playSong();
     }
 
     public void disabledExit() {

@@ -43,9 +43,22 @@
           }
         },
         {
-          "type": "path",
+          "type": "race",
           "data": {
-            "pathName": "Big"
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "Big"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "Intake Until Note And Reindex"
+                }
+              }
+            ]
           }
         },
         {
@@ -73,7 +86,7 @@
               {
                 "type": "named",
                 "data": {
-                  "name": "Intake Until Note"
+                  "name": "Intake Until Note And Reindex"
                 }
               }
             ]

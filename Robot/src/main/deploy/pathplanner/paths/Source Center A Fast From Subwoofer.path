@@ -3,13 +3,13 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 1.3005404928188775,
-        "y": 4.268366371490578
+        "x": 1.4235971627528654,
+        "y": 4.075308180082777
       },
       "prevControl": null,
       "nextControl": {
-        "x": 2.1074371493472333,
-        "y": 1.5904050041718318
+        "x": 2.2304938192812225,
+        "y": 1.3973468127640305
       },
       "isLocked": false,
       "linkedName": null
@@ -64,7 +64,7 @@
             {
               "type": "named",
               "data": {
-                "name": "Intake Until Note"
+                "name": "Intake Until Note And Reindex"
               }
             }
           ]
@@ -86,7 +86,7 @@
   "reversed": false,
   "folder": "Source",
   "previewStartingState": {
-    "rotation": 128.61125252036402,
+    "rotation": 179.68220263550282,
     "velocity": 0
   },
   "useDefaultConstraints": true

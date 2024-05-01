@@ -175,11 +175,13 @@ public class ControlBoard extends SubsystemBase {
     }
 
     private boolean driverWantsSnapCloser() {
-        return driverSnapCloserDebounce.calculate(driver.dpad.up.isPressed());
+        return false;
+//        return driverSnapCloserDebounce.calculate(driver.dpad.up.isPressed());
     }
 
     private boolean driverWantsSnapFarther() {
-        return driverSnapFartherDebounce.calculate(driver.dpad.down.isPressed());
+        return false;
+//        return driverSnapFartherDebounce.calculate(driver.dpad.down.isPressed());
     }
 
     private boolean driverWantsAim() {
@@ -286,6 +288,13 @@ public class ControlBoard extends SubsystemBase {
             pivotAdjust.set(pivotAdjust.get() + adjustDeg);
         if (operator.dpad.down.isRising())
             pivotAdjust.set(pivotAdjust.get() - adjustDeg);
+
+
+        double adjustPower = 0.2;
+        if (driver.dpad.up.isRising())
+            NTData.SHOOTER_LOB_POWER_COEFFICIENT.set(NTData.SHOOTER_LOB_POWER_COEFFICIENT.get() + adjustPower);
+        if (driver.dpad.down.isRising())
+            NTData.SHOOTER_LOB_POWER_COEFFICIENT.set(NTData.SHOOTER_LOB_POWER_COEFFICIENT.get() - adjustPower);
 
 
         Translation2d translation = getDriveTranslation();

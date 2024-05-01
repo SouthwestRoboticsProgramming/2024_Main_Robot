@@ -2,8 +2,8 @@
   "version": 1.0,
   "startingPose": {
     "position": {
-      "x": 1.3576779647621067,
-      "y": 5.537862667174266
+      "x": 1.4116007499898304,
+      "y": 6.481317361828382
     },
     "rotation": 180.0
   },
@@ -73,7 +73,7 @@
               {
                 "type": "named",
                 "data": {
-                  "name": "Intake Until Note"
+                  "name": "Intake Until Note And Reindex"
                 }
               }
             ]

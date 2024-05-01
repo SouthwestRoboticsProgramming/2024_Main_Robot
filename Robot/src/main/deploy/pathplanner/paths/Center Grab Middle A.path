@@ -59,7 +59,7 @@
             {
               "type": "named",
               "data": {
-                "name": "Intake Until Note"
+                "name": "Intake Until Note And Reindex"
               }
             }
           ]
@@ -79,7 +79,7 @@
     "rotateFast": false
   },
   "reversed": false,
-  "folder": "Center",
+  "folder": null,
   "previewStartingState": {
     "rotation": -178.67802434046303,
     "velocity": 0

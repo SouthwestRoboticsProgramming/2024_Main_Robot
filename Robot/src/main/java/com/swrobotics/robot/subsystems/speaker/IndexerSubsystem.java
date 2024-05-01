@@ -62,6 +62,8 @@ public final class IndexerSubsystem extends SubsystemBase {
     private boolean reverseIntaking = false;
     private double stateStartTimestamp = Timer.getFPGATimestamp();
 
+    private boolean autoReindexEnable = false;
+
     private void switchState(State state) {
         stateStartTimestamp = Timer.getFPGATimestamp();
         this.state = state;
@@ -103,7 +105,7 @@ public final class IndexerSubsystem extends SubsystemBase {
                 case FEED_FORWARD -> {
                     top = NTData.INDEXER_TOP_TAKE_SPEED.get();
                     if (hasPiece)
-                        switchState(DriverStation.isAutonomous() ? State.HOLD : State.FEED_REVERSE);
+                        switchState((DriverStation.isAutonomous() && !autoReindexEnable) ? State.HOLD : State.FEED_REVERSE);
                 }
                 case FEED_REVERSE -> {
                     top = -NTData.INDEXER_TOP_TAKE_SPEED.get();
@@ -117,7 +119,7 @@ public final class IndexerSubsystem extends SubsystemBase {
                 }
                 case HOLD -> {
                     top = 0;
-                    if (!anyRequest)
+                    if (!anyRequest || !hasPiece)
                         switchState(State.IDLE);
                 }
             }
@@ -163,5 +165,10 @@ public final class IndexerSubsystem extends SubsystemBase {
     public void endReverse() {
         reverseIntaking = false;
 //        reverseTake = false;
+    }
+
+    public IndexerSubsystem setAutoReindexEnable(boolean autoReindexEnable) {
+        this.autoReindexEnable = autoReindexEnable;
+        return this;
     }
 }
