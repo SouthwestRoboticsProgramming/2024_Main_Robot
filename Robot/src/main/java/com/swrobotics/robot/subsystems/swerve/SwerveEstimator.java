@@ -45,7 +45,8 @@ public final class SwerveEstimator {
         double halfFrameW = 0.695 / 2;
 
         CameraCaptureProperties captureProps = new CameraCaptureProperties()
-                .setExposure(20);
+                .setExposure(20)
+                .setGain(5);
 
         tagTracker = new TagTrackerInput(
                 field,
