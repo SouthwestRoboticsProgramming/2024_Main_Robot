@@ -12,8 +12,14 @@ public class PhysicsCalcuator {
         double x = point.getX();
         double y = point.getY();
 
-        double theta = Math.atan2(v*v - Math.sqrt(Math.pow(v,4) - g * (g * x*x + 2 * y * v*v))
-                                    , g * x);
+        double theta = 0;
+
+        try {
+            theta = Math.atan2(v*v - Math.sqrt(Math.pow(v,4) - g * (g * x*x + 2 * y * v*v))
+                                        , g * x);
+        } catch (Exception e) {
+            theta = Math.PI / 2.0 - 0.5 * (Math.PI / 2 - Math.atan2(y, x)); // Angle with minimum required velocity
+        }
         return Rotation2d.fromRadians(theta);
     }
 }
