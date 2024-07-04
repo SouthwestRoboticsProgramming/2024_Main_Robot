@@ -11,6 +11,7 @@ import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.swrobotics.mathlib.MathUtil;
 import com.swrobotics.robot.config.IOAllocation;
 import com.swrobotics.robot.config.NTData;
+import com.swrobotics.robot.logging.SimView;
 import com.swrobotics.robot.utils.TalonFXWithSim;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.wpilibj.RobotBase;
@@ -94,6 +95,8 @@ public final class FlywheelSubsystem extends SubsystemBase {
 
         leftMotor.updateSim(12);
         rightMotor.updateSim(12);
+
+        SimView.updateShooterVelocity(targetVelocity);
     }
 
     private double getLeftVelocity() {

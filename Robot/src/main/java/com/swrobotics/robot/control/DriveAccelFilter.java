@@ -1,6 +1,5 @@
 package com.swrobotics.robot.control;
 
-import com.swrobotics.lib.net.NTDouble;
 import edu.wpi.first.wpilibj.Timer;
 
 public final class DriveAccelFilter {

@@ -21,6 +21,7 @@ import com.swrobotics.robot.subsystems.music.MusicSubsystem;
 import com.swrobotics.robot.subsystems.speaker.IndexerSubsystem;
 import com.swrobotics.robot.subsystems.speaker.IntakeSubsystem;
 import com.swrobotics.robot.subsystems.speaker.ShooterSubsystem;
+import com.swrobotics.robot.subsystems.speaker.ShooterSubsystem2;
 import com.swrobotics.robot.subsystems.swerve.SwerveDrive;
 import com.swrobotics.robot.subsystems.swerve.SwerveDrive.DriveRequest;
 import com.swrobotics.taskmanager.filesystem.FileSystemAPI;
@@ -67,7 +68,8 @@ public class RobotContainer {
     public final SwerveDrive drive;
     public final IntakeSubsystem intake;
     public final IndexerSubsystem indexer;
-    public final ShooterSubsystem shooter;
+    // public final ShooterSubsystem shooter;
+    public final ShooterSubsystem2 shooter;
 //    public final AmpArmSubsystem ampArm;
     public final AmpArm2Subsystem ampArm2;
     public final ClimberSubsystem climber;
@@ -98,7 +100,7 @@ public class RobotContainer {
 
         intake = new IntakeSubsystem(pdp);
         indexer = new IndexerSubsystem(intake);
-        shooter = new ShooterSubsystem(drive, indexer);
+        shooter = new ShooterSubsystem2(drive, indexer);
 
 //        ampArm = new AmpArmSubsystem();
         ampArm2 = new AmpArm2Subsystem();

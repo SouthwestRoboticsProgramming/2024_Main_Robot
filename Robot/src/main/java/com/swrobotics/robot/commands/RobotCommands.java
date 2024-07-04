@@ -10,31 +10,32 @@ import com.swrobotics.robot.subsystems.speaker.IntakeSubsystem.State;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelDeadlineGroup;
 
 public final class RobotCommands {
     public static Command justShoot(RobotContainer robot) {
         return Commands.sequence(
-            Commands.waitUntil(robot.shooter::isCalibrated),
-            Commands.waitUntil(robot.shooter::isReadyToShoot)
-                .withTimeout(NTData.SHOOTER_AUTO_READY_TIMEOUT.get()),
+            // Commands.waitUntil(robot.shooter::isCalibrated),
+            // Commands.waitUntil(robot.shooter::isReadyToShoot)
+                // .withTimeout(NTData.SHOOTER_AUTO_READY_TIMEOUT.get()),
             Commands.waitSeconds(NTData.SHOOTER_AUTO_AFTER_READY_DELAY.get()),
             new IndexerFeedCommand(robot.indexer)
         );
     }
 
     public static Command aimAndShoot(RobotContainer robot, boolean waitForNote, boolean useVision) {
-        AimTowardsSpeakerCommand aim = new AimTowardsSpeakerCommand(robot.drive, robot.shooter);
+        // AimTowardsSpeakerCommand aim = new AimTowardsSpeakerCommand(robot.drive, robot.shooter);
 
         List<Command> commands = new ArrayList<>();
         commands.addAll(List.of(
-                Commands.waitUntil(robot.shooter::isCalibrated),
-                Commands.waitUntil(() -> (!waitForNote || robot.indexer.hasPiece())
-                        && aim.isInTolerance(NTData.DRIVE_AIM_TOLERANCE.get())
-                        && robot.shooter.isReadyToShoot())
-                    .withTimeout(NTData.SHOOTER_AUTO_READY_TIMEOUT.get()),
-                Commands.waitSeconds(NTData.SHOOTER_AUTO_AFTER_READY_DELAY.get()),
-                new IndexerFeedCommand(robot.indexer)
+                // Commands.waitUntil(robot.shooter::isCalibrated),
+                // Commands.waitUntil(() -> (!waitForNote || robot.indexer.hasPiece())
+                //         && aim.isInTolerance(NTData.DRIVE_AIM_TOLERANCE.get())
+                //         && robot.shooter.isReadyToShoot())
+                //     .withTimeout(NTData.SHOOTER_AUTO_READY_TIMEOUT.get()),
+                // Commands.waitSeconds(NTData.SHOOTER_AUTO_AFTER_READY_DELAY.get()),
+                // new IndexerFeedCommand(robot.indexer)
         ));
 
         if (useVision) {
@@ -42,7 +43,8 @@ public final class RobotCommands {
             commands.add(Commands.runOnce(() -> robot.drive.setEstimatorIgnoreVision(true)));
         }
 
-        return new ParallelDeadlineGroup(Commands.sequence(commands.toArray(new Command[0])), aim);
+        // return new ParallelDeadlineGroup(Commands.sequence(commands.toArray(new Command[0])), aim);
+        return new InstantCommand();
     }
 
     public static Command shootQuick(RobotContainer robot) {
@@ -56,8 +58,8 @@ public final class RobotCommands {
 
     public static Command ejectHard(RobotContainer robot) {
         return Commands.sequence(
-            Commands.waitUntil(() -> robot.shooter.isReadyToShoot())
-                    .withTimeout(NTData.SHOOTER_AUTO_READY_TIMEOUT.get()),
+            // Commands.waitUntil(() -> robot.shooter.isReadyToShoot())
+                    // .withTimeout(NTData.SHOOTER_AUTO_READY_TIMEOUT.get()),
                 // Commands.waitSeconds(NTData.SHOOTER_AUTO_AFTER_READY_DELAY.get()),
                 new IndexerFeedCommand(robot.indexer)
         );

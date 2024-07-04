@@ -46,38 +46,38 @@ public final class LightsSubsystem extends SubsystemBase {
     }
 
     private void showShooterStatus() {
-        if (robot.shooter.isReadyToShoot()) {
-            double timestamp = Timer.getFPGATimestamp();
-            if (Double.isNaN(shooterReadyStartTimestamp))
-                shooterReadyStartTimestamp = timestamp;
-            double elapsed = timestamp - shooterReadyStartTimestamp;
+        // if (robot.shooter.isReadyToShoot()) {
+        //     double timestamp = Timer.getFPGATimestamp();
+        //     if (Double.isNaN(shooterReadyStartTimestamp))
+        //         shooterReadyStartTimestamp = timestamp;
+        //     double elapsed = timestamp - shooterReadyStartTimestamp;
 
-            elapsed *= 4; // 4 blinks/sec
+        //     elapsed *= 4; // 4 blinks/sec
 
-            // 2 blinks, on 50% of the time, solid after 3rd blink
-            if ((elapsed <= 2 && (elapsed % 1) < 0.5) || elapsed > 2) {
-                applySolid(Color.kLime);
-            } else {
-                applySolid(Color.kBlack);
-            }
-        } else {
-            shooterReadyStartTimestamp = Double.NaN;
-            double pct = robot.shooter.getFlywheelPercentOfTarget();
-            if (pct < 1) {
-                applyStripes(
-                        0,
-                        new Stripe(Color.kWhite, (float) pct),
-                        new Stripe(Color.kPurple, 1 - (float) pct)
-                );
-            } else {
-                float reversePct = (float) Math.min(pct - 1, 1);
-                applyStripes(
-                        0,
-                        new Stripe(Color.kWhite, 1 - reversePct),
-                        new Stripe(Color.kOrange, reversePct)
-                );
-            }
-        }
+        //     // 2 blinks, on 50% of the time, solid after 3rd blink
+        //     if ((elapsed <= 2 && (elapsed % 1) < 0.5) || elapsed > 2) {
+        //         applySolid(Color.kLime);
+        //     } else {
+        //         applySolid(Color.kBlack);
+        //     }
+        // } else {
+        //     shooterReadyStartTimestamp = Double.NaN;
+        //     double pct = robot.shooter.getFlywheelPercentOfTarget();
+        //     if (pct < 1) {
+        //         applyStripes(
+        //                 0,
+        //                 new Stripe(Color.kWhite, (float) pct),
+        //                 new Stripe(Color.kPurple, 1 - (float) pct)
+        //         );
+        //     } else {
+        //         float reversePct = (float) Math.min(pct - 1, 1);
+        //         applyStripes(
+        //                 0,
+        //                 new Stripe(Color.kWhite, 1 - reversePct),
+        //                 new Stripe(Color.kOrange, reversePct)
+        //         );
+        //     }
+        // }
     }
 
     private void showAutoDriving() {
@@ -121,9 +121,9 @@ public final class LightsSubsystem extends SubsystemBase {
             prideSequencer.apply(this);
         } else if (robot.controlboard.isClimbing()) {
             showClimbing();
-        } else if (robot.shooter.isPreparing()) {
-            resetShooterBlink = false;
-            showShooterStatus();
+        // } else if (robot.shooter.isPreparing()) {
+        //     resetShooterBlink = false;
+        //     showShooterStatus();
         } else if (robot.drive.getLastSelectedPriority() == SwerveDrive.AUTO_PRIORITY) {
             showAutoDriving();
         } else {

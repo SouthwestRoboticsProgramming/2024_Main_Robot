@@ -72,9 +72,9 @@ public final class ShooterSubsystem extends SubsystemBase {
         return drive.getFieldInfo().flipPoseForAlliance(FieldView.lobZone.getPose()).getTranslation();
     }
 
-    public void forcePivotCalibration(double angleDeg) {
-        pivot.overrideCalibration(angleDeg);
-    }
+    // public void forcePivotCalibration(double angleDeg) {
+    //     pivot.overrideCalibration(angleDeg);
+    // }
 
     private final NTString whichAimCalculator = new NTString("Debug/Shooter Aim Calculator", "");
     private final NTDouble aimAngle = new NTDouble("Debug/Shooter Aim Angle", 1);

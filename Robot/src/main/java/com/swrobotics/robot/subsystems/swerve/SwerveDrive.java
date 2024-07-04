@@ -25,6 +25,7 @@ import com.pathplanner.lib.util.PathPlannerLogging;
 import com.pathplanner.lib.util.ReplanningConfig;
 import com.swrobotics.lib.field.FieldInfo;
 
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -36,12 +37,17 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.SPI;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 import com.swrobotics.lib.net.NTEntry;
+import com.swrobotics.lib.net.NTUtil;
+import com.swrobotics.mathlib.MathUtil;
 import com.swrobotics.lib.net.NTDouble;
 
 import static com.swrobotics.robot.subsystems.swerve.SwerveConstants.SWERVE_MODULE_BUILDER;
+
+import java.util.function.Supplier;
 
 @SuppressWarnings("unused")
 public final class SwerveDrive extends SubsystemBase {
@@ -89,6 +95,8 @@ public final class SwerveDrive extends SubsystemBase {
     private DriveRequest currentDriveRequest;
     private TurnRequest currentTurnRequest;
     private int lastSelectedPriority;
+
+    private final PIDController aimPid;
 
     public SwerveDrive(FieldInfo fieldInfo/*, MessengerClient msg*/) {
         this.fieldInfo = fieldInfo;
@@ -150,6 +158,10 @@ public final class SwerveDrive extends SubsystemBase {
                     Logger.recordOutput("Odometry/TrajectorySetpoint", targetPose);
                     FieldView.pathPlannerSetpoint.setPose(targetPose);
                 });
+
+        aimPid = NTUtil.tunablePID(NTData.DRIVE_AIM_KP, NTData.DRIVE_AIM_KD);
+        aimPid.enableContinuousInput(-Math.PI, Math.PI);
+        aimPid.setTolerance(NTData.DRIVE_AIM_TOLERANCE.get() * MathUtil.TAU);
     }
 
     @AutoLogOutput(key = "Drive/Current Swerve Module States")
@@ -335,5 +347,31 @@ public final class SwerveDrive extends SubsystemBase {
 
     public boolean hasSeenWhereWeAre() {
         return estimator.hasSeenWhereWeAre();
+    }
+
+    /** Continuously aims at a supplied angle */
+    public Command getAimCommand(Supplier<Rotation2d> angle) {
+        return new Command() {
+            @Override
+            public void initialize() {
+                aimPid.reset();
+            }
+
+            @Override
+            public void execute() {
+                double setpointAngle = MathUtil.wrap(angle.get().getRadians(), -Math.PI, Math.PI);
+                double currentAngle = MathUtil.wrap(getEstimatedPose().getRotation().getRadians(), -Math.PI, Math.PI);
+
+                double max = NTData.DRIVE_AIM_MAX_TURN.get() * MathUtil.TAU;
+                double output = aimPid.calculate(currentAngle, setpointAngle);
+                output = MathUtil.clamp(output, -max, max);
+
+                turn(new SwerveDrive.TurnRequest(AIM_PRIORITY, new Rotation2d(output)));
+            }
+        };
+    }
+
+    public Command getSnapCommand(Supplier<Rotation2d> angle) {
+        return getAimCommand(angle).until(() -> aimPid.atSetpoint());
     }
 }

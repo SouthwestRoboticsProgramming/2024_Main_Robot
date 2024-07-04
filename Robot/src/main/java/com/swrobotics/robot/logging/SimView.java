@@ -4,6 +4,8 @@ import com.swrobotics.mathlib.MathUtil;
 import com.swrobotics.robot.subsystems.speaker.IntakeSubsystem;
 import com.swrobotics.robot.subsystems.speaker.IntakeSubsystem.State;
 import com.swrobotics.robot.subsystems.speaker.aim.AimCalculator;
+
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.smartdashboard.*;
 import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj.util.Color8Bit;
@@ -78,6 +80,14 @@ public final class SimView {
     public static void updateShooter(AimCalculator.Aim aim) {
         shooterPivot.setAngle(Math.toDegrees(aim.pivotAngle()));
         shooterPivot.setLength(aim.flywheelVelocity() / 100 * maxShooterLength);
+    }
+
+    public static void updateShooterPivot(Rotation2d angle) {
+        shooterPivot.setAngle(angle);
+    }
+
+    public static void updateShooterVelocity(double velocity) {
+        shooterPivot.setLength(velocity/ 100 * maxShooterLength);
     }
 
     public static void setShooting(boolean shooting) {

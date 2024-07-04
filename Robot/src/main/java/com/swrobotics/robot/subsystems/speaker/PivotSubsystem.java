@@ -17,6 +17,8 @@ import com.swrobotics.robot.config.IOAllocation;
 import com.swrobotics.robot.config.NTData;
 import com.swrobotics.robot.logging.SimView;
 import com.swrobotics.robot.utils.TalonFXWithSim;
+
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotBase;
@@ -59,7 +61,7 @@ public final class PivotSubsystem extends SubsystemBase {
     }
 
     private static final double motorToPivotRatio = 10 * 9 * 4;
-    private static final double hardStopAngle = 22 / 360.0;
+    private static final double hardStopAngle = (22) / 360.0;
     private static final double maxAngle = (64) / 360.0;
 
     private final TalonFXWithSim motor = new TalonFXWithSim(
@@ -107,8 +109,6 @@ public final class PivotSubsystem extends SubsystemBase {
         if (state == State.CALIBRATING)
             return;
 
-        angleRot += getAdjustForAlliance().get() / 360.0;
-
         angleRot = MathUtil.clamp(
                 angleRot,
                 hardStopAngle,
@@ -123,6 +123,7 @@ public final class PivotSubsystem extends SubsystemBase {
         if (state == State.CALIBRATING)
             return;
 
+        // Calibrate on switch to idle
         if (state != State.IDLE && RobotBase.isReal())
             calibrated = false;
 
@@ -145,13 +146,14 @@ public final class PivotSubsystem extends SubsystemBase {
     public void periodic() {
         position.refresh();
 
+        // Manual calibration request
         if (NTData.SHOOTER_PIVOT_RECALIBRATE.get()) {
             NTData.SHOOTER_PIVOT_RECALIBRATE.set(false);
             state = State.CALIBRATING;
             calibrated = false;
         }
 
-        if (state != State.SHOOTING && !calibrated) {
+        if (/*state != State.SHOOTING && */!calibrated) {
             motor.setControl(new VoltageOut(-NTData.SHOOTER_PIVOT_CALIBRATE_VOLTS.get()));
             limitSwitch.refresh();
             boolean atLimit = limitSwitch.getValue() == ReverseLimitValue.Open; // Normally closed
@@ -165,6 +167,7 @@ public final class PivotSubsystem extends SubsystemBase {
                     state = State.IDLE;
             }
         }
+
     }
 
     NTBoolean limitSw = new NTBoolean("Shooter/Debug/Limit Switch", false);
@@ -174,21 +177,15 @@ public final class PivotSubsystem extends SubsystemBase {
         return state != State.CALIBRATING;
     }
 
-    public void overrideCalibration(double angleDeg) {
-        calibrated = true;
-        state = State.IDLE;
-        motor.setPosition(angleDeg / 360.0);
-    }
-
     public boolean isAtSetpoint() {
         return state == State.SHOOTING
                 && Math.abs(position.getValue() - setpoint) < NTData.SHOOTER_PIVOT_ALLOWABLE_ERR.get() / 360.0;
-//                && MathUtil.percentError(position.getValue(), setpoint) < NTData.SHOOTER_PIVOT_ALLOWABLE_PCT_ERR.get();
     }
 
     @Override
     public void simulationPeriodic() {
         motor.updateSim(12);
+        SimView.updateShooterPivot(Rotation2d.fromRotations(setpoint));
     }
 
     private void applyPID(Slot0Configs config) {

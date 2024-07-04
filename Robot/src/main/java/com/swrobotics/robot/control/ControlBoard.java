@@ -6,28 +6,20 @@ import com.swrobotics.lib.net.NTBoolean;
 import com.swrobotics.lib.net.NTEntry;
 import com.swrobotics.mathlib.MathUtil;
 import com.swrobotics.robot.RobotContainer;
-import com.swrobotics.robot.commands.AimTowardsLobCommand;
 import com.swrobotics.robot.commands.AimTowardsSpeakerCommand;
 import com.swrobotics.robot.commands.AmpAlignCommand;
 import com.swrobotics.robot.commands.CharactarizeWheelCommand;
-import com.swrobotics.robot.commands.SnapDistanceCommand;
 import com.swrobotics.robot.config.NTData;
 import com.swrobotics.robot.subsystems.amp.AmpArm2Subsystem;
 import com.swrobotics.robot.subsystems.climber.ClimberArm;
 import com.swrobotics.robot.subsystems.speaker.IntakeSubsystem;
 import com.swrobotics.robot.subsystems.speaker.PivotSubsystem;
 import com.swrobotics.robot.subsystems.speaker.ShooterSubsystem;
-import com.swrobotics.robot.subsystems.speaker.aim.AmpAimCalculator;
-import com.swrobotics.robot.subsystems.speaker.aim.LobCalculator;
-import com.swrobotics.robot.subsystems.speaker.aim.LowLobAimCalculator;
 import com.swrobotics.robot.subsystems.speaker.aim.ManualAimCalculator;
 import com.swrobotics.robot.subsystems.speaker.aim.TableAimCalculator;
 import com.swrobotics.robot.subsystems.swerve.SwerveDrive;
 import com.swrobotics.robot.subsystems.swerve.SwerveDrive.TurnRequest;
 
-import edu.wpi.first.math.filter.Debouncer;
-import edu.wpi.first.math.filter.Debouncer.DebounceType;
-import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
@@ -73,22 +65,8 @@ public class ControlBoard extends SubsystemBase {
 
     private boolean pieceRumble;
 
-    // TODO: Maybe auto-adjust based on battery voltage?
-    private static final double MAX_DRIVE_ACCEL = 5.5;                                                                                                                                                       ; // Meters / second^2
+    private static final double MAX_DRIVE_ACCEL = 5.5; // Meters / second^2
     private final DriveAccelFilter driveFilter = new DriveAccelFilter(MAX_DRIVE_ACCEL);
-
-    private final Debouncer driverSlowDebounce = new Debouncer(0.075);
-    private final Debouncer driverRobotRelDebounce = new Debouncer(0.075);
-    private final Debouncer driverFlywheelDebounce = new Debouncer(0.075);
-    private final Debouncer driverSnapCloserDebounce = new Debouncer(0.1);
-    private final Debouncer driverSnapFartherDebounce = new Debouncer(0.1);
-    private final Debouncer forceSubwooferDebounce = new Debouncer(0.1);
-    private final Debouncer forceStageCornerDebounce = new Debouncer(0.1);
-    private final Debouncer intakeDebounce = new Debouncer(0.075);
-    private final Debouncer shootDebounce = new Debouncer(0.075);
-
-    // FIXME: This is horrible and bad and terrible and get rid of it
-    private int lobbing = 0;
 
     public ControlBoard(RobotContainer robot) {
         this.robot = robot;
@@ -97,101 +75,46 @@ public class ControlBoard extends SubsystemBase {
         driver = new XboxController(0, DEADBAND);
         operator = new XboxController(1, DEADBAND);
 
-        // Pathing test
-        // Pose2d[] target = new Pose2d[1];
-        // target[0] = new Pose2d(10, 4, new Rotation2d(0));
-        // driver.a.onRising(() -> CommandScheduler.getInstance().schedule(AutoBuilder.pathfindToPose(target[0], new PathConstraints(0.5, 8, 10, 40))));
-        // driver.b.onRising(() -> target[0] = robot.drive.getEstimatedPose());
-
         // Configure triggers
+
+        // Two buttons to reset gyro so the driver can't get confused
         driver.start.onFalling(() -> robot.drive.setRotation(new Rotation2d()));
-        driver.back.onFalling(() -> robot.drive.setRotation(new Rotation2d())); // Two buttons to reset gyro so the driver can't get confused
+        driver.back.onFalling(() -> robot.drive.setRotation(new Rotation2d())); 
 
-        // new Trigger(driver.leftBumper::isPressed)
-        //         .onTrue(Commands.runOnce(() -> lobbing++))
-        //     .whileTrue(new AimTowardsLobCommand(robot.drive, robot.shooter))
-        //     .whileTrue(Commands.run(() -> robot.shooter.setTempAimCalculator(LobCalculator.INSTANCE)))
-        //     .onFalse(Commands.runOnce(() -> lobbing--))
-        //         .debounce(0.2, DebounceType.kRising) // Only debounce the shooting
-        //         .onTrue(Commands.runOnce(() -> lobbing++))
-        //     .onFalse(
-        //         Commands.run(() -> robot.indexer.setFeedToShooter(true)).withTimeout(0.5)
-        //         .andThen(Commands.runOnce(() -> {
-        //             robot.indexer.setFeedToShooter(false);
-        //             lobbing--;
-        //         })));
-
-        new Trigger(driver.leftBumper::isPressed)
-            .whileTrue(new AimTowardsLobCommand(robot.drive, robot.shooter))
-            .whileTrue(Commands.run(() -> robot.shooter.setTempAimCalculator(LobCalculator.INSTANCE)))
-                .onTrue(Commands.runOnce(() -> lobbing++))
-                .onFalse(Commands.runOnce(() -> lobbing--));
-
-        new Trigger(() -> driver.leftTrigger.isOutside(0.2))
-                .whileTrue(new AimTowardsLobCommand(robot.drive, robot.shooter))
-            .whileTrue(Commands.run(() -> robot.shooter.setTempAimCalculator(LowLobAimCalculator.INSTANCE)))
-                .onTrue(Commands.runOnce(() -> lobbing++))
-                .onFalse(Commands.runOnce(() -> lobbing--));
-
-        new Trigger(this::driverWantsAim).whileTrue(new AimTowardsSpeakerCommand(
-                robot.drive,
-                robot.shooter
-        ));
+        // Aim button FIXME: Do better
+        new Trigger(() -> driverWantsAim()).whileTrue(robot.shooter.getSpeakerCommand());
 
         // Spin like mad when the driver clicks in the right stick
         new Trigger(driver.rightStickButton::isPressed)
                 .debounce(0.1)
                 .whileTrue(Commands.run(() -> robot.drive.turn(new TurnRequest(SwerveDrive.DRIVER_PRIORITY + 1, new Rotation2d(11.0)))));
-        // Just angle amp
-        new Trigger(() -> driver.a.isPressed()).whileTrue(new AmpAlignCommand(robot.drive).alongWith()); // FIXME: Make the bar go up too
 
-        // Up is closer, down is farther
-        new Trigger(this::driverWantsSnapCloser).whileTrue(new SnapDistanceCommand(robot.drive, robot.shooter, true));
-        new Trigger(this::driverWantsSnapFarther).whileTrue(new SnapDistanceCommand(robot.drive, robot.shooter, false));
-        
-        driver.y.onFalling(() -> NTData.SHOOTER_PIVOT_RECALIBRATE.set(true));
 
-//        Trigger ampTrigger = new Trigger(() -> operator.y.isPressed());
-//        ampTrigger.whileTrue(Commands.run(() -> robot.shooter.setTempAimCalculator(new AmpAimCalculator())));
-//        ampTrigger.onFalse(new ShootCommand(robot));
+        // Angle towards the amp
+        new Trigger(() -> driver.a.isPressed()).whileTrue(new AmpAlignCommand(robot.drive).alongWith());
 
-//        Trigger operatorA = new Trigger(operator.a::isPressed);
-//        operatorA.onTrue(Commands.runOnce(() -> robot.intake.set(IntakeSubsystem.State.INTAKE)));
+        new Trigger(() -> operator.y.isPressed()).whileTrue(robot.shooter.getAmpCommand());
+
+        // Intake (automatically rises when we obtain a game piece)
         operator.a.onRising(() -> robot.intake.set(IntakeSubsystem.State.INTAKE));
         operator.a.onFalling(() -> robot.intake.set(IntakeSubsystem.State.OFF));
-//        operatorA.onFalse(Commands.runOnce(() -> robot.intake.set(IntakeSubsystem.State.OFF)));
         robot.intake.set(IntakeSubsystem.State.OFF);
 
-//        operator.a.onFalling(() -> robot.intake.set(IntakeSubsystem.State.INTAKE));
-//        operator.a.onRising(() -> robot.intake.set(IntakeSubsystem.State.OFF));
+        // Raise the intake when we have a piece
         new Trigger(() -> robot.indexer.hasPiece() || !operator.a.isPressed())
                 .onTrue(Commands.runOnce(() -> robot.intake.set(IntakeSubsystem.State.OFF)));
 
+        // Routine to fix odometry
         new Trigger(() -> CHARACTERISE_WHEEL_RADIUS.get()).whileTrue(new CharactarizeWheelCommand(robot.drive));
 
+        // Fixme: More intuitive eject
         new Trigger(operator.start::isPressed)
                 .onTrue(Commands.runOnce(robot.indexer::beginReverse))
                 .onFalse(Commands.runOnce(robot.indexer::endReverse));
-    }
 
-    private boolean driverWantsSnapCloser() {
-        return false;
-//        return driverSnapCloserDebounce.calculate(driver.dpad.up.isPressed());
-    }
+        new Trigger(() -> operator.b.isPressed()).debounce(0.04)
+            .whileTrue(Commands.runOnce(() -> robot.indexer.setFeedToShooter(true)));
 
-    private boolean driverWantsSnapFarther() {
-        return false;
-//        return driverSnapFartherDebounce.calculate(driver.dpad.down.isPressed());
-    }
-
-    private boolean driverWantsAim() {
-        return driver.rightTrigger.isOutside(TRIGGER_BUTTON_THRESHOLD)
-                || driverWantsSnapCloser()
-                || driverWantsSnapFarther();
-    }
-
-    private boolean driverWantsFlywheels() {
-        return driverFlywheelDebounce.calculate(driver.rightBumper.isPressed());
     }
 
     private double squareWithSign(double value) {
@@ -205,15 +128,10 @@ public class ControlBoard extends SubsystemBase {
     }
 
     private Translation2d getDriveTranslation() {
-        // double speed = NTData.DRIVE_SPEED_NORMAL.get();
         double speed = SwerveDrive.MAX_LINEAR_SPEED;
 
         Translation2d leftStick = driver.getLeftStick();
-        // double x = -squareWithSign(leftStick.getY()) * speed;
-        // double y = -squareWithSign(leftStick.getX()) * speed;
-        double power = 2;
-//        double x = -powerWithSign(leftStick.getY(), power) * speed;
-//        double y = -powerWithSign(leftStick.getX(), power) * speed;
+        double power = 2.0;
 
         double rawMag = leftStick.getNorm();
         double powerMag = powerWithSign(rawMag, power);
@@ -231,9 +149,8 @@ public class ControlBoard extends SubsystemBase {
         return -squareWithSign(driver.rightStickX.get()) * NTData.TURN_SPEED.get();
     }
 
-    private boolean getRobotRelativeDrive() {
-        // return driverRobotRelDebounce.calculate(driver.leftBumper.isPressed());
-        return false;
+    private boolean driverWantsAim() {
+        return driver.rightBumper.isPressed();
     }
 
     private enum ClimbState {
@@ -255,14 +172,11 @@ public class ControlBoard extends SubsystemBase {
 
     @Override
     public void periodic() {
-        if (DriverStation.isDisabled())
-            lobbing = 0;
-
         if (!DriverStation.isTeleop()) {
             climbState = ClimbState.IDLE;
             robot.indexer.endReverse();
             robot.intake.setReverse(false);
-            robot.shooter.setFlywheelControl(ShooterSubsystem.FlywheelControl.SHOOT); // Always aim with note when not teleop
+            // robot.shooter.setFlywheelControl(ShooterSubsystem.FlywheelControl.SHOOT); // Always aim with note when not teleop
 
             // robot.drive.setEstimatorIgnoreVision(false && DriverStation.isAutonomous());
 
@@ -272,14 +186,16 @@ public class ControlBoard extends SubsystemBase {
         if (!operator.a.isPressed())
             robot.intake.set(IntakeSubsystem.State.OFF);
 
-        boolean forceToSubwoofer = forceSubwooferDebounce.calculate(driver.dpad.left.isPressed());
-        boolean forceToStageCorner = forceStageCornerDebounce.calculate(driver.dpad.right.isPressed());
-        robot.drive.setEstimatorIgnoreVision(forceToSubwoofer || forceToStageCorner);
 
-        if (forceToSubwoofer)
-            robot.drive.setPose(robot.drive.getFieldInfo().flipPoseForAlliance(new Pose2d(1.393, 5.512, new Rotation2d(Math.PI))));
-        if (forceToStageCorner)
-            robot.drive.setPose(robot.drive.getFieldInfo().flipPoseForAlliance(new Pose2d(3.354, 5.512, new Rotation2d(Math.PI))));
+        // FIXME: Change
+        // boolean forceToSubwoofer = forceSubwooferDebounce.calculate(driver.dpad.left.isPressed());
+        // boolean forceToStageCorner = forceStageCornerDebounce.calculate(driver.dpad.right.isPressed());
+        // robot.drive.setEstimatorIgnoreVision(forceToSubwoofer || forceToStageCorner);
+
+        // if (forceToSubwoofer)
+        //     robot.drive.setPose(robot.drive.getFieldInfo().flipPoseForAlliance(new Pose2d(1.393, 5.512, new Rotation2d(Math.PI))));
+        // if (forceToStageCorner)
+        //     robot.drive.setPose(robot.drive.getFieldInfo().flipPoseForAlliance(new Pose2d(3.354, 5.512, new Rotation2d(Math.PI))));
 
 
         NTEntry<Double> pivotAdjust = PivotSubsystem.getAdjustForAlliance();
@@ -311,18 +227,10 @@ public class ControlBoard extends SubsystemBase {
                         rotation.getRadians(),
                         robot.drive.getEstimatedPose().getRotation());
 
-        if (getRobotRelativeDrive()) {
-            chassisRequest = new ChassisSpeeds(-translation.getX(), -translation.getY(), rotation.getRadians());
-        }
-
         robot.drive.driveAndTurn(
                 SwerveDrive.DRIVER_PRIORITY,
                 chassisRequest,
                 DriveRequestType.Velocity);
-
-        // Indexer uses the intake state also
-        boolean operatorWantsShoot = shootDebounce.calculate(operator.b.isPressed());
-        robot.indexer.setFeedToShooter(operatorWantsShoot);
 
 
 
@@ -391,35 +299,35 @@ public class ControlBoard extends SubsystemBase {
 
         robot.intake.setReverse(operator.back.isPressed());
 
-        boolean shootAmp = operator.y.isPressed();
-        if (shootAmp)
-            robot.shooter.setTempAimCalculator(AmpAimCalculator.INSTANCE);
-        boolean shootManual = operator.x.isPressed();
-        if (shootManual)
-            robot.shooter.setTempAimCalculator(ManualAimCalculator.INSTANCE);
+        // boolean shootAmp = operator.y.isPressed();
+        // if (shootAmp)
+        //     robot.shooter.setTempAimCalculator(AmpAimCalculator.INSTANCE);
+        // boolean shootManual = operator.x.isPressed();
+        // if (shootManual)
+        //     robot.shooter.setTempAimCalculator(ManualAimCalculator.INSTANCE);
 
 //        robot.shooter.setFlywheelControl(driverWantsAim() || driverWantsFlywheels());
         ShooterSubsystem.FlywheelControl flywheelControl = ShooterSubsystem.FlywheelControl.IDLE;
-        if (operator.start.isPressed())
-            flywheelControl = ShooterSubsystem.FlywheelControl.REVERSE;
-        else if (driverWantsAim() || driverWantsFlywheels() || shootAmp || shootManual || forceToSubwoofer || forceToStageCorner || lobbing != 0)
-            flywheelControl = ShooterSubsystem.FlywheelControl.SHOOT;
-        else if (operatorWantsShoot)
-            flywheelControl = ShooterSubsystem.FlywheelControl.POOP;
-        robot.shooter.setFlywheelControl(flywheelControl);
+        // if (operator.start.isPressed())
+        //     flywheelControl = ShooterSubsystem.FlywheelControl.REVERSE;
+        // else if (driverWantsAim() || shootAmp || shootManual)
+        //     flywheelControl = ShooterSubsystem.FlywheelControl.SHOOT;
+        // else if (operatorWantsShoot)
+        //     flywheelControl = ShooterSubsystem.FlywheelControl.POOP;
+        // robot.shooter.setFlywheelControl(flywheelControl);
 
 
-        double distToSpeaker = robot.shooter.getSpeakerPosition().getDistance(robot.drive.getEstimatedPose().getTranslation());
-        boolean tooFar = TableAimCalculator.INSTANCE.isTooFar(distToSpeaker);
+        // double distToSpeaker = robot.shooter.getSpeakerPosition().getDistance(robot.drive.getEstimatedPose().getTranslation());
+        // boolean tooFar = TableAimCalculator.INSTANCE.isTooFar(distToSpeaker);
 
-        pieceRumbleNt.set(pieceRumble);
+        // pieceRumbleNt.set(pieceRumble);
 
-        driver.setRumble(pieceRumble ? 1.0 : (tooFar && (driverWantsAim() || driverWantsFlywheels()) ? 0.5 : 0));
-        boolean shooterReady = robot.shooter.isReadyToShoot();
-        operator.setRumble(pieceRumble ? 1.0 : (shooterReady ? 0.5 : 0));
+        // driver.setRumble(pieceRumble ? 1.0 : (tooFar && (driverWantsAim()) ? 0.5 : 0));
+        // boolean shooterReady = robot.shooter.isReadyToShoot();
+        // operator.setRumble(pieceRumble ? 1.0 : (shooterReady ? 0.5 : 0));
 
-        this.shooterReady.set(shooterReady);
-        this.tooFar.set(tooFar && (driverWantsAim() || driverWantsFlywheels()));
+        // this.shooterReady.set(shooterReady);
+        // this.tooFar.set(tooFar && (driverWantsAim()));
     }
 
     NTBoolean pieceRumbleNt = new NTBoolean("Debug/Piece Rumble", false);
