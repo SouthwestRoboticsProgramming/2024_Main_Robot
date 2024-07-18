@@ -65,9 +65,7 @@ public final class ShooterSubsystem extends SubsystemBase {
         pivot.overrideCalibration(angleDeg);
     }
 
-    private final NTString whichAimCalculator = new NTString("Debug/Shooter Aim Calculator", "");
-    private final NTDouble aimAngle = new NTDouble("Debug/Shooter Aim Angle", 1);
-    private final NTDouble aimVelocity = new NTDouble("Debug/Shooter Aim Velocity", 30894723894728934.0);
+    private final NTString activeMode = new NTString("Shooter/Mode", "none");
 
     @Override
     public void periodic() {
@@ -128,44 +126,47 @@ public final class ShooterSubsystem extends SubsystemBase {
         // return;
 
         // if (DriverStation.isAutonomous() && (aim != null)) {
-        // // Have the shooter be constantly active during auto
-        // isPreparing = true;
-        // flywheel.setTargetVelocity(aim.flywheelVelocity());
-        // pivot.setTargetAngle(aim.pivotAngle() / MathUtil.TAU);
+        //     // Have the shooter be constantly active during auto
+        //     isPreparing = true;
+        //     flywheel.setTargetVelocity(aim.flywheelVelocity());
+        //     pivot.setTargetAngle(aim.pivotAngle() / MathUtil.TAU);
         // } else if (flywheelControl == FlywheelControl.REVERSE) {
-        // pivot.setTargetAngle(NTData.SHOOTER_PIVOT_REVERSE_ANGLE.get() / 360.0);
-        // flywheel.setDutyCycle(-NTData.SHOOTER_FLYWHEEL_REVERSE_SPEED.get());
+        //     pivot.setTargetAngle(NTData.SHOOTER_PIVOT_REVERSE_ANGLE.get() / 360.0);
+        //     flywheel.setDutyCycle(-NTData.SHOOTER_FLYWHEEL_REVERSE_SPEED.get());
         // } else if (flywheelControl == FlywheelControl.SHOOT ||
-        // afterShootDelay.calculate(indexer.hasPiece())) {
-        // if (aim != null) {
-        // isPreparing = true;
-        // if (flywheelControl == FlywheelControl.SHOOT)
-        // flywheel.setTargetVelocity(aim.flywheelVelocity());
-        // else if (flywheelControl == FlywheelControl.POOP)
-        // flywheel.setDutyCycle(NTData.SHOOTER_FLYWHEEL_POOP_SPEED.get());
-        // else
-        // flywheel.setDutyCycle(NTData.SHOOTER_FLYWHEEL_IDLE_SPEED.get());
-        // pivot.setTargetAngle(aim.pivotAngle() / MathUtil.TAU);
-        // } else {
-        // if (flywheelControl == FlywheelControl.POOP)
-        // flywheel.setDutyCycle(NTData.SHOOTER_FLYWHEEL_POOP_SPEED.get());
-        // else
-        // flywheel.setDutyCycle(NTData.SHOOTER_FLYWHEEL_IDLE_SPEED.get());
-        // pivot.setIdle();
-        // }
+        //         afterShootDelay.calculate(indexer.hasPiece())) {
+        //     if (aim != null) {
+        //         isPreparing = true;
+        //         if (flywheelControl == FlywheelControl.SHOOT)
+        //             flywheel.setTargetVelocity(aim.flywheelVelocity());
+        //         else if (flywheelControl == FlywheelControl.POOP)
+        //             flywheel.setDutyCycle(NTData.SHOOTER_FLYWHEEL_POOP_SPEED.get());
+        //         else
+        //             flywheel.setDutyCycle(NTData.SHOOTER_FLYWHEEL_IDLE_SPEED.get());
+        //         pivot.setTargetAngle(aim.pivotAngle() / MathUtil.TAU);
+        //     } else {
+        //         if (flywheelControl == FlywheelControl.POOP)
+        //             flywheel.setDutyCycle(NTData.SHOOTER_FLYWHEEL_POOP_SPEED.get());
+        //         else
+        //             flywheel.setDutyCycle(NTData.SHOOTER_FLYWHEEL_IDLE_SPEED.get());
+        //         pivot.setIdle();
+        //     }
         // } else if (flywheelControl == FlywheelControl.POOP) {
-        // flywheel.setDutyCycle(NTData.SHOOTER_FLYWHEEL_POOP_SPEED.get());
-        // pivot.setNeutral();
+        //     flywheel.setDutyCycle(NTData.SHOOTER_FLYWHEEL_POOP_SPEED.get());
+        //     pivot.setNeutral();
         // } else {
-        // flywheel.setNeutral();
-        // pivot.setNeutral();
+        //     flywheel.setNeutral();
+        //     pivot.setNeutral();
         // }
 
         NTData.SHOOTER_READY.set(isReadyToShoot());
         pctErr.set(flywheel.getPercentErr());
 
-        if (this.getCurrentCommand() != null)
-            System.out.println(this.getCurrentCommand().getName());
+        if (getCurrentCommand() != null) {
+            activeMode.set(getCurrentCommand().getName());
+        } else {
+            activeMode.set("none");
+        }
     }
 
     private void handleSpeaker() {
@@ -195,7 +196,7 @@ public final class ShooterSubsystem extends SubsystemBase {
     }
 
     private void handleIdle() {
-        pivot.setIdle();
+        pivot.setNeutral();
         flywheel.setNeutral();
         targetAim = new AimCalculator.Aim(10.0, 22 / 360.0, 0);
     }
@@ -232,7 +233,7 @@ public final class ShooterSubsystem extends SubsystemBase {
 
     public Command getPoopCommand() {
         Command poop = Commands.run(() -> flywheel.setDutyCycle(NTData.SHOOTER_FLYWHEEL_POOP_SPEED.get()), this)
-            .withName("Shooter Poop");
+                .withName("Shooter Poop");
 
         // Every other command takes priority other than idle
         return Commands.either(poop.asProxy(), Commands.none(), () -> getCurrentCommand() == getDefaultCommand());

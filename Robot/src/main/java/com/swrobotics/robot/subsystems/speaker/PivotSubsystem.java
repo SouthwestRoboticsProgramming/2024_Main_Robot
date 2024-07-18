@@ -119,6 +119,7 @@ public final class PivotSubsystem extends SubsystemBase {
         setpoint = angleRot;
     }
 
+    @Deprecated
     public void setIdle() {
         if (state == State.CALIBRATING)
             return;
