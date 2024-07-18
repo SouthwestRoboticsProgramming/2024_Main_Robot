@@ -10,7 +10,6 @@ import com.swrobotics.robot.commands.AimTowardsLobCommand;
 import com.swrobotics.robot.commands.AimTowardsSpeakerCommand;
 import com.swrobotics.robot.commands.AmpAlignCommand;
 import com.swrobotics.robot.commands.CharactarizeWheelCommand;
-import com.swrobotics.robot.commands.SnapDistanceCommand;
 import com.swrobotics.robot.config.NTData;
 import com.swrobotics.robot.subsystems.amp.AmpArm2Subsystem;
 import com.swrobotics.robot.subsystems.climber.ClimberArm;
@@ -26,7 +25,6 @@ import com.swrobotics.robot.subsystems.swerve.SwerveDrive;
 import com.swrobotics.robot.subsystems.swerve.SwerveDrive.TurnRequest;
 
 import edu.wpi.first.math.filter.Debouncer;
-import edu.wpi.first.math.filter.Debouncer.DebounceType;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -122,10 +120,10 @@ public class ControlBoard extends SubsystemBase {
         
         driver.y.onFalling(() -> NTData.SHOOTER_PIVOT_RECALIBRATE.set(true));
 
+        // Intake automatically turns off when we have a game piece
+        robot.intake.set(IntakeSubsystem.State.OFF);
         operator.a.onRising(() -> robot.intake.set(IntakeSubsystem.State.INTAKE));
         operator.a.onFalling(() -> robot.intake.set(IntakeSubsystem.State.OFF));
-        robot.intake.set(IntakeSubsystem.State.OFF);
-
         new Trigger(() -> robot.indexer.hasPiece() || !operator.a.isPressed())
                 .onTrue(Commands.runOnce(() -> robot.intake.set(IntakeSubsystem.State.OFF)));
 
@@ -138,10 +136,6 @@ public class ControlBoard extends SubsystemBase {
 
     private boolean driverWantsAim() {
         return driver.rightTrigger.isOutside(TRIGGER_BUTTON_THRESHOLD);
-    }
-
-    private boolean driverWantsFlywheels() {
-        return driverFlywheelDebounce.calculate(driver.rightBumper.isPressed());
     }
 
     private double squareWithSign(double value) {
@@ -325,7 +319,7 @@ public class ControlBoard extends SubsystemBase {
         ShooterSubsystem.FlywheelControl flywheelControl = ShooterSubsystem.FlywheelControl.IDLE;
         if (operator.start.isPressed())
             flywheelControl = ShooterSubsystem.FlywheelControl.REVERSE;
-        else if (driverWantsAim() || driverWantsFlywheels() || shootAmp || shootManual || forceToSubwoofer || forceToStageCorner || lobbing != 0)
+        else if (driverWantsAim() || shootAmp || shootManual || forceToSubwoofer || forceToStageCorner || lobbing != 0)
             flywheelControl = ShooterSubsystem.FlywheelControl.SHOOT;
         else if (operatorWantsShoot)
             flywheelControl = ShooterSubsystem.FlywheelControl.POOP;
@@ -337,12 +331,12 @@ public class ControlBoard extends SubsystemBase {
 
         pieceRumbleNt.set(pieceRumble);
 
-        driver.setRumble(pieceRumble ? 1.0 : (tooFar && (driverWantsAim() || driverWantsFlywheels()) ? 0.5 : 0));
+        driver.setRumble(pieceRumble ? 1.0 : (tooFar && (driverWantsAim()) ? 0.5 : 0));
         boolean shooterReady = robot.shooter.isReadyToShoot();
         operator.setRumble(pieceRumble ? 1.0 : (shooterReady ? 0.5 : 0));
 
         this.shooterReady.set(shooterReady);
-        this.tooFar.set(tooFar && (driverWantsAim() || driverWantsFlywheels()));
+        this.tooFar.set(tooFar && (driverWantsAim()));
     }
 
     NTBoolean pieceRumbleNt = new NTBoolean("Debug/Piece Rumble", false);
