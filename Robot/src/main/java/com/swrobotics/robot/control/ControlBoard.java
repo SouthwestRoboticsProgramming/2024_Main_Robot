@@ -77,14 +77,9 @@ public class ControlBoard extends SubsystemBase {
     private static final double MAX_DRIVE_ACCEL = 5.5;                                                                                                                                                       ; // Meters / second^2
     private final DriveAccelFilter driveFilter = new DriveAccelFilter(MAX_DRIVE_ACCEL);
 
-    private final Debouncer driverSlowDebounce = new Debouncer(0.075);
-    private final Debouncer driverRobotRelDebounce = new Debouncer(0.075);
     private final Debouncer driverFlywheelDebounce = new Debouncer(0.075);
-    private final Debouncer driverSnapCloserDebounce = new Debouncer(0.1);
-    private final Debouncer driverSnapFartherDebounce = new Debouncer(0.1);
     private final Debouncer forceSubwooferDebounce = new Debouncer(0.1);
     private final Debouncer forceStageCornerDebounce = new Debouncer(0.1);
-    private final Debouncer intakeDebounce = new Debouncer(0.075);
     private final Debouncer shootDebounce = new Debouncer(0.075);
 
     // FIXME: This is horrible and bad and terrible and get rid of it
