@@ -214,16 +214,15 @@ public class ControlBoard extends SubsystemBase {
             return;
         }
 
-        if (!operator.a.isPressed())
-            robot.intake.set(IntakeSubsystem.State.OFF);
+        // if (!operator.a.isPressed())
+        //     robot.intake.set(IntakeSubsystem.State.OFF);
 
         boolean forceToSubwoofer = forceSubwooferTrigger.getAsBoolean();
-        robot.drive.setEstimatorIgnoreVision(forceToSubwoofer || forceToStageCorner);
+        robot.drive.setEstimatorIgnoreVision(forceToSubwoofer);
 
-        if (forceToSubwoofer)
+        if (forceToSubwoofer) {
             robot.drive.setPose(robot.drive.getFieldInfo().flipPoseForAlliance(new Pose2d(1.393, 5.512, new Rotation2d(Math.PI))));
-        if (forceToStageCorner)
-            robot.drive.setPose(robot.drive.getFieldInfo().flipPoseForAlliance(new Pose2d(3.354, 5.512, new Rotation2d(Math.PI))));
+        }
 
 
         NTEntry<Double> pivotAdjust = PivotSubsystem.getAdjustForAlliance();
@@ -319,7 +318,7 @@ public class ControlBoard extends SubsystemBase {
         ShooterSubsystem.FlywheelControl flywheelControl = ShooterSubsystem.FlywheelControl.IDLE;
         if (operator.start.isPressed())
             flywheelControl = ShooterSubsystem.FlywheelControl.REVERSE;
-        else if (driverWantsAim() || shootAmp || shootManual || forceToSubwoofer || forceToStageCorner || lobbing != 0)
+        else if (driverWantsAim() || shootAmp || shootManual || forceToSubwoofer || lobbing != 0)
             flywheelControl = ShooterSubsystem.FlywheelControl.SHOOT;
         else if (operatorWantsShoot)
             flywheelControl = ShooterSubsystem.FlywheelControl.POOP;
