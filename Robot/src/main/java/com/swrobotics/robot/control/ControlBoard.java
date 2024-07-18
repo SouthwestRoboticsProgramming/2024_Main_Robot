@@ -109,8 +109,9 @@ public class ControlBoard extends SubsystemBase {
         new Trigger(driver.rightStickButton::isPressed)
                 .debounce(0.1)
                 .whileTrue(Commands.run(() -> robot.drive.turn(new TurnRequest(SwerveDrive.DRIVER_PRIORITY + 1, new Rotation2d(11.0)))));
-        // Just angle amp
-        new Trigger(() -> driver.a.isPressed()).whileTrue(new AmpAlignCommand(robot.drive).alongWith()); // FIXME: Make the bar go up too
+                
+        // Angle towards the amp
+        new Trigger(() -> driver.a.isPressed()).whileTrue(new AmpAlignCommand(robot.drive));
         
         driver.y.onFalling(() -> NTData.SHOOTER_PIVOT_RECALIBRATE.set(true));
 
@@ -121,13 +122,14 @@ public class ControlBoard extends SubsystemBase {
         new Trigger(() -> robot.indexer.hasPiece() || !operator.a.isPressed())
                 .onTrue(Commands.runOnce(() -> robot.intake.set(IntakeSubsystem.State.OFF)));
 
-        new Trigger(() -> CHARACTERISE_WHEEL_RADIUS.get()).whileTrue(new CharactarizeWheelCommand(robot.drive));
 
         forceSubwooferTrigger = new Trigger(() -> driver.dpad.down.isPressed()).debounce(0.1);
 
         new Trigger(operator.start::isPressed)
                 .onTrue(Commands.runOnce(robot.indexer::beginReverse))
                 .onFalse(Commands.runOnce(robot.indexer::endReverse));
+
+        new Trigger(() -> CHARACTERISE_WHEEL_RADIUS.get()).whileTrue(new CharactarizeWheelCommand(robot.drive));
     }
 
     private boolean driverWantsAim() {
@@ -169,11 +171,6 @@ public class ControlBoard extends SubsystemBase {
 
     private double getDriveRotation() {
         return -squareWithSign(driver.rightStickX.get()) * NTData.TURN_SPEED.get();
-    }
-
-    private boolean getRobotRelativeDrive() {
-        // return driverRobotRelDebounce.calculate(driver.leftBumper.isPressed());
-        return false;
     }
 
     private enum ClimbState {
@@ -245,10 +242,6 @@ public class ControlBoard extends SubsystemBase {
                         translation.getY(),
                         rotation.getRadians(),
                         robot.drive.getEstimatedPose().getRotation());
-
-        if (getRobotRelativeDrive()) {
-            chassisRequest = new ChassisSpeeds(-translation.getX(), -translation.getY(), rotation.getRadians());
-        }
 
         robot.drive.driveAndTurn(
                 SwerveDrive.DRIVER_PRIORITY,
