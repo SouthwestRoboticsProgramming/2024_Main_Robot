@@ -103,7 +103,7 @@ public class ControlBoard extends SubsystemBase {
         new Trigger(this::driverWantsAim).whileTrue(new AimTowardsSpeakerCommand(
                 robot.drive,
                 robot.shooter
-        ));
+        )).whileTrue(robot.shooter.getSpeakerCommand());
 
         // Spin like mad when the driver clicks in the right stick
         new Trigger(driver.rightStickButton::isPressed)
@@ -293,21 +293,21 @@ public class ControlBoard extends SubsystemBase {
 
         robot.intake.setReverse(operator.back.isPressed());
 
-        boolean shootAmp = operator.y.isPressed();
-        if (shootAmp)
-            robot.shooter.setTempAimCalculator(AmpAimCalculator.INSTANCE);
-        boolean shootManual = operator.x.isPressed();
-        if (shootManual)
-            robot.shooter.setTempAimCalculator(ManualAimCalculator.INSTANCE);
+        // boolean shootAmp = operator.y.isPressed();
+        // if (shootAmp)
+        //     robot.shooter.setTempAimCalculator(AmpAimCalculator.INSTANCE);
+        // boolean shootManual = operator.x.isPressed();
+        // if (shootManual)
+        //     robot.shooter.setTempAimCalculator(ManualAimCalculator.INSTANCE);
 
-        ShooterSubsystem.FlywheelControl flywheelControl = ShooterSubsystem.FlywheelControl.IDLE;
-        if (operator.start.isPressed())
-            flywheelControl = ShooterSubsystem.FlywheelControl.REVERSE;
-        else if (driverWantsAim() || shootAmp || shootManual || forceToSubwoofer || lobbing != 0)
-            flywheelControl = ShooterSubsystem.FlywheelControl.SHOOT;
-        else if (operatorWantsShoot)
-            flywheelControl = ShooterSubsystem.FlywheelControl.POOP;
-        robot.shooter.setFlywheelControl(flywheelControl);
+        // ShooterSubsystem.FlywheelControl flywheelControl = ShooterSubsystem.FlywheelControl.IDLE;
+        // if (operator.start.isPressed())
+        //     flywheelControl = ShooterSubsystem.FlywheelControl.REVERSE;
+        // else if (driverWantsAim() || shootAmp || shootManual || forceToSubwoofer || lobbing != 0)
+        //     flywheelControl = ShooterSubsystem.FlywheelControl.SHOOT;
+        // else if (operatorWantsShoot)
+        //     flywheelControl = ShooterSubsystem.FlywheelControl.POOP;
+        // robot.shooter.setFlywheelControl(flywheelControl);
 
 
         double distToSpeaker = robot.shooter.getSpeakerPosition().getDistance(robot.drive.getEstimatedPose().getTranslation());
