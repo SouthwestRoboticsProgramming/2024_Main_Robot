@@ -15,11 +15,11 @@ import com.swrobotics.robot.subsystems.amp.AmpArm2Subsystem;
 import com.swrobotics.robot.subsystems.climber.ClimberArm;
 import com.swrobotics.robot.subsystems.speaker.IntakeSubsystem;
 import com.swrobotics.robot.subsystems.speaker.PivotSubsystem;
-import com.swrobotics.robot.subsystems.speaker.ShooterSubsystem;
 import com.swrobotics.robot.subsystems.speaker.aim.TableAimCalculator;
 import com.swrobotics.robot.subsystems.swerve.SwerveDrive;
 import com.swrobotics.robot.subsystems.swerve.SwerveDrive.TurnRequest;
 
+import edu.wpi.first.math.filter.Debouncer.DebounceType;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -101,7 +101,7 @@ public class ControlBoard extends SubsystemBase {
                 .onTrue(Commands.runOnce(() -> robot.intake.set(IntakeSubsystem.State.OFF)));
 
 
-        forceSubwooferTrigger = new Trigger(() -> driver.dpad.down.isPressed()).debounce(0.1).whileTrue(robot.shooter.getSpeakerCommand());
+        forceSubwooferTrigger = new Trigger(() -> driver.dpad.down.isPressed()).whileTrue(robot.shooter.getSpeakerCommand());
 
         new Trigger(operator.start::isPressed)
                 .onTrue(Commands.runOnce(robot.indexer::beginReverse))
@@ -110,11 +110,12 @@ public class ControlBoard extends SubsystemBase {
 
         new Trigger(() -> driver.leftBumper.isPressed()).whileTrue(robot.shooter.getLobCommand()).whileTrue(new AimTowardsLobCommand(robot.drive, robot.shooter));
         
-        new Trigger(() -> operator.y.isPressed()).whileTrue(robot.shooter.getAmpCommand());
+        new Trigger(() -> operator.y.isPressed()).debounce(0.2, DebounceType.kFalling).whileTrue(robot.shooter.getAmpCommand());
 
         new Trigger(() -> operator.b.isPressed()).debounce(0.075).whileTrue(Commands.runOnce(() -> robot.indexer.setFeedToShooter(true))).onFalse(Commands.runOnce(() -> robot.indexer.setFeedToShooter(false)));
 
-        new Trigger(() -> operator.b.isPressed() && !driverWantsAim()).debounce(0.075).whileTrue(robot.shooter.getPoopCommand());
+        // Shooter will check that it would otherwise be idle
+        new Trigger(() -> operator.b.isPressed()).debounce(0.075).whileTrue(robot.shooter.getPoopCommand());
 
         new Trigger(() -> CHARACTERISE_WHEEL_RADIUS.get()).whileTrue(new CharactarizeWheelCommand(robot.drive));
     }
@@ -184,10 +185,6 @@ public class ControlBoard extends SubsystemBase {
             climbState = ClimbState.IDLE;
             robot.indexer.endReverse();
             robot.intake.setReverse(false);
-            robot.shooter.setFlywheelControl(ShooterSubsystem.FlywheelControl.SHOOT); // Always aim with note when not teleop
-
-            // robot.drive.setEstimatorIgnoreVision(false && DriverStation.isAutonomous());
-
             return;
         }
 

@@ -4,6 +4,8 @@ import com.swrobotics.lib.net.NTDouble;
 import com.swrobotics.lib.net.NTString;
 import com.swrobotics.robot.config.IOAllocation;
 import com.swrobotics.robot.config.NTData;
+import com.swrobotics.robot.logging.SimView;
+
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
@@ -32,6 +34,7 @@ public final class IndexerSubsystem extends SubsystemBase {
 
     public void setFeedToShooter(boolean feedToShooter) {
         this.feedToShooter = feedToShooter;
+        SimView.setShooting(feedToShooter);
     }
 
     public boolean hasPiece() {

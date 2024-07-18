@@ -8,10 +8,7 @@ import com.swrobotics.lib.net.NTDouble;
 import com.swrobotics.mathlib.MathUtil;
 import com.swrobotics.robot.config.NTData;
 import com.swrobotics.robot.logging.FieldView;
-import com.swrobotics.robot.logging.SimView;
 import com.swrobotics.robot.subsystems.speaker.aim.AimCalculator;
-import com.swrobotics.robot.subsystems.speaker.aim.AmpAimCalculator;
-import com.swrobotics.robot.subsystems.speaker.aim.LobCalculator;
 import com.swrobotics.robot.subsystems.speaker.aim.TableAimCalculator;
 import com.swrobotics.robot.subsystems.swerve.SwerveDrive;
 import edu.wpi.first.math.filter.Debouncer;
@@ -20,20 +17,12 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.util.Units;
-import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.PrintCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public final class ShooterSubsystem extends SubsystemBase {
-    public enum FlywheelControl {
-        SHOOT,
-        POOP,
-        IDLE,
-        REVERSE
-    }
-
     private static final Pose2d blueSpeakerPose = new Pose2d(Units.inchesToMeters(6), 5.5475, new Rotation2d(0)); // Opening
                                                                                                                   // extends
                                                                                                                   // 18"
@@ -49,10 +38,6 @@ public final class ShooterSubsystem extends SubsystemBase {
     private boolean isPreparing;
 
     private AimCalculator.Aim targetAim; // Target aim is null if not currently aiming
-    private AimCalculator aimCalculator;
-    private final TableAimCalculator tableAimCalculator;
-
-    private FlywheelControl flywheelControl;
 
     public ShooterSubsystem(SwerveDrive drive, IndexerSubsystem indexer) {
         this.pivot = new PivotSubsystem();
@@ -61,14 +46,8 @@ public final class ShooterSubsystem extends SubsystemBase {
         this.drive = drive;
         this.indexer = indexer;
 
-        // aimCalculator = new ManualAimCalculator();
-        tableAimCalculator = new TableAimCalculator();
-        aimCalculator = tableAimCalculator;
-
         NTData.SHOOTER_AFTER_DELAY
                 .nowAndOnChange((delay) -> afterShootDelay = new Debouncer(delay, Debouncer.DebounceType.kFalling));
-
-        flywheelControl = FlywheelControl.SHOOT;
 
         setDefaultCommand(getIdleCommand().ignoringDisable(true));
         handleIdle();
@@ -226,7 +205,8 @@ public final class ShooterSubsystem extends SubsystemBase {
     }
 
     private void handleAmp() {
-
+        pivot.setTargetAngle(Math.toRadians(NTData.SHOOTER_AMP_ANGLE.get()) / MathUtil.TAU);
+        flywheel.setTargetVelocity(NTData.SHOOTER_AMP_VELOCITY.get());
     }
 
     public Command getAmpCommand() {
@@ -251,8 +231,11 @@ public final class ShooterSubsystem extends SubsystemBase {
     }
 
     public Command getPoopCommand() {
-        return Commands.run(() -> flywheel.setDutyCycle(NTData.SHOOTER_FLYWHEEL_POOP_SPEED.get()), this)
-                .withName("Shooter Poop");
+        Command poop = Commands.run(() -> flywheel.setDutyCycle(NTData.SHOOTER_FLYWHEEL_POOP_SPEED.get()), this)
+            .withName("Shooter Poop");
+
+        // Every other command takes priority other than idle
+        return Commands.either(poop.asProxy(), Commands.none(), () -> getCurrentCommand() == getDefaultCommand());
     }
 
     NTDouble pctErr = new NTDouble("Shooter/Debug/Percent Error", 0);
@@ -268,16 +251,8 @@ public final class ShooterSubsystem extends SubsystemBase {
         return isPreparing && flywheel.isReadyToShoot() && pivot.isAtSetpoint();
     }
 
-    public void setFlywheelControl(FlywheelControl flywheelControl) {
-        this.flywheelControl = flywheelControl;
-    }
-
     public double getFlywheelPercentOfTarget() {
         return flywheel.getPercentOfTarget();
-    }
-
-    public void setTempAimCalculator(AimCalculator calculator) {
-        aimCalculator = calculator;
     }
 
     public AimCalculator.Aim getTargetAim() {

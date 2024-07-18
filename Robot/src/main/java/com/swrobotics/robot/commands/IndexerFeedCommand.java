@@ -25,7 +25,6 @@ public final class IndexerFeedCommand extends Command {
     @Override
     public void execute() {
         indexer.setFeedToShooter(true);
-        SimView.setShooting(true);
         if (!indexer.hasPiece() && !hasStartedTimer) {
             timer.start();
             hasStartedTimer = true;
@@ -35,7 +34,6 @@ public final class IndexerFeedCommand extends Command {
     @Override
     public void end(boolean interrupted) {
         indexer.setFeedToShooter(false);
-        SimView.setShooting(false);
     }
 
     @Override
