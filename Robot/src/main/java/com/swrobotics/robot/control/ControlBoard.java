@@ -39,14 +39,9 @@ public class ControlBoard extends SubsystemBase {
      * Driver:
      * Left stick: translation
      * Right stick X: rotation
-     * Left bumper: high lob
-     * Left Trigger: low lob
-     * Right trigger: aim at speaker
-     * Right bumper: spin up flywheel
-     * Dpad Left: Manual subwoofer shot
-     * Dpad Right: Manual podium shot
-     * Dpad Up: Snap to distance closer to speaker
-     * Dpad Down: Snap to distance farther to speaker
+     * Left bumper: lob (automatic high/low)
+     * Right bumper: aim at speaker
+     * Dpad down: Manual subwoofer shot
      *
      * Operator:
      * A: intake
@@ -136,7 +131,7 @@ public class ControlBoard extends SubsystemBase {
     }
 
     private boolean driverWantsAim() {
-        return driver.rightTrigger.isOutside(TRIGGER_BUTTON_THRESHOLD);
+        return driver.rightBumper.isPressed();
     }
 
     private double squareWithSign(double value) {
@@ -213,9 +208,6 @@ public class ControlBoard extends SubsystemBase {
 
             return;
         }
-
-        // if (!operator.a.isPressed())
-        //     robot.intake.set(IntakeSubsystem.State.OFF);
 
         boolean forceToSubwoofer = forceSubwooferTrigger.getAsBoolean();
         robot.drive.setEstimatorIgnoreVision(forceToSubwoofer);
