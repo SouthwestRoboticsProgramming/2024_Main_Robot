@@ -97,29 +97,9 @@ public class ControlBoard extends SubsystemBase {
         driver = new XboxController(0, DEADBAND);
         operator = new XboxController(1, DEADBAND);
 
-        // Pathing test
-        // Pose2d[] target = new Pose2d[1];
-        // target[0] = new Pose2d(10, 4, new Rotation2d(0));
-        // driver.a.onRising(() -> CommandScheduler.getInstance().schedule(AutoBuilder.pathfindToPose(target[0], new PathConstraints(0.5, 8, 10, 40))));
-        // driver.b.onRising(() -> target[0] = robot.drive.getEstimatedPose());
-
         // Configure triggers
         driver.start.onFalling(() -> robot.drive.setRotation(new Rotation2d()));
         driver.back.onFalling(() -> robot.drive.setRotation(new Rotation2d())); // Two buttons to reset gyro so the driver can't get confused
-
-        // new Trigger(driver.leftBumper::isPressed)
-        //         .onTrue(Commands.runOnce(() -> lobbing++))
-        //     .whileTrue(new AimTowardsLobCommand(robot.drive, robot.shooter))
-        //     .whileTrue(Commands.run(() -> robot.shooter.setTempAimCalculator(LobCalculator.INSTANCE)))
-        //     .onFalse(Commands.runOnce(() -> lobbing--))
-        //         .debounce(0.2, DebounceType.kRising) // Only debounce the shooting
-        //         .onTrue(Commands.runOnce(() -> lobbing++))
-        //     .onFalse(
-        //         Commands.run(() -> robot.indexer.setFeedToShooter(true)).withTimeout(0.5)
-        //         .andThen(Commands.runOnce(() -> {
-        //             robot.indexer.setFeedToShooter(false);
-        //             lobbing--;
-        //         })));
 
         new Trigger(driver.leftBumper::isPressed)
             .whileTrue(new AimTowardsLobCommand(robot.drive, robot.shooter))
@@ -144,26 +124,13 @@ public class ControlBoard extends SubsystemBase {
                 .whileTrue(Commands.run(() -> robot.drive.turn(new TurnRequest(SwerveDrive.DRIVER_PRIORITY + 1, new Rotation2d(11.0)))));
         // Just angle amp
         new Trigger(() -> driver.a.isPressed()).whileTrue(new AmpAlignCommand(robot.drive).alongWith()); // FIXME: Make the bar go up too
-
-        // Up is closer, down is farther
-        new Trigger(this::driverWantsSnapCloser).whileTrue(new SnapDistanceCommand(robot.drive, robot.shooter, true));
-        new Trigger(this::driverWantsSnapFarther).whileTrue(new SnapDistanceCommand(robot.drive, robot.shooter, false));
         
         driver.y.onFalling(() -> NTData.SHOOTER_PIVOT_RECALIBRATE.set(true));
 
-//        Trigger ampTrigger = new Trigger(() -> operator.y.isPressed());
-//        ampTrigger.whileTrue(Commands.run(() -> robot.shooter.setTempAimCalculator(new AmpAimCalculator())));
-//        ampTrigger.onFalse(new ShootCommand(robot));
-
-//        Trigger operatorA = new Trigger(operator.a::isPressed);
-//        operatorA.onTrue(Commands.runOnce(() -> robot.intake.set(IntakeSubsystem.State.INTAKE)));
         operator.a.onRising(() -> robot.intake.set(IntakeSubsystem.State.INTAKE));
         operator.a.onFalling(() -> robot.intake.set(IntakeSubsystem.State.OFF));
-//        operatorA.onFalse(Commands.runOnce(() -> robot.intake.set(IntakeSubsystem.State.OFF)));
         robot.intake.set(IntakeSubsystem.State.OFF);
 
-//        operator.a.onFalling(() -> robot.intake.set(IntakeSubsystem.State.INTAKE));
-//        operator.a.onRising(() -> robot.intake.set(IntakeSubsystem.State.OFF));
         new Trigger(() -> robot.indexer.hasPiece() || !operator.a.isPressed())
                 .onTrue(Commands.runOnce(() -> robot.intake.set(IntakeSubsystem.State.OFF)));
 
@@ -174,20 +141,8 @@ public class ControlBoard extends SubsystemBase {
                 .onFalse(Commands.runOnce(robot.indexer::endReverse));
     }
 
-    private boolean driverWantsSnapCloser() {
-        return false;
-//        return driverSnapCloserDebounce.calculate(driver.dpad.up.isPressed());
-    }
-
-    private boolean driverWantsSnapFarther() {
-        return false;
-//        return driverSnapFartherDebounce.calculate(driver.dpad.down.isPressed());
-    }
-
     private boolean driverWantsAim() {
-        return driver.rightTrigger.isOutside(TRIGGER_BUTTON_THRESHOLD)
-                || driverWantsSnapCloser()
-                || driverWantsSnapFarther();
+        return driver.rightTrigger.isOutside(TRIGGER_BUTTON_THRESHOLD);
     }
 
     private boolean driverWantsFlywheels() {
@@ -324,26 +279,6 @@ public class ControlBoard extends SubsystemBase {
         boolean operatorWantsShoot = shootDebounce.calculate(operator.b.isPressed());
         robot.indexer.setFeedToShooter(operatorWantsShoot);
 
-
-
-        // robot.ampArm2.setOut(operator.y.isPressed());
-
-//        AmpArmSubsystem.Position ampArmPosition = AmpArmSubsystem.Position.STOW;
-//        AmpIntakeSubsystem.State ampIntakeState = AmpIntakeSubsystem.State.OFF;
-//        if (operator.x.isPressed()) {
-//            ampArmPosition = AmpArmSubsystem.Position.PICKUP;
-//            ampIntakeState = AmpIntakeSubsystem.State.INTAKE;
-//        } else if (operator.y.isPressed()) {
-//            ampArmPosition = AmpArmSubsystem.Position.SCORE_AMP;
-//        } else if (operator.leftBumper.isPressed()) {
-//            ampArmPosition = AmpArmSubsystem.Position.SCORE_TRAP;
-//        }
-//        if (operator.leftTrigger.isOutside(TRIGGER_BUTTON_THRESHOLD)) {
-//            ampIntakeState = AmpIntakeSubsystem.State.OUTTAKE;
-//        }
-//        robot.ampArm.setPosition(ampArmPosition);
-//        robot.ampIntake.setState(ampIntakeState);
-
         boolean climbToggle = operator.rightBumper.isRising();
         boolean climbCancel = operator.leftBumper.isRising();
 
@@ -383,12 +318,6 @@ public class ControlBoard extends SubsystemBase {
 
         robot.climber.applyManualAdjust(-operator.leftStickY.get(), -operator.rightStickY.get());
 
-        // if (operator.rightBumper.isRising()) {
-        //     boolean extended = climbStateClimberArm.State.EXTENDED;
-        //     climberState = extended ? ClimberArm.State.RETRACTED : ClimberArm.State.EXTENDED;
-        // }
-        // robot.climber.setState(climberState);
-
         robot.intake.setReverse(operator.back.isPressed());
 
         boolean shootAmp = operator.y.isPressed();
@@ -398,7 +327,6 @@ public class ControlBoard extends SubsystemBase {
         if (shootManual)
             robot.shooter.setTempAimCalculator(ManualAimCalculator.INSTANCE);
 
-//        robot.shooter.setFlywheelControl(driverWantsAim() || driverWantsFlywheels());
         ShooterSubsystem.FlywheelControl flywheelControl = ShooterSubsystem.FlywheelControl.IDLE;
         if (operator.start.isPressed())
             flywheelControl = ShooterSubsystem.FlywheelControl.REVERSE;
