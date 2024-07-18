@@ -257,11 +257,6 @@ public final class ShooterSubsystem extends SubsystemBase {
 
     NTDouble pctErr = new NTDouble("Shooter/Debug/Percent Error", 0);
 
-    @Override
-    public void simulationPeriodic() {
-        SimView.updateShooter(targetAim);
-    }
-
     public boolean isPreparing() {
         return isPreparing;
     }

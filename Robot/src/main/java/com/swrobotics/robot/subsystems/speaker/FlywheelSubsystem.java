@@ -11,6 +11,7 @@ import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.swrobotics.mathlib.MathUtil;
 import com.swrobotics.robot.config.IOAllocation;
 import com.swrobotics.robot.config.NTData;
+import com.swrobotics.robot.logging.SimView;
 import com.swrobotics.robot.utils.TalonFXWithSim;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.wpilibj.RobotBase;
@@ -33,6 +34,7 @@ public final class FlywheelSubsystem extends SubsystemBase {
     private double targetVelocity;
     private double simVelocity;
     private boolean isNeutral;
+    private double logVelocity; // Includes duty cycle
 
     public FlywheelSubsystem() {
         TalonFXConfiguration config = new TalonFXConfiguration();
@@ -60,6 +62,7 @@ public final class FlywheelSubsystem extends SubsystemBase {
         leftMotor.setControl(new VelocityVoltage(velocityRPS));
         rightMotor.setControl(new VelocityVoltage(velocityRPS));
         isNeutral = false;
+        logVelocity = velocityRPS;
     }
 
     public void setDutyCycle(double percentOut) {
@@ -67,7 +70,8 @@ public final class FlywheelSubsystem extends SubsystemBase {
         leftMotor.setControl(cmd);
         rightMotor.setControl(cmd);
 
-        isNeutral = true; // It's neutral enough
+        isNeutral = true; // It's neutral enough\
+        logVelocity = percentOut;
     }
 
     public void setNeutral() {
@@ -94,6 +98,11 @@ public final class FlywheelSubsystem extends SubsystemBase {
 
         leftMotor.updateSim(12);
         rightMotor.updateSim(12);
+
+        if (isNeutral) {
+            logVelocity = 10;
+        }
+        SimView.updateFlywheels(logVelocity);
     }
 
     private double getLeftVelocity() {

@@ -165,6 +165,8 @@ public final class PivotSubsystem extends SubsystemBase {
                     state = State.IDLE;
             }
         }
+
+        SimView.updatePivot(setpoint);
     }
 
     NTBoolean limitSw = new NTBoolean("Shooter/Debug/Limit Switch", false);

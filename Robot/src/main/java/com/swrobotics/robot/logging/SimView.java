@@ -75,9 +75,18 @@ public final class SimView {
         ampIntake.setAngle(intakeRot * 360 - 180);
     }
 
+    @Deprecated
     public static void updateShooter(AimCalculator.Aim aim) {
         shooterPivot.setAngle(Math.toDegrees(aim.pivotAngle()));
         shooterPivot.setLength(aim.flywheelVelocity() / 100 * maxShooterLength);
+    }
+
+    public static void updatePivot(double angleRot) {
+        shooterPivot.setAngle(angleRot * 360.0);
+    }
+
+    public static void updateFlywheels(double flywheelVelocity) {
+        shooterPivot.setLength(flywheelVelocity / 100 * maxShooterLength);
     }
 
     public static void setShooting(boolean shooting) {
