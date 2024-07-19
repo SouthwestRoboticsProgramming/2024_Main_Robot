@@ -16,8 +16,6 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.Command;
 
 public final class AimTowardsLobCommand extends Command {
-    private static final double OFFSET = -Math.atan2(64 - 17, (54*12 - 134) - 113);
-
     private final SwerveDrive drive;
     private final ShooterSubsystem shooter;
 
@@ -78,6 +76,6 @@ public final class AimTowardsLobCommand extends Command {
     }
 
     private double getFlyTime(AimCalculator.Aim aim) {
-        return Math.cos(aim.pivotAngle()) * aim.flywheelVelocity() / NTData.SHOOTER_LOB_POWER_COEFFICIENT.get() / 9.8;
+        return  2.0 * Math.sin(aim.pivotAngle()) * aim.flywheelVelocity() / 9.8; // 2x the amount of time for the initial velocity to be negated by gravity
     }
 }
