@@ -217,8 +217,8 @@ public final class ShooterSubsystem extends SubsystemBase {
 
     private void handleLob() {
         double distanceToTarget = distanceTo(getLobZonePosition());
-        boolean inWing = distanceToTarget < 5.0; // Meters
-        if (inWing) {
+        boolean chooseLowLob = distanceToTarget < 7.0 && drive.getEstimatedPose().getTranslation().getY() > 5.0; // Meters
+        if (chooseLowLob) {
             pivot.setTargetAngle(25.0 / 360.0);
             flywheel.setDutyCycle(30);
             return;
@@ -289,5 +289,14 @@ public final class ShooterSubsystem extends SubsystemBase {
 
     private double distanceTo(Translation2d target) {
         return target.getDistance(drive.getEstimatedPose().getTranslation());
+    }
+
+    private Rotation2d angleTo(Translation2d target) {
+        return target.minus(drive.getEstimatedPose().getTranslation()).getAngle();
+    }
+
+    private Translation2d velocityTo(Translation2d target) {
+        ChassisSpeeds robotSpeeds = drive.getFieldRelativeSpeeds();
+        return new Translation2d(robotSpeeds.vxMetersPerSecond, robotSpeeds.vyMetersPerSecond).rotateBy(angleTo(target));
     }
 }

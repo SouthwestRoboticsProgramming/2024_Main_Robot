@@ -8,7 +8,6 @@ import com.swrobotics.mathlib.MathUtil;
 import com.swrobotics.robot.RobotContainer;
 import com.swrobotics.robot.commands.AimTowardsLobCommand;
 import com.swrobotics.robot.commands.AimTowardsSpeakerCommand;
-import com.swrobotics.robot.commands.AmpAlignCommand;
 import com.swrobotics.robot.commands.CharactarizeWheelCommand;
 import com.swrobotics.robot.config.NTData;
 import com.swrobotics.robot.subsystems.amp.AmpArm2Subsystem;
@@ -25,6 +24,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
@@ -89,7 +89,8 @@ public class ControlBoard extends SubsystemBase {
                 .whileTrue(Commands.run(() -> robot.drive.turn(new TurnRequest(SwerveDrive.DRIVER_PRIORITY + 1, new Rotation2d(11.0)))));
                 
         // Angle towards the amp
-        new Trigger(() -> driver.a.isPressed()).whileTrue(new AmpAlignCommand(robot.drive));
+        // new Trigger(() -> driver.a.isPressed()).whileTrue(new AmpAlignCommand(robot.drive));
+        new Trigger(() -> driver.a.isPressed()).whileTrue(robot.drive.getAimCommand(() -> getAmpRotation()));
         
         driver.y.onFalling(() -> NTData.SHOOTER_PIVOT_RECALIBRATE.set(true));
 
@@ -118,6 +119,15 @@ public class ControlBoard extends SubsystemBase {
         new Trigger(() -> operator.b.isPressed()).debounce(0.075).whileTrue(robot.shooter.getPoopCommand());
 
         new Trigger(() -> CHARACTERISE_WHEEL_RADIUS.get()).whileTrue(new CharactarizeWheelCommand(robot.drive));
+    }
+
+    private Rotation2d getAmpRotation () {
+        Rotation2d angle = Rotation2d.fromDegrees(90);
+        if (DriverStation.getAlliance().get() == Alliance.Blue) {
+            angle.plus(Rotation2d.fromDegrees(180));
+        }
+
+        return angle;
     }
 
     private boolean driverWantsAim() {

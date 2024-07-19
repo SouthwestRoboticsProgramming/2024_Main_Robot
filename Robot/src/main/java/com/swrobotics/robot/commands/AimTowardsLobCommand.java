@@ -49,16 +49,17 @@ public final class AimTowardsLobCommand extends Command {
         // Relative to the target
         Translation2d robotVelocity = new Translation2d(robotSpeeds.vxMetersPerSecond, robotSpeeds.vyMetersPerSecond).rotateBy(angleToTarget);
 
-        AimCalculator.Aim currentAim = shooter.getTargetAim();
-        double flyTime = getFlyTime(currentAim);
-        double missAmount = flyTime * robotVelocity.getY();
+        // AimCalculator.Aim currentAim = shooter.getTargetAim();
+        // double flyTime = getFlyTime(currentAim);
+        // double missAmount = flyTime * robotVelocity.getY();
 
         // For some reason it's different per alliance???
         NTEntry<Double> offset = DriverStation.getAlliance().orElse(DriverStation.Alliance.Blue) == DriverStation.Alliance.Blue
                 ? NTData.SHOOTER_LOB_DRIVE_ANGLE_CORRECTION_BLUE
                 : NTData.SHOOTER_LOB_DRIVE_ANGLE_CORRECTION_RED;
 
-        double correctionRad = -Math.atan2(missAmount, currentAim.distanceToSpeaker()) + Math.toRadians(offset.get());
+        // double correctionRad = -Math.atan2(missAmount, currentAim.distanceToSpeaker()) + Math.toRadians(offset.get());
+        double correctionRad = 0.0;
 
         double setpointAngle = MathUtil.wrap(angleToTarget.getRadians() + correctionRad, -Math.PI, Math.PI);
         double currentAngle = MathUtil.wrap(robotPose.getRotation().getRadians(), -Math.PI, Math.PI);
