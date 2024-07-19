@@ -9,6 +9,7 @@ import com.swrobotics.mathlib.MathUtil;
 import com.swrobotics.robot.config.NTData;
 import com.swrobotics.robot.logging.FieldView;
 import com.swrobotics.robot.subsystems.speaker.aim.AimCalculator;
+import com.swrobotics.robot.subsystems.speaker.aim.LobCalculator;
 import com.swrobotics.robot.subsystems.speaker.aim.TableAimCalculator;
 import com.swrobotics.robot.subsystems.swerve.SwerveDrive;
 import edu.wpi.first.math.filter.Debouncer;
@@ -215,7 +216,17 @@ public final class ShooterSubsystem extends SubsystemBase {
     }
 
     private void handleLob() {
+        double distanceToTarget = distanceTo(getLobZonePosition());
+        boolean inWing = distanceToTarget < 5.0; // Meters
+        if (inWing) {
+            pivot.setTargetAngle(25.0 / 360.0);
+            flywheel.setDutyCycle(30);
+            return;
+        }
 
+        AimCalculator.Aim aim = LobCalculator.INSTANCE.calculateAim(distanceToTarget);
+        pivot.setTargetAngle(aim.pivotAngle() / MathUtil.TAU);
+        flywheel.setTargetVelocity(aim.flywheelVelocity());
     }
 
     public Command getLobCommand() {
@@ -274,5 +285,9 @@ public final class ShooterSubsystem extends SubsystemBase {
 
     public boolean isCalibrated() {
         return pivot.hasCalibrated();
+    }
+
+    private double distanceTo(Translation2d target) {
+        return target.getDistance(drive.getEstimatedPose().getTranslation());
     }
 }
