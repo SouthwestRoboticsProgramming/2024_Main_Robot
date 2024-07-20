@@ -23,26 +23,42 @@ public final class RobotCommands {
         );
     }
 
+    // public static Command aimAndShoot(RobotContainer robot, boolean waitForNote, boolean useVision) {
+    //     AimTowardsSpeakerCommand aim = new AimTowardsSpeakerCommand(robot.drive, robot.shooter);
+    //     List<Command> commands = new ArrayList<>();
+    //     commands.addAll(List.of(
+    //             Commands.waitUntil(robot.shooter::isCalibrated),
+    //             Commands.waitUntil(() -> (!waitForNote || robot.indexer.hasPiece())
+    //                     && aim.isInTolerance(NTData.DRIVE_AIM_TOLERANCE.get())
+    //                     && robot.shooter.isReadyToShoot())
+    //                 .withTimeout(NTData.SHOOTER_AUTO_READY_TIMEOUT.get()),
+    //             Commands.waitSeconds(NTData.SHOOTER_AUTO_AFTER_READY_DELAY.get()),
+    //             new IndexerFeedCommand(robot.indexer)
+    //     ));
+
+    //     if (useVision) {
+    //         commands.add(0, Commands.runOnce(() -> robot.drive.setEstimatorIgnoreVision(false)));
+    //         commands.add(Commands.runOnce(() -> robot.drive.setEstimatorIgnoreVision(true)));
+    //     }
+
+    //     return new ParallelDeadlineGroup(Commands.sequence(commands.toArray(new Command[0])), aim);
+    // }
+
     public static Command aimAndShoot(RobotContainer robot, boolean waitForNote, boolean useVision) {
-        AimTowardsSpeakerCommand aim = new AimTowardsSpeakerCommand(robot.drive, robot.shooter);
+        Command cmd = robot.shooter.getSpeakerSnapCommand();
+        // .andThen(Commands.waitUntil(robot.shooter::isCalibrated),
+        //          Commands.waitUntil(() -> (!waitForNote || robot.indexer.hasPiece())
+        //                 && robot.shooter.isReadyToShoot())
+        //             .withTimeout(NTData.SHOOTER_AUTO_READY_TIMEOUT.get()),
+        //          Commands.waitSeconds(NTData.SHOOTER_AUTO_AFTER_READY_DELAY.get()));
+        
+        // if (useVision) {
+        //     cmd = cmd.beforeStarting(Commands.runOnce(() -> robot.drive.setEstimatorIgnoreVision(false)));
+        //     cmd = cmd.finallyDo(() -> robot.drive.setEstimatorIgnoreVision(true));
+        // }
 
-        List<Command> commands = new ArrayList<>();
-        commands.addAll(List.of(
-                Commands.waitUntil(robot.shooter::isCalibrated),
-                Commands.waitUntil(() -> (!waitForNote || robot.indexer.hasPiece())
-                        && aim.isInTolerance(NTData.DRIVE_AIM_TOLERANCE.get())
-                        && robot.shooter.isReadyToShoot())
-                    .withTimeout(NTData.SHOOTER_AUTO_READY_TIMEOUT.get()),
-                Commands.waitSeconds(NTData.SHOOTER_AUTO_AFTER_READY_DELAY.get()),
-                new IndexerFeedCommand(robot.indexer)
-        ));
-
-        if (useVision) {
-            commands.add(0, Commands.runOnce(() -> robot.drive.setEstimatorIgnoreVision(false)));
-            commands.add(Commands.runOnce(() -> robot.drive.setEstimatorIgnoreVision(true)));
-        }
-
-        return new ParallelDeadlineGroup(Commands.sequence(commands.toArray(new Command[0])), aim);
+        cmd = cmd.andThen(new IndexerFeedCommand(robot.indexer));
+        return cmd;
     }
 
     public static Command shootQuick(RobotContainer robot) {

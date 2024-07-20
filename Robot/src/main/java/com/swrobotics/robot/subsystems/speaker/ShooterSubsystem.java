@@ -3,6 +3,9 @@ package com.swrobotics.robot.subsystems.speaker;
 import com.swrobotics.lib.net.NTString;
 import edu.wpi.first.wpilibj.RobotBase;
 
+import java.util.Set;
+import java.util.function.Supplier;
+
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.swrobotics.lib.net.NTDouble;
 import com.swrobotics.mathlib.MathUtil;
@@ -171,19 +174,13 @@ public final class ShooterSubsystem extends SubsystemBase {
     }
 
     private void handleSpeaker() {
-        double distToSpeaker = getSpeakerPosition().getDistance(drive.getEstimatedPose().getTranslation());
-        Pose2d robotPose = drive.getEstimatedPose();
-        Translation2d robotPos = robotPose.getTranslation();
-        ChassisSpeeds robotSpeeds = drive.getFieldRelativeSpeeds();
-
         Translation2d target = getSpeakerPosition();
-        Rotation2d angleToTarget = target.minus(robotPos).getAngle();
 
-        // Relative to the target
-        Translation2d robotVelocity = new Translation2d(robotSpeeds.vxMetersPerSecond,
-                robotSpeeds.vyMetersPerSecond).rotateBy(angleToTarget);
+        double distToSpeaker = distanceTo(target);
+        Translation2d robotVelocity = velocityTo(target);
+
         AimCalculator.Aim aim = TableAimCalculator.INSTANCE.calculateAim(distToSpeaker, robotVelocity.getX());
-        if (/* afterShootDelay.calculate(indexer.hasPiece()) && */(aim != null)) {
+        if (/* afterShootDelay.calculate(indexer.hasPiece()) && */(aim != null)) { // Fixme
             pivot.setTargetAngle(aim.pivotAngle() / MathUtil.TAU);
             flywheel.setTargetVelocity(aim.flywheelVelocity());
             targetAim = aim;
@@ -217,6 +214,7 @@ public final class ShooterSubsystem extends SubsystemBase {
 
     private void handleLob() {
         double distanceToTarget = distanceTo(getLobZonePosition());
+        Translation2d velocityToTarget = velocityTo(getLobZonePosition());
         boolean chooseLowLob = distanceToTarget < 7.0 && drive.getEstimatedPose().getTranslation().getY() > 5.0; // Meters
         if (chooseLowLob) {
             pivot.setTargetAngle(25.0 / 360.0);
@@ -224,7 +222,7 @@ public final class ShooterSubsystem extends SubsystemBase {
             return;
         }
 
-        AimCalculator.Aim aim = LobCalculator.INSTANCE.calculateAim(distanceToTarget);
+        AimCalculator.Aim aim = LobCalculator.INSTANCE.calculateAim(distanceToTarget, velocityToTarget.getX());
         pivot.setTargetAngle(aim.pivotAngle() / MathUtil.TAU);
         flywheel.setTargetVelocity(aim.flywheelVelocity());
     }
@@ -298,5 +296,34 @@ public final class ShooterSubsystem extends SubsystemBase {
     private Translation2d velocityTo(Translation2d target) {
         ChassisSpeeds robotSpeeds = drive.getFieldRelativeSpeeds();
         return new Translation2d(robotSpeeds.vxMetersPerSecond, robotSpeeds.vyMetersPerSecond).rotateBy(angleTo(target));
+    }
+
+    private Rotation2d getAimCorrection(Translation2d target, Supplier<Double> flytime, Supplier<Double> otherCorrection) {
+        Translation2d robotVelocity = velocityTo(target);
+        double missAmount = flytime.get() * robotVelocity.getY();
+
+        System.out.println(flytime.get());
+        double correctionRad = -Math.atan2(missAmount, distanceTo(target)) + Math.toRadians(otherCorrection.get());
+        return new Rotation2d(correctionRad);
+    }
+
+    private Command getDynamicAimCommand(Translation2d target, Supplier<Double> flytime, Supplier<Double> otherCorrection) {
+        return drive.getAimCommand(() -> angleTo(target).plus(getAimCorrection(target, flytime, otherCorrection)));
+    }
+
+    private Command getDynamicSnapCommand(Translation2d target, Supplier<Double> flytime, Supplier<Double> otherCorrection) {
+        return drive.getSnapCommand(() -> angleTo(target).plus(getAimCorrection(target, flytime, otherCorrection)));
+    }
+
+    public Command getSpeakerAimCommand() {
+        return Commands.defer(() -> getDynamicAimCommand(getSpeakerPosition(), () -> distanceTo(getSpeakerPosition()) / 10.0, () -> 0.0), Set.of());
+    }
+
+    public Command getSpeakerSnapCommand() {
+        return Commands.defer(() -> getDynamicSnapCommand(getSpeakerPosition(), () -> distanceTo(getSpeakerPosition()) / 10.0, () -> 0.0), Set.of());
+    }
+
+    public Command getLobAimCommand() {
+        return Commands.defer(() -> getDynamicAimCommand(getLobZonePosition(), () -> LobCalculator.INSTANCE.getFlyTime(), () -> LobCalculator.INSTANCE.getAimOffset()), Set.of());
     }
 }

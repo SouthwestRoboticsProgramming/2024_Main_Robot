@@ -1,34 +1,34 @@
 package com.swrobotics.robot.subsystems.speaker.aim;
 
+import java.util.function.Supplier;
+
+import com.swrobotics.lib.net.NTEntry;
 import com.swrobotics.mathlib.MathUtil;
 import com.swrobotics.robot.config.NTData;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.wpilibj.DriverStation;
 
 public class LobCalculator implements AimCalculator {
     public static final LobCalculator INSTANCE = new LobCalculator();
 
     private static final double twoG = 9.8 * 2;
-    private double tallSqrt2gh;
-    private double shortSqrt2gh;
+    private double sqrt2gh;
+    private double flytime;
+
+    private NTEntry<Double> aimOffset;
 
     public LobCalculator() {
-        NTData.SHOOTER_LOB_TALL_HEIGHT_METERS.onChange((a) -> this.updateHeight());
-        NTData.SHOOTER_LOB_SHORT_HEIGHT_METERS.onChange((a) -> this.updateHeight());
-        tallSqrt2gh = Math.sqrt(twoG * NTData.SHOOTER_LOB_TALL_HEIGHT_METERS.get());
-        shortSqrt2gh = Math.sqrt(twoG * NTData.SHOOTER_LOB_SHORT_HEIGHT_METERS.get());
+        NTData.SHOOTER_LOB_HEIGHT_METERS.onChange((a) -> this.updateHeight());
+        updateHeight();
+
+
     }
 
-    public Aim calculateAim(double distanceToSpeaker, double velocityTowardsGoal) {
-        boolean inWing = distanceToSpeaker > 5;
-        double angleRad = 0;
+    public Aim calculateAim(double distanceToTarget, double velocityTowardsGoal) {
 
-        if (inWing) {
-            angleRad = Math.atan2(4 * NTData.SHOOTER_LOB_TALL_HEIGHT_METERS.get(), distanceToSpeaker);
-        }
-
-        double sqrt2gh = (inWing) ? tallSqrt2gh : shortSqrt2gh;
+        double angleRad = Math.atan2(4 * NTData.SHOOTER_LOB_HEIGHT_METERS.get(), distanceToTarget);
 
         double velocity = sqrt2gh / Math.sin(angleRad);
 
@@ -39,17 +39,30 @@ public class LobCalculator implements AimCalculator {
         double velocitySetpoint = shooterVelocity.getNorm() * NTData.SHOOTER_LOB_POWER_COEFFICIENT.get();
 
         // System.out.println("V: " + velocitySetpoint + " A: " + Math.toDegrees(angleRad));
-        return new Aim(velocitySetpoint, MathUtil.clamp(shooterVelocity.getAngle().getRadians(), Math.toRadians(23), Math.toRadians(69)), distanceToSpeaker);
+        return new Aim(velocitySetpoint, MathUtil.clamp(shooterVelocity.getAngle().getRadians(), Math.toRadians(23), Math.toRadians(69)), distanceToTarget);
     }
 
     @Override
-    public Aim calculateAim(double distanceToSpeaker) {
-        return calculateAim(distanceToSpeaker, 0);
+    public Aim calculateAim(double distanceToTarget) {
+        return calculateAim(distanceToTarget, 0);
     }
 
     private void updateHeight() {
-        tallSqrt2gh = Math.sqrt(twoG * NTData.SHOOTER_LOB_TALL_HEIGHT_METERS.get());
-        shortSqrt2gh = Math.sqrt(twoG * NTData.SHOOTER_LOB_SHORT_HEIGHT_METERS.get());
+        sqrt2gh = Math.sqrt(twoG * NTData.SHOOTER_LOB_HEIGHT_METERS.get());
+        flytime = 2 * Math.sqrt(2 * NTData.SHOOTER_LOB_HEIGHT_METERS.get() / 9.8);
+    }
+
+    public double getFlyTime() {
+        return flytime;
+    }
+
+    public double getAimOffset() {
+
+        // For some reason it's different per alliance???
+        NTEntry<Double> entry = DriverStation.getAlliance().orElse(DriverStation.Alliance.Blue) == DriverStation.Alliance.Blue
+                ? NTData.SHOOTER_LOB_DRIVE_ANGLE_CORRECTION_BLUE
+                : NTData.SHOOTER_LOB_DRIVE_ANGLE_CORRECTION_RED;
+        return entry.get();
     }
 
 }

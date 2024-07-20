@@ -6,8 +6,6 @@ import com.swrobotics.lib.net.NTBoolean;
 import com.swrobotics.lib.net.NTEntry;
 import com.swrobotics.mathlib.MathUtil;
 import com.swrobotics.robot.RobotContainer;
-import com.swrobotics.robot.commands.AimTowardsLobCommand;
-import com.swrobotics.robot.commands.AimTowardsSpeakerCommand;
 import com.swrobotics.robot.commands.CharactarizeWheelCommand;
 import com.swrobotics.robot.config.NTData;
 import com.swrobotics.robot.subsystems.amp.AmpArm2Subsystem;
@@ -78,10 +76,8 @@ public class ControlBoard extends SubsystemBase {
         driver.start.onFalling(() -> robot.drive.setRotation(new Rotation2d()));
         driver.back.onFalling(() -> robot.drive.setRotation(new Rotation2d())); // Two buttons to reset gyro so the driver can't get confused
 
-        new Trigger(this::driverWantsAim).whileTrue(new AimTowardsSpeakerCommand(
-                robot.drive,
-                robot.shooter
-        )).whileTrue(robot.shooter.getSpeakerCommand());
+        new Trigger(this::driverWantsAim).whileTrue(robot.shooter.getSpeakerAimCommand()
+        ).whileTrue(robot.shooter.getSpeakerCommand());
 
         // Spin like mad when the driver clicks in the right stick
         new Trigger(driver.rightStickButton::isPressed)
@@ -109,7 +105,7 @@ public class ControlBoard extends SubsystemBase {
                 .onFalse(Commands.runOnce(robot.indexer::endReverse))
                 .whileTrue(robot.shooter.getFeedCommand());
 
-        new Trigger(() -> driver.leftBumper.isPressed()).whileTrue(robot.shooter.getLobCommand()).whileTrue(new AimTowardsLobCommand(robot.drive, robot.shooter));
+        new Trigger(() -> driver.leftBumper.isPressed()).whileTrue(robot.shooter.getLobCommand()).whileTrue(robot.shooter.getLobAimCommand());
         
         new Trigger(() -> operator.y.isPressed()).debounce(0.2, DebounceType.kFalling).whileTrue(robot.shooter.getAmpCommand());
 

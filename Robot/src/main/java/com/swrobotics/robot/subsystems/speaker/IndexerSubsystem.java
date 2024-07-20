@@ -34,7 +34,6 @@ public final class IndexerSubsystem extends SubsystemBase {
 
     public void setFeedToShooter(boolean feedToShooter) {
         this.feedToShooter = feedToShooter;
-        SimView.setShooting(feedToShooter);
     }
 
     public boolean hasPiece() {
@@ -77,6 +76,7 @@ public final class IndexerSubsystem extends SubsystemBase {
 
     @Override
     public void periodic() {
+        SimView.setShooting(feedToShooter);
         boolean hasPiece = hasPiece();
         NTData.INDEXER_HAS_PIECE.set(hasPiece);
         boolean intaking = intake.getState() == IntakeSubsystem.State.INTAKE;
