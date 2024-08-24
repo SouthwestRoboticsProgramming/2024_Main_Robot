@@ -8,9 +8,13 @@ import com.swrobotics.robot.logging.SimView;
 
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.motorcontrol.VictorSP;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
 
 public final class IndexerSubsystem extends SubsystemBase {
     private final VictorSP topMotor = new VictorSP(IOAllocation.RIO.PWM_INDEXER_TOP_MOTOR);
@@ -33,10 +37,15 @@ public final class IndexerSubsystem extends SubsystemBase {
     }
 
     public void setFeedToShooter(boolean feedToShooter) {
+        System.out.println("yah");
         this.feedToShooter = feedToShooter;
     }
 
     public boolean hasPiece() {
+        if (RobotBase.isSimulation()) {
+            return false;
+        }
+
         // Beam break is true when not blocked
         return !beamBreak.get();
 //        return !beamBreakDebounce.calculate(beamBreak.get());
@@ -173,5 +182,14 @@ public final class IndexerSubsystem extends SubsystemBase {
     public IndexerSubsystem setAutoReindexEnable(boolean autoReindexEnable) {
         this.autoReindexEnable = autoReindexEnable;
         return this;
+    }
+
+    public Command getFeedCommand() {
+        return Commands.run(() -> setFeedToShooter(true))
+        .until(() -> !hasPiece())
+        .andThen(new WaitCommand(NTData.INDEXER_FEED_ADDITIONAL_TIME.get()))
+        .andThen(Commands.runOnce(() -> setFeedToShooter(false)))
+        .withTimeout(1.0); // Emergency timeout for if the note does not exit the robot
+
     }
 }

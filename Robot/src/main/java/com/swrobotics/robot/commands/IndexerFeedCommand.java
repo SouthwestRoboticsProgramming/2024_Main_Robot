@@ -5,6 +5,7 @@ import com.swrobotics.robot.subsystems.speaker.IndexerSubsystem;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 
+@Deprecated
 public final class IndexerFeedCommand extends Command {
     private final IndexerSubsystem indexer;
     private final Timer timer;

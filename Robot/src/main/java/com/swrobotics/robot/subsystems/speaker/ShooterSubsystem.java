@@ -171,6 +171,8 @@ public final class ShooterSubsystem extends SubsystemBase {
         } else {
             activeMode.set("none");
         }
+
+        afterShootDelay.calculate(indexer.hasPiece());
     }
 
     private void handleSpeaker() {
@@ -180,7 +182,7 @@ public final class ShooterSubsystem extends SubsystemBase {
         Translation2d robotVelocity = velocityTo(target);
 
         AimCalculator.Aim aim = TableAimCalculator.INSTANCE.calculateAim(distToSpeaker, robotVelocity.getX());
-        if (/* afterShootDelay.calculate(indexer.hasPiece()) && */(aim != null)) { // Fixme
+        if (afterShootDelay.calculate(indexer.hasPiece()) && (aim != null)) { // Fixme
             pivot.setTargetAngle(aim.pivotAngle() / MathUtil.TAU);
             flywheel.setTargetVelocity(aim.flywheelVelocity());
             targetAim = aim;
@@ -302,7 +304,6 @@ public final class ShooterSubsystem extends SubsystemBase {
         Translation2d robotVelocity = velocityTo(target);
         double missAmount = flytime.get() * robotVelocity.getY();
 
-        System.out.println(flytime.get());
         double correctionRad = -Math.atan2(missAmount, distanceTo(target)) + Math.toRadians(otherCorrection.get());
         return new Rotation2d(correctionRad);
     }
@@ -320,7 +321,7 @@ public final class ShooterSubsystem extends SubsystemBase {
     }
 
     public Command getSpeakerSnapCommand() {
-        return Commands.defer(() -> getDynamicSnapCommand(getSpeakerPosition(), () -> distanceTo(getSpeakerPosition()) / 10.0, () -> 0.0), Set.of());
+        return Commands.defer(() -> getDynamicSnapCommand(getSpeakerPosition(), () -> distanceTo(getSpeakerPosition()) / 10.0, () -> 0.0), Set.of()).alongWith(new PrintCommand("Shooting"));
     }
 
     public Command getLobAimCommand() {

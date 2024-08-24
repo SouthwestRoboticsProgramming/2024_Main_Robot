@@ -1,8 +1,5 @@
 package com.swrobotics.robot.commands;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.swrobotics.robot.RobotContainer;
 import com.swrobotics.robot.config.NTData;
 import com.swrobotics.robot.subsystems.amp.AmpArm2Subsystem;
@@ -10,7 +7,6 @@ import com.swrobotics.robot.subsystems.speaker.IntakeSubsystem.State;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.ParallelDeadlineGroup;
 
 public final class RobotCommands {
     public static Command justShoot(RobotContainer robot) {
@@ -19,7 +15,7 @@ public final class RobotCommands {
             Commands.waitUntil(robot.shooter::isReadyToShoot)
                 .withTimeout(NTData.SHOOTER_AUTO_READY_TIMEOUT.get()),
             Commands.waitSeconds(NTData.SHOOTER_AUTO_AFTER_READY_DELAY.get()),
-            new IndexerFeedCommand(robot.indexer)
+            robot.indexer.getFeedCommand()
         );
     }
 
@@ -57,7 +53,8 @@ public final class RobotCommands {
         //     cmd = cmd.finallyDo(() -> robot.drive.setEstimatorIgnoreVision(true));
         // }
 
-        cmd = cmd.andThen(new IndexerFeedCommand(robot.indexer));
+        // cmd = cmd.andThen(new IndexerFeedCommand(robot.indexer));
+        cmd = cmd.andThen(robot.indexer.getFeedCommand());
         return cmd;
     }
 
@@ -75,7 +72,7 @@ public final class RobotCommands {
             Commands.waitUntil(() -> robot.shooter.isReadyToShoot())
                     .withTimeout(NTData.SHOOTER_AUTO_READY_TIMEOUT.get()),
                 // Commands.waitSeconds(NTData.SHOOTER_AUTO_AFTER_READY_DELAY.get()),
-                new IndexerFeedCommand(robot.indexer)
+                robot.indexer.getFeedCommand()
         );
     }
 
