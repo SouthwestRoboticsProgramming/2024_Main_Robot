@@ -206,7 +206,8 @@ public class ControlBoard extends SubsystemBase {
 
     private Translation2d getDriveTranslation() {
         // double speed = NTData.DRIVE_SPEED_NORMAL.get();
-        double speed = SwerveDrive.MAX_LINEAR_SPEED;
+//        double speed = SwerveDrive.MAX_LINEAR_SPEED;
+        double speed = 1;
 
         Translation2d leftStick = driver.getLeftStick();
         // double x = -squareWithSign(leftStick.getY()) * speed;
