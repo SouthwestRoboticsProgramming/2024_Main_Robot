@@ -229,7 +229,7 @@ public class ControlBoard extends SubsystemBase {
     }
 
     private double getDriveRotation() {
-        return -squareWithSign(driver.rightStickX.get()) * NTData.TURN_SPEED.get();
+        return -squareWithSign(driver.rightStickX.get()) * NTData.TURN_SPEED.get() * 0.5;
     }
 
     private boolean getRobotRelativeDrive() {
