@@ -63,13 +63,13 @@ public final class InputButton implements InputElement {
      * @param risingFn function to call
      * @return this
      */
-    public InputButton onRising(Runnable risingFn) {
+    public InputButton onPressed(Runnable risingFn) {
         onRising.add(risingFn);
         return this;
     }
 
-    public InputButton onRising(Command command) {
-        onRising(() -> CommandScheduler.getInstance().schedule(command));
+    public InputButton onPressed(Command command) {
+        onPressed(() -> CommandScheduler.getInstance().schedule(command));
         return this;
     }
 
@@ -80,13 +80,13 @@ public final class InputButton implements InputElement {
      * @param fallingFn function to call
      * @return this
      */
-    public InputButton onFalling(Runnable fallingFn) {
+    public InputButton onReleased(Runnable fallingFn) {
         onFalling.add(fallingFn);
         return this;
     }
 
-    public InputButton onFalling(Command command) {
-        onFalling(() -> CommandScheduler.getInstance().schedule(command));
+    public InputButton onReleased(Command command) {
+        onReleased(() -> CommandScheduler.getInstance().schedule(command));
         return this;
     }
 

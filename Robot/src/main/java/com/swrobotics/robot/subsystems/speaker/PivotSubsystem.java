@@ -82,7 +82,7 @@ public final class PivotSubsystem extends SubsystemBase {
         config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
         config.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
         config.HardwareLimitSwitch.ReverseLimitEnable = true;
-        config.HardwareLimitSwitch.ReverseLimitType = ReverseLimitTypeValue.NormallyClosed;
+        config.HardwareLimitSwitch.ReverseLimitType = ReverseLimitTypeValue.NormallyOpen;
 
         motor.getConfigurator().apply(config);
         position = motor.getPosition();
@@ -120,14 +120,15 @@ public final class PivotSubsystem extends SubsystemBase {
     }
 
     public void setIdle() {
-        if (state == State.CALIBRATING)
-            return;
-
-        if (state != State.IDLE && RobotBase.isReal())
-            calibrated = false;
-
-        setTargetAngle(NTData.SHOOTER_PIVOT_IDLE_ANGLE.get() / 360.0);
-        state = State.IDLE;
+        setNeutral();
+//        if (state == State.CALIBRATING)
+//            return;
+//
+//        if (state != State.IDLE && RobotBase.isReal())
+//            calibrated = false;
+//
+//        setTargetAngle(NTData.SHOOTER_PIVOT_IDLE_ANGLE.get() / 360.0);
+//        state = State.IDLE;
     }
 
     public void setNeutral() {
@@ -137,7 +138,6 @@ public final class PivotSubsystem extends SubsystemBase {
         if (state != State.IDLE && RobotBase.isReal())
             calibrated = false;
 
-        motor.setControl(new NeutralOut());
         state = State.IDLE;
     }
 
@@ -154,7 +154,7 @@ public final class PivotSubsystem extends SubsystemBase {
         if (state != State.SHOOTING && !calibrated) {
             motor.setControl(new VoltageOut(-NTData.SHOOTER_PIVOT_CALIBRATE_VOLTS.get()));
             limitSwitch.refresh();
-            boolean atLimit = limitSwitch.getValue() == ReverseLimitValue.Open; // Normally closed
+            boolean atLimit = limitSwitch.getValue() == ReverseLimitValue.ClosedToGround; // Normally open
             limitSw.set(atLimit);
 
             if (atLimit) {
@@ -164,6 +164,10 @@ public final class PivotSubsystem extends SubsystemBase {
                 if (state == State.CALIBRATING)
                     state = State.IDLE;
             }
+        }
+
+        if (state != State.SHOOTING && calibrated) {
+            motor.setControl(new NeutralOut());
         }
     }
 

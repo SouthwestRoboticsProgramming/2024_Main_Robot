@@ -26,7 +26,6 @@ import com.swrobotics.robot.subsystems.swerve.SwerveDrive;
 import com.swrobotics.robot.subsystems.swerve.SwerveDrive.TurnRequest;
 
 import edu.wpi.first.math.filter.Debouncer;
-import edu.wpi.first.math.filter.Debouncer.DebounceType;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -74,7 +73,7 @@ public class ControlBoard extends SubsystemBase {
     private boolean pieceRumble;
 
     // TODO: Maybe auto-adjust based on battery voltage?
-    private static final double MAX_DRIVE_ACCEL = 5.5;                                                                                                                                                       ; // Meters / second^2
+    private static final double MAX_DRIVE_ACCEL = 4.5; // Meters / second^2
     private final DriveAccelFilter driveFilter = new DriveAccelFilter(MAX_DRIVE_ACCEL);
 
     private final Debouncer driverSlowDebounce = new Debouncer(0.075);
@@ -104,8 +103,8 @@ public class ControlBoard extends SubsystemBase {
         // driver.b.onRising(() -> target[0] = robot.drive.getEstimatedPose());
 
         // Configure triggers
-        driver.start.onFalling(() -> robot.drive.setRotation(new Rotation2d()));
-        driver.back.onFalling(() -> robot.drive.setRotation(new Rotation2d())); // Two buttons to reset gyro so the driver can't get confused
+        driver.start.onReleased(() -> robot.drive.setRotation(new Rotation2d()));
+        driver.back.onReleased(() -> robot.drive.setRotation(new Rotation2d())); // Two buttons to reset gyro so the driver can't get confused
 
         // new Trigger(driver.leftBumper::isPressed)
         //         .onTrue(Commands.runOnce(() -> lobbing++))
@@ -149,7 +148,7 @@ public class ControlBoard extends SubsystemBase {
         new Trigger(this::driverWantsSnapCloser).whileTrue(new SnapDistanceCommand(robot.drive, robot.shooter, true));
         new Trigger(this::driverWantsSnapFarther).whileTrue(new SnapDistanceCommand(robot.drive, robot.shooter, false));
         
-        driver.y.onFalling(() -> NTData.SHOOTER_PIVOT_RECALIBRATE.set(true));
+        driver.y.onReleased(() -> NTData.SHOOTER_PIVOT_RECALIBRATE.set(true));
 
 //        Trigger ampTrigger = new Trigger(() -> operator.y.isPressed());
 //        ampTrigger.whileTrue(Commands.run(() -> robot.shooter.setTempAimCalculator(new AmpAimCalculator())));
@@ -157,8 +156,8 @@ public class ControlBoard extends SubsystemBase {
 
 //        Trigger operatorA = new Trigger(operator.a::isPressed);
 //        operatorA.onTrue(Commands.runOnce(() -> robot.intake.set(IntakeSubsystem.State.INTAKE)));
-        operator.a.onRising(() -> robot.intake.set(IntakeSubsystem.State.INTAKE));
-        operator.a.onFalling(() -> robot.intake.set(IntakeSubsystem.State.OFF));
+        operator.a.onPressed(() -> robot.intake.set(IntakeSubsystem.State.INTAKE));
+        operator.a.onReleased(() -> robot.intake.set(IntakeSubsystem.State.OFF));
 //        operatorA.onFalse(Commands.runOnce(() -> robot.intake.set(IntakeSubsystem.State.OFF)));
         robot.intake.set(IntakeSubsystem.State.OFF);
 
@@ -206,8 +205,8 @@ public class ControlBoard extends SubsystemBase {
 
     private Translation2d getDriveTranslation() {
         // double speed = NTData.DRIVE_SPEED_NORMAL.get();
-//        double speed = SwerveDrive.MAX_LINEAR_SPEED;
-        double speed = 1;
+        double speed = SwerveDrive.MAX_LINEAR_SPEED;
+//        double speed = 1;
 
         Translation2d leftStick = driver.getLeftStick();
         // double x = -squareWithSign(leftStick.getY()) * speed;
