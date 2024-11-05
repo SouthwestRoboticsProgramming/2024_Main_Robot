@@ -255,7 +255,7 @@ public final class SwerveDrive extends SubsystemBase {
                 twist.dtheta = gyroAngle.getRadians() - prevGyroAngle.getRadians();
             }
 
-            estimator.update(twist);
+            estimator.update(twist, getFieldRelativeSpeeds());
         }
         prevPositions = positions;
         prevGyroAngle = gyroAngle;

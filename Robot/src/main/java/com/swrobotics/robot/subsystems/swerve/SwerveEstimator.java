@@ -5,6 +5,7 @@ import com.swrobotics.lib.net.NTBoolean;
 import com.swrobotics.lib.net.NTInteger;
 import com.swrobotics.mathlib.MathUtil;
 import com.swrobotics.robot.logging.FieldView;
+import com.swrobotics.robot.subsystems.limelightvision.LimelightVisionInput;
 import com.swrobotics.robot.subsystems.tagtracker.CameraCaptureProperties;
 import com.swrobotics.robot.subsystems.tagtracker.TagTrackerInput;
 import com.swrobotics.robot.utils.GeometryUtil;
@@ -12,6 +13,7 @@ import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.Nat;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.*;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -29,7 +31,8 @@ public final class SwerveEstimator {
 
     private static final double INITIAL_ANGLE_STDDEV = 0.2; // Really trust it for beginning of match
 
-    private final TagTrackerInput tagTracker;
+//    private final TagTrackerInput tagTracker;
+    private final List<LimelightVisionInput> limelights;
 
     private Pose2d basePose, latestPose;
     private final TreeMap<Double, PoseUpdate> updates = new TreeMap<>();
@@ -41,42 +44,47 @@ public final class SwerveEstimator {
     private final NTBoolean seenWhereWeAre = new NTBoolean("Debug/Has Seen Where We Are", false);
 
     public SwerveEstimator(FieldInfo field) {
-        double halfFrameL = 0.77 / 2;
-        double halfFrameW = 0.695 / 2;
-
-        CameraCaptureProperties captureProps = new CameraCaptureProperties()
-                .setExposure(20)
-                .setGain(5);
-
-        tagTracker = new TagTrackerInput(
-                field,
-
-                new TagTrackerInput.CameraInfo(
-                        "limelight",
-                        (camPose) -> {
-                            return camPose
-                                    // Compensate for mounting angle
-//                                    .transformBy(new Transform3d(new Translation3d(), new Rotation3d(Math.PI, Math.toRadians(90-67), 0)))
-                                    .transformBy(new Transform3d(new Translation3d(), new Rotation3d(Math.PI, 0, 0)))
-                                    .transformBy(new Transform3d(new Translation3d(), new Rotation3d(0, Math.toRadians(90-67), 0)))
-                                    // Compensate for mounting position
-                                    .transformBy(new Transform3d(new Translation3d(halfFrameL - 0.046, -halfFrameW + 0.12, 0.19).unaryMinus(), new Rotation3d()));
-                        },
-                        captureProps,
-                        5), // meters
-
-                new TagTrackerInput.CameraInfo(
-                        "zoom",
-                        (camPose) -> {
-                            return camPose
-                                    // Compensate for mounting angle
-                                    .transformBy(new Transform3d(new Translation3d(), new Rotation3d(0, Math.toRadians(16.88), 0)))
-                                    // Compensate for mounting position
-                                    .transformBy(new Transform3d(new Translation3d(halfFrameL - 0.16, halfFrameW - 0.133, 0.39).unaryMinus(), new Rotation3d()));
-                        },
-                        captureProps,
-                        Double.POSITIVE_INFINITY) // Trust at all distances
+        limelights = List.of(
+                // Position (FRU): 0.339 0.2275 0.19
+                // Rotation (RPY): 180 27 0
+                new LimelightVisionInput("limelight")
         );
+//        double halfFrameL = 0.77 / 2;
+//        double halfFrameW = 0.695 / 2;
+//
+//        CameraCaptureProperties captureProps = new CameraCaptureProperties()
+//                .setExposure(20)
+//                .setGain(5);
+//
+//        tagTracker = new TagTrackerInput(
+//                field,
+//
+//                new TagTrackerInput.CameraInfo(
+//                        "limelight",
+//                        (camPose) -> {
+//                            return camPose
+//                                    // Compensate for mounting angle
+////                                    .transformBy(new Transform3d(new Translation3d(), new Rotation3d(Math.PI, Math.toRadians(90-67), 0)))
+//                                    .transformBy(new Transform3d(new Translation3d(), new Rotation3d(Math.PI, 0, 0)))
+//                                    .transformBy(new Transform3d(new Translation3d(), new Rotation3d(0, Math.toRadians(90-67), 0)))
+//                                    // Compensate for mounting position
+//                                    .transformBy(new Transform3d(new Translation3d(halfFrameL - 0.046, -halfFrameW + 0.12, 0.19).unaryMinus(), new Rotation3d()));
+//                        },
+//                        captureProps,
+//                        5), // meters
+//
+//                new TagTrackerInput.CameraInfo(
+//                        "zoom",
+//                        (camPose) -> {
+//                            return camPose
+//                                    // Compensate for mounting angle
+//                                    .transformBy(new Transform3d(new Translation3d(), new Rotation3d(0, Math.toRadians(16.88), 0)))
+//                                    // Compensate for mounting position
+//                                    .transformBy(new Transform3d(new Translation3d(halfFrameL - 0.16, halfFrameW - 0.133, 0.39).unaryMinus(), new Rotation3d()));
+//                        },
+//                        captureProps,
+//                        Double.POSITIVE_INFINITY) // Trust at all distances
+//        );
 
         latestPose = new Pose2d();
         basePose = new Pose2d();
@@ -110,7 +118,7 @@ public final class SwerveEstimator {
 
     private double enabledTimestamp = Double.NaN;
 
-    public void update(Twist2d driveTwist) {
+    public void update(Twist2d driveTwist, ChassisSpeeds driveMotion) {
         // Trust vision angle estimates for 5 seconds at start of teleop
         boolean trustTurnMore = false;
         if (DriverStation.isTeleopEnabled() && !DriverStation.isFMSAttached()) {
@@ -127,17 +135,22 @@ public final class SwerveEstimator {
 
         // Sample vision data before updating drive so the drive is guaranteed
         // to be the most recent update
-        List<TagTrackerInput.VisionUpdate> visionData = tagTracker.getNewUpdates();
+        List<TagTrackerInput.VisionUpdate> visionData = new ArrayList<>();
+        for (LimelightVisionInput limelight : limelights) {
+            limelight.updateRobotState(latestPose.getRotation().getDegrees(), driveMotion);
+            limelight.getNewUpdates(visionData);
+        }
+//        List<TagTrackerInput.VisionUpdate> visionData = tagTracker.getNewUpdates();
         updates.put(Timer.getFPGATimestamp(), new PoseUpdate(driveTwist, new ArrayList<>()));
 
         numberOfVisionUpdates.set(numberOfVisionUpdates.get() + visionData.size());
         seenWhereWeAre.set(hasSeenWhereWeAre());
 
-        List<Pose2d> tagPoses = new ArrayList<>();
-        for (Pose3d tagPose3d : tagTracker.getEnvironment().getAllPoses()) {
-            tagPoses.add(tagPose3d.toPose2d());
-        }
-        FieldView.aprilTagPoses.setPoses(tagPoses);
+//        List<Pose2d> tagPoses = new ArrayList<>();
+//        for (Pose3d tagPose3d : tagTracker.getEnvironment().getAllPoses()) {
+//            tagPoses.add(tagPose3d.toPose2d());
+//        }
+//        FieldView.aprilTagPoses.setPoses(tagPoses);
 
         if (ignoreVision) {
             update(false);
