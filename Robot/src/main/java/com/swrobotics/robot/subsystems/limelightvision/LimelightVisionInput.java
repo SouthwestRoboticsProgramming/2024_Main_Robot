@@ -1,5 +1,6 @@
 package com.swrobotics.robot.subsystems.limelightvision;
 
+import com.swrobotics.lib.net.NTDouble;
 import com.swrobotics.lib.net.NTInteger;
 import com.swrobotics.mathlib.MathUtil;
 import com.swrobotics.robot.subsystems.tagtracker.TagTrackerInput;
@@ -10,12 +11,18 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import java.util.List;
 
 public class LimelightVisionInput {
-    private static final double XY_STD_DEV_COEFF = 0.01;
-    private static final double THETA_STD_DEV_COEFF = 0.04;
+    private static final double MT1_XY_STD_DEV_COEFF = 0.00197;
+    private static final double MT2_XY_STD_DEV_COEFF = 0.00117;
+    private static final double THETA_STD_DEV_COEFF = 0.002;
+
+    private static final double MT1_MAX_DISTANCE = 4;
 
     // Set to non-zero to override MegaTag version
     public static final NTInteger kMegaTagVersion = new NTInteger("MegaTag Version", 0);
     public static final NTInteger kMegaTagVersionOverride = new NTInteger("MegaTag Version Override", 0);
+
+    private final NTDouble kLogAvgTagDist = new NTDouble("M Average Tag Distance", 0);
+    private final NTInteger kLogTagCount = new NTInteger("M Tag Count", 0);
 
     private final String name;
     private double prevUpdateTimestamp;
@@ -35,22 +42,18 @@ public class LimelightVisionInput {
         useMegaTag2 = driveMotion.vxMetersPerSecond >= 0.2 || driveMotion.vyMetersPerSecond >= 0.2;
     }
 
-    public void getNewUpdates(List<TagTrackerInput.VisionUpdate> updatesOut) {
-        boolean useMegaTag2 = this.useMegaTag2;
-        if (kMegaTagVersionOverride.get() != 0) {
-            useMegaTag2 = kMegaTagVersionOverride.get() == 2;
-        }
-        kMegaTagVersion.set(useMegaTag2 ? 2 : 1);
-
+    private void getNewUpdates(boolean useMegaTag2, List<TagTrackerInput.VisionUpdate> updatesOut) {
         LimelightHelpers.PoseEstimate est;
         if (useMegaTag2) {
             est = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(name);
         } else {
             est = LimelightHelpers.getBotPoseEstimate_wpiBlue(name);
         }
+        if (est == null)
+            return;
 
         int tagCount = est.tagCount;
-        if (tagCount <= 0)
+        if (tagCount <= 0 || (est.pose.getX() == 0 && est.pose.getY() == 0))
             return;
 
         double timestamp = est.timestampSeconds;
@@ -61,8 +64,19 @@ public class LimelightVisionInput {
         Pose2d robotPose = est.pose;
         double avgTagDist = est.avgTagDist;
 
+        // If too far away, fall back to MegaTag 2 estimation
+        if (!useMegaTag2 && avgTagDist > MT1_MAX_DISTANCE) {
+            getNewUpdates(true, updatesOut);
+            return;
+        }
+
+        kMegaTagVersion.set(useMegaTag2 ? 2 : 1);
+
         // Copied from TagTrackerInput
-        double xyStdDev = XY_STD_DEV_COEFF * MathUtil.square(avgTagDist) / tagCount;
+        kLogAvgTagDist.set(avgTagDist);
+        kLogTagCount.set(tagCount);
+
+        double xyStdDev = MT1_XY_STD_DEV_COEFF * MathUtil.square(avgTagDist) / tagCount;
         double thetaStdDev = THETA_STD_DEV_COEFF * MathUtil.square(avgTagDist) / tagCount;
 
         // Don't trust MT2 theta at all, it's just gyro theta but with latency
@@ -70,5 +84,14 @@ public class LimelightVisionInput {
             thetaStdDev = 99999999999999.0;
         updatesOut.add(new TagTrackerInput.VisionUpdate(
                 timestamp, robotPose, VecBuilder.fill(xyStdDev, xyStdDev, thetaStdDev)));
+    }
+
+    public void getNewUpdates(List<TagTrackerInput.VisionUpdate> updatesOut) {
+        boolean useMegaTag2 = this.useMegaTag2;
+        if (kMegaTagVersionOverride.get() != 0) {
+            useMegaTag2 = kMegaTagVersionOverride.get() == 2;
+        }
+
+        getNewUpdates(useMegaTag2, updatesOut);
     }
 }
