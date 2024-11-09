@@ -143,7 +143,7 @@ public class ControlBoard extends SubsystemBase {
                 .debounce(0.1)
                 .whileTrue(Commands.run(() -> robot.drive.turn(new TurnRequest(SwerveDrive.DRIVER_PRIORITY + 1, new Rotation2d(11.0)))));
         // Just angle amp
-        new Trigger(() -> driver.a.isPressed()).whileTrue(new AmpAlignCommand(robot.drive).alongWith()); // FIXME: Make the bar go up too
+        // new Trigger(() -> driver.a.isPressed()).whileTrue(new AmpAlignCommand(robot.drive).alongWith()); // FIXME: Make the bar go up too
 
         // Up is closer, down is farther
         new Trigger(this::driverWantsSnapCloser).whileTrue(new SnapDistanceCommand(robot.drive, robot.shooter, true));
@@ -151,20 +151,11 @@ public class ControlBoard extends SubsystemBase {
         
         driver.y.onFalling(() -> NTData.SHOOTER_PIVOT_RECALIBRATE.set(true));
 
-//        Trigger ampTrigger = new Trigger(() -> operator.y.isPressed());
-//        ampTrigger.whileTrue(Commands.run(() -> robot.shooter.setTempAimCalculator(new AmpAimCalculator())));
-//        ampTrigger.onFalse(new ShootCommand(robot));
-
-//        Trigger operatorA = new Trigger(operator.a::isPressed);
-//        operatorA.onTrue(Commands.runOnce(() -> robot.intake.set(IntakeSubsystem.State.INTAKE)));
-        operator.a.onRising(() -> robot.intake.set(IntakeSubsystem.State.INTAKE));
-        operator.a.onFalling(() -> robot.intake.set(IntakeSubsystem.State.OFF));
-//        operatorA.onFalse(Commands.runOnce(() -> robot.intake.set(IntakeSubsystem.State.OFF)));
+        driver.a.onRising(() -> robot.intake.set(IntakeSubsystem.State.INTAKE));
+        driver.a.onFalling(() -> robot.intake.set(IntakeSubsystem.State.OFF));
         robot.intake.set(IntakeSubsystem.State.OFF);
 
-//        operator.a.onFalling(() -> robot.intake.set(IntakeSubsystem.State.INTAKE));
-//        operator.a.onRising(() -> robot.intake.set(IntakeSubsystem.State.OFF));
-        new Trigger(() -> robot.indexer.hasPiece() || !operator.a.isPressed())
+        new Trigger(() -> robot.indexer.hasPiece() || !driver.a.isPressed())
                 .onTrue(Commands.runOnce(() -> robot.intake.set(IntakeSubsystem.State.OFF)));
 
         new Trigger(() -> CHARACTERISE_WHEEL_RADIUS.get()).whileTrue(new CharactarizeWheelCommand(robot.drive));
@@ -206,7 +197,8 @@ public class ControlBoard extends SubsystemBase {
 
     private Translation2d getDriveTranslation() {
         // double speed = NTData.DRIVE_SPEED_NORMAL.get();
-        double speed = SwerveDrive.MAX_LINEAR_SPEED;
+        // double speed = SwerveDrive.MAX_LINEAR_SPEED;
+        double speed = 2.0; // m/s
 
         Translation2d leftStick = driver.getLeftStick();
         // double x = -squareWithSign(leftStick.getY()) * speed;
@@ -269,7 +261,7 @@ public class ControlBoard extends SubsystemBase {
             return;
         }
 
-        if (!operator.a.isPressed())
+        if (!driver.a.isPressed())
             robot.intake.set(IntakeSubsystem.State.OFF);
 
         boolean forceToSubwoofer = forceSubwooferDebounce.calculate(driver.dpad.left.isPressed());
@@ -321,7 +313,7 @@ public class ControlBoard extends SubsystemBase {
                 DriveRequestType.Velocity);
 
         // Indexer uses the intake state also
-        boolean operatorWantsShoot = shootDebounce.calculate(operator.b.isPressed());
+        boolean operatorWantsShoot = shootDebounce.calculate(driver.b.isPressed());
         robot.indexer.setFeedToShooter(operatorWantsShoot);
 
 
